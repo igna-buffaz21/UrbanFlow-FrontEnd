@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { CreateUserDto, UpdateUserStatusDto, User } from "../types/user.types";
+import type { CreateUserDto, UpdateUserStatusDto, User } from "./types/user.types";
 
 export const userService = {
   async getUsers() {
