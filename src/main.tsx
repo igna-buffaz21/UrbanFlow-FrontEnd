@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./modules/auth/auth.context";
 
 import "./index.css";
+import { ThemeProvider } from "./components/theme-provider";
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -20,9 +21,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <BrowserRouter>
         <AuthProvider>
-          <TooltipProvider>
-            <App />
-          </TooltipProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="urbanflow-theme">
+            <TooltipProvider>
+              <App />
+            </TooltipProvider>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </ClerkProvider>

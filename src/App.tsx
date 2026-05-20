@@ -18,6 +18,7 @@ import AppLayout from "./components/layout/appLayout";
 import AppHomePage from "./modules/home/pages/appHome.page";
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
+import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -91,7 +92,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<AppHomePage />} />
+        <Route index element={<ShowIncidents />} />
         
       </Route>
     </Routes>
