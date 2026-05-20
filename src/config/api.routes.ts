@@ -11,10 +11,12 @@ export const API_ROUTES = {
   },
 
   municipalities: {
-    list: "/municipalities",
-    detail: (id: string) => `/municipalities/${id}`,
-    create: "/municipalities",
-    update: (id: string) => `/municipalities/${id}`,
+    getMunicipalities: "/municipalities",
+    createMunicipality: "/municipalities",
+  },
+
+  districts: {
+    getDistricts: "/districts",
   },
 
   incidents: {

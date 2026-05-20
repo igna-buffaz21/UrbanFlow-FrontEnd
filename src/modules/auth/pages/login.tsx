@@ -7,6 +7,8 @@ import type { AuthUserResponse } from "../auth.types";
 
 import { getRedirectPathByRole } from "../auth.utils";
 
+import { useRef } from "react";
+
 function LoginPage() {
   const navigate = useNavigate();
 
@@ -25,10 +27,15 @@ function LoginPage() {
     navigate("/login", { replace: true });
   }
 
+  const hasLoadedUser = useRef(false);
+
   useEffect(() => {
     async function loadAuthenticatedUser() {
       if (!isLoaded) return;
       if (!isSignedIn) return;
+      if (hasLoadedUser.current) return;
+
+      hasLoadedUser.current = true;
 
       try {
         setIsLoadingUserData(true);
@@ -38,18 +45,17 @@ function LoginPage() {
 
         setUserData(user);
 
-        console.log("Usuario autenticado en backend:", user);
-
         const redirectPath = getRedirectPathByRole(user.role);
 
         navigate(redirectPath, { replace: true });
-
       } catch (err) {
         console.error("Error al obtener el usuario autenticado:", err);
 
         setError(
           "No pudimos obtener los datos del usuario. Verificá que tu cuenta esté habilitada."
         );
+
+        hasLoadedUser.current = false;
       } finally {
         setIsLoadingUserData(false);
       }

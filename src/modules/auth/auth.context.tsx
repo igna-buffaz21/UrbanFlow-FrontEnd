@@ -1,4 +1,4 @@
-// src/modules/auth/context/AuthContext.tsx
+// src/modules/auth/auth.context.tsx
 
 import {
   createContext,
@@ -27,8 +27,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    console.log("AuthProvider montado");
+  }, []);
+
   async function refreshUser() {
-    if (!isLoaded || !isSignedIn) {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
       setUser(null);
       setIsLoading(false);
       return;
@@ -36,7 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsLoading(true);
+
       const authUser = await authService.getAuth();
+
       setUser(authUser);
     } catch (error) {
       console.error("Error obteniendo usuario autenticado:", error);
@@ -51,6 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
+    if (user) {
+      setIsLoading(false);
+      return;
+    }
+
     refreshUser();
   }, [isLoaded, isSignedIn]);
 

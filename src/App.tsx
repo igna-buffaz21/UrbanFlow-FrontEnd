@@ -16,6 +16,8 @@ import { InactiveAccountPage } from "./modules/auth/pages/inactiveAccount.page";
 import { USER_ROLES } from "./config/const.globs";
 import AppLayout from "./components/layout/appLayout";
 import AppHomePage from "./modules/home/pages/appHome.page";
+import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
+import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -62,6 +64,23 @@ function App() {
         <Route index element={<HomePage />} />
 
         <Route path={APP_ROUTES.panel.users} element={<ShowUsers />} />
+
+          <Route
+            path={APP_ROUTES.panel.municipalities}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                <ShowMunicipalitiesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={APP_ROUTES.panel.createMunicipality}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                <CreateMunicipality />
+              </ProtectedRoute>
+            }
+          />
       </Route>
 
       <Route

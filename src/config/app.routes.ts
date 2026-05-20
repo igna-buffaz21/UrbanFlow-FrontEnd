@@ -10,6 +10,7 @@ export const APP_ROUTES = {
     users: "/panel/users",
     incidents: "/panel/incidents",
     municipalities: "/panel/municipalities",
+    createMunicipality: "/panel/municipalities/create",
   },
 
   operator: {
