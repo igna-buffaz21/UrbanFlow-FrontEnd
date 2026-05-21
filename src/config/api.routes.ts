@@ -3,11 +3,10 @@ export const API_ROUTES = {
     me: "/auth/me",
   },
   users: {
-    list: "/users",
-    detail: (id: string) => `/users/${id}`,
-    create: "/users",
-    update: (id: string) => `/users/${id}`,
-    delete: (id: string) => `/users/${id}`,
+    getUsers: "/users",
+    getUserById: (id: string) => `/users/${id}`,
+    inviteUser: "/users/invite",
+
   },
 
   municipalities: {

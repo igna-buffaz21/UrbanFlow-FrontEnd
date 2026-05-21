@@ -72,17 +72,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Usuarios",
-      url: "/panel/users",
+      url: APP_ROUTES.panel.users,
       icon: <TerminalSquareIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
       items: [
         {
           title: "Visualizar",
-          url: "/panel/users",
+          url: APP_ROUTES.panel.users,
         },
         {
           title: "Crear",
-          url: "/panel/users",
+          url: APP_ROUTES.panel.createUser,
         },
       ],
     },

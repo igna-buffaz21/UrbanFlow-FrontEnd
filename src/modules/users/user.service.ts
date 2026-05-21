@@ -1,9 +1,10 @@
 import { api } from "@/lib/axios";
-import type { CreateUserDto, UpdateUserStatusDto, User } from "./types/user.types";
+import type { CreateUserDto, User } from "./user.types";
+import { API_ROUTES } from "@/config/api.routes";
 
 export const userService = {
   async getUsers() {
-    const response = await api.get<User[]>("/users");
+    const response = await api.get<User[]>(API_ROUTES.users.getUsers);
     return response.data;
   },
 
@@ -12,18 +13,9 @@ export const userService = {
     return response.data;
   },
 
-  async createUser(data: CreateUserDto) {
-    const response = await api.post<User>("/users", data);
+  async inviteUser(data: CreateUserDto) : Promise<any> {
+    const response = await api.post(API_ROUTES.users.inviteUser, data);
     return response.data;
-  },
+  }
 
-  async updateUserStatus(id: string, data: UpdateUserStatusDto) {
-    const response = await api.patch<User>(`/users/${id}/status`, data);
-    return response.data;
-  },
-
-  async deleteUser(id: string) {
-    const response = await api.delete(`/users/${id}`);
-    return response.data;
-  },
 };

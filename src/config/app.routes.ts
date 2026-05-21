@@ -1,6 +1,7 @@
 export const APP_ROUTES = {
   auth: {
     login: "/login",
+    aceptInvitation: "/accept-invitation",
     unauthorized: "/unauthorized",
     inactive: "/inactive",
   },
@@ -8,6 +9,7 @@ export const APP_ROUTES = {
   panel: {
     root: "/panel",
     users: "/panel/users",
+    createUser: "/panel/users/create",
     incidents: "/panel/incidents",
     municipalities: "/panel/municipalities",
     createMunicipality: "/panel/municipalities/create",

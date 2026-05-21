@@ -6,7 +6,7 @@ import { ProtectedRoute } from "./lib/protectedRoute";
 
 import LoginPage from "./modules/auth/pages/login";
 import { setupApiInterceptors } from "./lib/interceptor";
-import ShowUsers from "./modules/users/pages/showUsers.page";
+import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
 import { APP_ROUTES } from "./config/app.routes";
 import HomePage from "./modules/home/pages/Panelhome.page";
 import PanelLayout from "./components/layout/panelLayout";
@@ -19,6 +19,8 @@ import AppHomePage from "./modules/home/pages/appHome.page";
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
 import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
+import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
+import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -44,6 +46,8 @@ function App() {
 
       <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
 
+      <Route path={APP_ROUTES.auth.aceptInvitation} element={<AcceptInvitationPage />} />
+
       <Route
         path={APP_ROUTES.auth.unauthorized}
         element={<UnauthorizedPage />}
@@ -64,7 +68,7 @@ function App() {
       >
         <Route index element={<HomePage />} />
 
-        <Route path={APP_ROUTES.panel.users} element={<ShowUsers />} />
+        <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
           <Route
             path={APP_ROUTES.panel.municipalities}
@@ -74,6 +78,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path={APP_ROUTES.panel.createMunicipality}
             element={
@@ -82,6 +87,26 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path={APP_ROUTES.panel.createUser}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                <CreateUsersPage />
+              </ProtectedRoute>
+            }
+          />
+      </Route>
+
+      <Route
+        path={APP_ROUTES.operator.root}
+        element={
+          <ProtectedRoute allowedRoles={[USER_ROLES.OPERATOR]}>
+            <PanelLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<HomePage />} />
       </Route>
 
       <Route

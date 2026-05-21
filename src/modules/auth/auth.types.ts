@@ -7,4 +7,5 @@ export interface AuthUserResponse {
   photoUrl: string;
   role: "superadmin" | "admin" | "operator" | "citizen";
   status: "active" | "inactive";
+  municipalityId?: string;
 }
