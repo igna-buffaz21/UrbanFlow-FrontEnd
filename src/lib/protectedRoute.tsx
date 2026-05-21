@@ -6,6 +6,8 @@ import { APP_ROUTES } from "@/config/app.routes";
 import { useAuthUser } from "@/modules/auth/auth.context";
 import type { AuthUserResponse } from "@/modules/auth/auth.types";
 
+import { AppLoading } from "@/components/app-loading";
+
 type UserRole = AuthUserResponse["role"];
 
 type ProtectedRouteProps = {
@@ -20,7 +22,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   const { user, isLoading } = useAuthUser();
 
   if (!isLoaded || isLoading) {
-    return <div>Cargando...</div>;
+    return (
+      <AppLoading
+        title="Cargando información"
+        description="Estamos validando tus permisos..."
+      />
+    );
   }
 
   if (!isSignedIn) {

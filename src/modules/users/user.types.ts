@@ -16,6 +16,21 @@ export interface User {
     updatedAt: Date;
 }
 
+export interface GetUser {
+  id: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  name: string;
+  photoUrl: string;
+  municipality: UserMunicipality | null;
+}
+
+export interface UserMunicipality {
+  id: string;
+  name: string;
+}
+
 export interface CreateUserDto {
   email: string;
   role: UserRole;

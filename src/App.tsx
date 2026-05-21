@@ -15,12 +15,12 @@ import { InactiveAccountPage } from "./modules/auth/pages/inactiveAccount.page";
 
 import { USER_ROLES } from "./config/const.globs";
 import AppLayout from "./components/layout/appLayout";
-import AppHomePage from "./modules/home/pages/appHome.page";
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
 import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
+import { AppLoading } from "./components/app-loading";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -37,8 +37,12 @@ function App() {
   }, [isLoaded, getToken]);
 
   if (!isLoaded || !isApiReady) {
-    return <div>Cargando...</div>;
-  }
+    return (
+      <AppLoading
+        title="Cargando aplicación"
+        description="Estamos validando tu sesión..."
+      />
+    );  }
 
   return (
     <Routes>

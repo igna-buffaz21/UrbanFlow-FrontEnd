@@ -34,6 +34,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuthUser } from "@/modules/auth/auth.context";
+import type { GetUser } from "../user.types";
 
 type UserStatus = "active" | "inactive";
 
@@ -48,14 +50,17 @@ type User = {
 };
 
 export function ShowUsersPage() {
+  const { user } = useAuthUser()
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("todos");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<GetUser[]>([]);
+  
 
   const filtered = users.filter((user) => {
     const matchSearch =
       user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.municipality.name.toLowerCase().includes(search.toLowerCase());
+      user.municipality?.name.toLowerCase().includes(search.toLowerCase());
 
     const matchStatus = status === "todos" || user.status === status;
 
@@ -63,17 +68,31 @@ export function ShowUsersPage() {
   });
 
   useEffect(() => {
-    /*async function loadUsers() {
+    async function getUsers() {
       try {
-        const response = await userService.getUsers();
-        setUsers(response);
+        if (!user) return;
+
+        if (user.role === "superadmin") {
+          const response = await userService.getAdmins();
+          setUsers(response);
+          return;
+        }
+
+        if (user.role === "admin") {
+          const response = await userService.getOperators();
+          setUsers(response);
+          return;
+        }
+
+        setUsers([]);
       } catch (error) {
         console.error("Error al cargar usuarios:", error);
+        setUsers([]);
       }
-    }*/
+    }
 
-    //loadUsers();
-  }, []);
+    getUsers();
+  }, [user]);
 
   return (
     <div className="flex justify-center p-6">
@@ -142,7 +161,7 @@ export function ShowUsersPage() {
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {user.municipality.name}
+                          {user.municipality?.name}
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">

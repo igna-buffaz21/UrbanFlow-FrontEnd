@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { CreateUserDto, User } from "./user.types";
+import type { CreateUserDto, GetUser, User } from "./user.types";
 import { API_ROUTES } from "@/config/api.routes";
 
 export const userService = {
@@ -16,6 +16,35 @@ export const userService = {
   async inviteUser(data: CreateUserDto) : Promise<any> {
     const response = await api.post(API_ROUTES.users.inviteUser, data);
     return response.data;
-  }
+  },
 
+  async getAdmins(): Promise<GetUser[]> {
+    const response = await api.get(API_ROUTES.users.getUsers, {
+      params: {
+        role: "admin",
+      },
+    });
+
+    return response.data;
+  },
+
+  async getOperators(): Promise<GetUser[]> {
+    const response = await api.get(API_ROUTES.users.getUsers, {
+      params: {
+        role: "operator",
+      },
+    });
+
+    return response.data;
+  },
+
+  async getCitizens(): Promise<User[]> {
+    const response = await api.get(API_ROUTES.users.getUsers, {
+      params: {
+        role: "citizen",
+      },
+    });
+
+    return response.data;
+  }
 };
