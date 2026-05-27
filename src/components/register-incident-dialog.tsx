@@ -1,4 +1,3 @@
-import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,256 +9,301 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { AlertTriangle, ImageIcon, LocateFixed, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertTriangle,
-  Camera,
-  MapPin,
-  X,
-  Flame,
-  Zap,
-  Droplets,
-  ShieldAlert,
-  Car,
-  HelpCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  IncidentLocationPickerMap,
+  type MapCenter,
+} from "./incident-picker"
+import { incidentsService } from "@/modules/incidents/incidents.service";
 
-const INCIDENT_TYPES = [
-  { value: "fire", label: "Incendio", icon: Flame, color: "text-orange-500" },
-  { value: "electrical", label: "Falla eléctrica", icon: Zap, color: "text-yellow-500" },
-  { value: "flood", label: "Inundación", icon: Droplets, color: "text-blue-500" },
-  { value: "security", label: "Seguridad", icon: ShieldAlert, color: "text-red-500" },
-  { value: "accident", label: "Accidente vial", icon: Car, color: "text-purple-500" },
-  { value: "other", label: "Otro", icon: HelpCircle, color: "text-muted-foreground" },
-];
-
-const SEVERITY_LEVELS = [
-  { value: "low", label: "Bajo", className: "border-green-500 text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-950 dark:text-green-400" },
-  { value: "medium", label: "Medio", className: "border-yellow-500 text-yellow-600 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950 dark:text-yellow-400" },
-  { value: "high", label: "Alto", className: "border-red-500 text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:text-red-400" },
-];
-
-interface RegisterIncidentDialogProps {
+type CreateIncidentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
+  defaultLocation: MapCenter | null;
+  onCreated?: () => void;
+};
 
-export function RegisterIncidentDialog({ open, onOpenChange }: RegisterIncidentDialogProps) {
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
+type CreateIncidentLocation = {
+  type: "Point";
+  coordinates: MapCenter;
+};
+
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
+
+export function CreateIncidentDialog({
+  open,
+  onOpenChange,
+  defaultLocation,
+  onCreated,
+}: CreateIncidentDialogProps) {
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [address, setAddress] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedLocation, setSelectedLocation] = useState<MapCenter | null>(
+    defaultLocation
+  );
+  const [image, setImage] = useState<File | null>(null);
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    const newPhotos = files.slice(0, 3 - photos.length).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setPhotos((prev) => [...prev, ...newPhotos].slice(0, 3));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (defaultLocation) {
+      setSelectedLocation(defaultLocation);
+    }
+  }, [open, defaultLocation]);
+
+  const imagePreviewUrl = useMemo(() => {
+    if (!image) return null;
+
+    return URL.createObjectURL(image);
+  }, [image]);
+
+  const isValid = Boolean(
+    title.trim() &&
+      description.trim() &&
+      selectedLocation &&
+      image &&
+      ACCEPTED_IMAGE_TYPES.includes(image.type)
+  );
+
+  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setImage(null);
+      return;
+    }
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setImage(null);
+      setErrorMessage("La imagen debe ser JPG, PNG, WEBP, HEIC o HEIF.");
+      return;
+    }
+
+    setErrorMessage(null);
+    setImage(file);
   }
 
-  function removePhoto(index: number) {
-    setPhotos((prev) => {
-      URL.revokeObjectURL(prev[index].preview);
-      return prev.filter((_, i) => i !== index);
-    });
+  function handleUseCurrentLocation() {
+    if (!defaultLocation) {
+      setErrorMessage("No se pudo obtener tu ubicación actual.");
+      return;
+    }
+
+    setSelectedLocation(defaultLocation);
+    setErrorMessage(null);
   }
 
-  function handleSubmit() {
-    // lógica de envío aquí
-    onOpenChange(false);
-  }
-
-  function handleClose() {
-    setSelectedType(null);
-    setSelectedSeverity(null);
-    setPhotos([]);
+  function resetForm() {
+    setTitle("");
     setDescription("");
-    setAddress("");
-    onOpenChange(false);
+    setSelectedLocation(defaultLocation);
+    setImage(null);
+    setErrorMessage(null);
   }
 
-  const isValid = selectedType && selectedSeverity && description.trim().length > 0;
+  async function handleSubmit() {
+    if (!selectedLocation || !image) return;
+
+    try {
+      setIsSubmitting(true);
+      setErrorMessage(null);
+
+      const location: CreateIncidentLocation = {
+        type: "Point",
+        coordinates: selectedLocation,
+      };
+
+      const formData = new FormData();
+
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("location", JSON.stringify(location));
+      formData.append("image", image);
+
+      await incidentsService.createIncident(formData);
+
+      resetForm();
+      onOpenChange(false);
+      onCreated?.();
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("No se pudo reportar el incidente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleOpenChange(value: boolean) {
+    onOpenChange(value);
+
+    if (!value) {
+      resetForm();
+    }
+  }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md w-[calc(100vw-2rem)] rounded-2xl p-0 gap-0 overflow-hidden">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Reportar incidente</DialogTitle>
+        </DialogHeader>
 
-        {/* Header con acento visual */}
-        <div className="bg-destructive/5 border-b px-5 pt-5 pb-4">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2.5 text-base">
-              <div className="bg-destructive/10 p-1.5 rounded-lg">
-                <AlertTriangle className="size-4 text-destructive" />
-              </div>
-              Registrar incidente
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              Completá los datos para reportar un incidente en tu zona.
-            </p>
-          </DialogHeader>
-        </div>
-
-        <div className="overflow-y-auto max-h-[70vh] px-5 py-4 space-y-5">
-
-          {/* Tipo de incidente */}
+        <div className="space-y-5">
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Tipo de incidente <span className="text-destructive">*</span>
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {INCIDENT_TYPES.map(({ value, label, icon: Icon, color }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setSelectedType(value)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 p-2.5 rounded-xl border text-center transition-all duration-150",
-                    selectedType === value
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-muted-foreground/40 hover:bg-muted/40"
-                  )}
-                >
-                  <Icon className={cn("size-5", selectedType === value ? "text-primary" : color)} />
-                  <span className="text-[11px] font-medium leading-tight">{label}</span>
-                </button>
-              ))}
-            </div>
+            <Label htmlFor="title">Título</Label>
+
+            <Input
+              id="title"
+              placeholder="Ej: Bache profundo en la calle"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
           </div>
 
-          <Separator />
-
-          {/* Severidad */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Nivel de severidad <span className="text-destructive">*</span>
-            </Label>
-            <div className="flex gap-2">
-              {SEVERITY_LEVELS.map(({ value, label, className }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setSelectedSeverity(value)}
-                  className={cn(
-                    "flex-1 py-2 rounded-lg border-2 text-xs font-semibold transition-all duration-150",
-                    selectedSeverity === value
-                      ? className
-                      : "border-border text-muted-foreground hover:bg-muted/40"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+            <Label htmlFor="description">Descripción</Label>
 
-          <Separator />
-
-          {/* Descripción */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Descripción <span className="text-destructive">*</span>
-            </Label>
             <Textarea
               id="description"
-              placeholder="Describí brevemente qué está pasando..."
-              className="resize-none min-h-[80px] text-sm rounded-xl"
+              placeholder="Describí brevemente qué ocurrió o cuál es el problema."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={300}
+              onChange={(event) => setDescription(event.target.value)}
+              className="min-h-24 resize-none"
             />
-            <p className="text-right text-[11px] text-muted-foreground">{description.length}/300</p>
           </div>
 
-          {/* Dirección aproximada */}
-          <div className="space-y-2">
-            <Label htmlFor="address" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Dirección aproximada
-            </Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <Input
-                id="address"
-                placeholder="Ej: Av. Corrientes 1234"
-                className="pl-8 text-sm rounded-xl"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <Label>Ubicación del incidente</Label>
+
+                <p className="text-xs text-muted-foreground">
+                  Mové el marcador rojo hasta el punto exacto.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleUseCurrentLocation}
+                className="gap-2"
+              >
+                <LocateFixed className="size-4" />
+                Mi ubicación
+              </Button>
             </div>
-          </div>
 
-          {/* Fotos */}
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Fotos <span className="text-muted-foreground font-normal normal-case">(máx. 3)</span>
-            </Label>
-            <div className="flex gap-2 flex-wrap">
-              {photos.map((photo, i) => (
-                <div key={i} className="relative size-20 rounded-xl overflow-hidden border">
-                  <img src={photo.preview} alt="" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(i)}
-                    className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 hover:bg-black/80 transition-colors"
-                  >
-                    <X className="size-3 text-white" />
-                  </button>
+            {selectedLocation ? (
+              <>
+                <IncidentLocationPickerMap
+                  value={selectedLocation}
+                  onChange={setSelectedLocation}
+                />
+
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="rounded-full border px-2 py-1">
+                    Lat: {selectedLocation[1].toFixed(6)}
+                  </span>
+
+                  <span className="rounded-full border px-2 py-1">
+                    Lng: {selectedLocation[0].toFixed(6)}
+                  </span>
                 </div>
-              ))}
+              </>
+            ) : (
+              <div className="flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center">
+                <MapPin className="mb-2 size-6 text-muted-foreground" />
 
-              {photos.length < 3 && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="size-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-150"
-                >
-                  <Camera className="size-5" />
-                  <span className="text-[10px] font-medium">Agregar</span>
-                </button>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              capture="environment"
-              className="hidden"
-              onChange={handlePhotoChange}
-            />
+                <p className="text-sm font-medium text-foreground">
+                  No hay ubicación seleccionada
+                </p>
+
+                <p className="text-xs text-muted-foreground">
+                  Permití la ubicación o seleccioná una manualmente.
+                </p>
+              </div>
+            )}
           </div>
 
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="image">Imagen</Label>
+
+            <Input
+              id="image"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+              onChange={handleImageChange}
+            />
+
+            <p className="text-xs text-muted-foreground">
+              Formatos permitidos: JPG, PNG, WEBP, HEIC y HEIF.
+            </p>
+
+            {imagePreviewUrl ? (
+              <div className="overflow-hidden rounded-xl border">
+                <img
+                  src={imagePreviewUrl}
+                  alt="Vista previa del incidente"
+                  className="max-h-64 w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex min-h-32 flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center">
+                <ImageIcon className="mb-2 size-6 text-muted-foreground" />
+
+                <p className="text-sm font-medium text-foreground">
+                  Sin imagen seleccionada
+                </p>
+
+                <p className="text-xs text-muted-foreground">
+                  Subí una foto clara del incidente.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {errorMessage && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              {errorMessage}
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t px-5 py-4 bg-muted/20">
-          <DialogFooter className="flex-row gap-2 sm:justify-between">
-            <Button variant="ghost" onClick={handleClose} className="flex-1">
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isValid}
-              className="flex-1 gap-2 rounded-xl"
-            >
-              <AlertTriangle className="size-3.5" />
-              Reportar
-            </Button>
-          </DialogFooter>
-        </div>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
 
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!isValid || isSubmitting}
+            className="gap-2"
+          >
+            <AlertTriangle className="size-4" />
+            {isSubmitting ? "Reportando..." : "Reportar incidente"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -6,15 +6,129 @@ import {
   MarkerPopup,
   MarkerTooltip,
 } from "@/components/ui/map";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { incidentsService } from "@/modules/incidents/incidents.service";
+import { IncidentDetailDialog } from "../dialog-incident";
+import { TriangleAlert } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 type MapCenter = [number, number];
 
+type IncidentPriority = "low" | "medium" | "high";
+type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
+
+type Incident = {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  location: {
+    type: "Point";
+    coordinates: MapCenter;
+  };
+  distance: number;
+};
+
+const DEFAULT_CENTER: MapCenter = [-63.267548, -32.416524];
+const DEFAULT_RADIUS = 2420;
+
+function getPriorityLabel(priority: IncidentPriority) {
+  const labels: Record<IncidentPriority, string> = {
+    low: "Baja",
+    medium: "Media",
+    high: "Alta",
+  };
+
+  return labels[priority];
+}
+
+function getStatusLabel(status: IncidentStatus) {
+  const labels: Record<IncidentStatus, string> = {
+    pending: "Pendiente",
+    in_review: "En revisión",
+    resolved: "Resuelto",
+    rejected: "Rechazado",
+  };
+
+  return labels[status];
+}
+
+function formatDistance(distance: number) {
+  if (distance >= 1000) {
+    return `${(distance / 1000).toFixed(2)} km`;
+  }
+
+  return `${Math.round(distance)} m`;
+}
+
+function getPriorityMarkerStyles(priority: IncidentPriority) {
+  const styles: Record<
+    IncidentPriority,
+    {
+      bg: string;
+      pulse: string;
+    }
+  > = {
+    low: {
+      bg: "bg-red-500",
+      pulse: "bg-red-400/20",
+    },
+    medium: {
+      bg: "bg-red-600",
+      pulse: "bg-red-500/25",
+    },
+    high: {
+      bg: "bg-red-700",
+      pulse: "bg-red-600/30",
+    },
+  };
+
+  return styles[priority];
+}
+
+function IncidentMarkerIcon({ priority }: { priority: IncidentPriority }) {
+  const styles = getPriorityMarkerStyles(priority);
+
+  return (
+    <div className="relative flex items-center justify-center">
+      {priority === "high" && (
+        <div
+          className={`absolute size-8 rounded-full animate-ping ${styles.pulse}`}
+        />
+      )}
+
+      <div className="relative flex flex-col items-center">
+        <div
+          className={`relative z-10 flex size-7 items-center justify-center rounded-full border border-white shadow-md ${styles.bg}`}
+        >
+          <TriangleAlert className="size-3.5 text-white" strokeWidth={2.5} />
+        </div>
+
+        <div
+          className={`-mt-1 size-2 rotate-45 border-r border-b border-white shadow-sm ${styles.bg}`}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function MapIncidentLayout() {
-  const [center, setCenter] = useState<MapCenter>([-74.006, 40.7128]);
-  const [zoom, setZoom] = useState(11);
+  const [center, setCenter] = useState<MapCenter>(DEFAULT_CENTER);
+  const [zoom, setZoom] = useState(13);
+
   const [userLocation, setUserLocation] = useState<MapCenter | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(
+    null
+  );
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  const radius = DEFAULT_RADIUS;
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -25,7 +139,9 @@ export function MapIncidentLayout() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+
         const currentLocation: MapCenter = [longitude, latitude];
+
         setCenter(currentLocation);
         setUserLocation(currentLocation);
         setZoom(15);
@@ -34,46 +150,176 @@ export function MapIncidentLayout() {
         console.error("Error obteniendo ubicación:", error);
         setLocationError("No se pudo obtener tu ubicación actual.");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     );
   }, []);
 
+  useEffect(() => {
+    const locationToSearch = userLocation ?? center;
+
+    async function getIncidents() {
+      try {
+        setIsLoadingIncidents(true);
+        setIncidentsError(null);
+
+        const [lng, lat] = locationToSearch;
+
+        const response = await incidentsService.getIncidentsMap(
+          lat.toString(),
+          lng.toString(),
+          radius.toString()
+        );
+
+        setIncidents(response);
+      } catch (error) {
+        console.error(error);
+        setIncidentsError("No se pudieron cargar los incidentes.");
+      } finally {
+        setIsLoadingIncidents(false);
+      }
+    }
+
+    getIncidents();
+  }, [userLocation, center, radius]);
+
+  const validIncidents = useMemo(() => {
+    return incidents.filter((incident) => {
+      return (
+        incident.location?.type === "Point" &&
+        Array.isArray(incident.location.coordinates) &&
+        incident.location.coordinates.length === 2
+      );
+    });
+  }, [incidents]);
+
+  function handleOpenIncidentDetail(incidentId: string) {
+    setSelectedIncidentId(incidentId);
+    setIsDetailDialogOpen(true);
+  }
+
   return (
-    <div className="relative w-full h-[60vh] min-h-[320px] rounded-2xl overflow-hidden shadow-md">
-      <Map key={`${center[0]}-${center[1]}`} center={center} zoom={zoom}>
-        <MapControls />
+    <>
+      <div className="relative w-full h-[60vh] min-h-[320px] rounded-2xl overflow-hidden shadow-md">
+        <Map center={center} zoom={zoom}>
+          <MapControls />
 
-        {userLocation && (
-          <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
-            <MarkerContent>
-              <div className="relative flex items-center justify-center">
-                <div className="absolute size-8 rounded-full bg-primary opacity-30 animate-ping" />
-                <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
-              </div>
-            </MarkerContent>
+          {userLocation && (
+            <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
+              <MarkerContent>
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute size-8 rounded-full bg-primary opacity-30 animate-ping" />
+                  <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
+                </div>
+              </MarkerContent>
 
-            <MarkerTooltip>Tu ubicación actual</MarkerTooltip>
+              <MarkerTooltip>Tu ubicación actual</MarkerTooltip>
 
-            <MarkerPopup>
-              <div className="space-y-1">
-                <p className="text-foreground font-medium">Tu ubicación actual</p>
-                <p className="text-muted-foreground text-xs">
-                  Lat: {userLocation[1].toFixed(6)}
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  Lng: {userLocation[0].toFixed(6)}
-                </p>
-              </div>
-            </MarkerPopup>
-          </MapMarker>
+              <MarkerPopup>
+                <div className="space-y-1">
+                  <p className="text-foreground font-medium">
+                    Tu ubicación actual
+                  </p>
+
+                  <p className="text-muted-foreground text-xs">
+                    Lat: {userLocation[1].toFixed(6)}
+                  </p>
+
+                  <p className="text-muted-foreground text-xs">
+                    Lng: {userLocation[0].toFixed(6)}
+                  </p>
+                </div>
+              </MarkerPopup>
+            </MapMarker>
+          )}
+
+          {validIncidents.map((incident) => {
+            const [lng, lat] = incident.location.coordinates;
+
+            return (
+              <MapMarker key={incident.id} longitude={lng} latitude={lat}>
+                <MarkerContent>
+                  <IncidentMarkerIcon priority={incident.priority} />
+                </MarkerContent>
+
+                <MarkerTooltip>{incident.title}</MarkerTooltip>
+
+                <MarkerPopup>
+                  <div className="w-60 space-y-3">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        {incident.title}
+                      </p>
+
+                      <p className="text-xs text-muted-foreground">
+                        A {formatDistance(incident.distance)} de tu ubicación
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>
+                        Prioridad:{" "}
+                        <span className="font-medium text-foreground">
+                          {getPriorityLabel(incident.priority)}
+                        </span>
+                      </p>
+
+                      <p>
+                        Estado:{" "}
+                        <span className="font-medium text-foreground">
+                          {getStatusLabel(incident.status)}
+                        </span>
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleOpenIncidentDetail(incident.id)}
+                    >
+                      Ver detalle
+                    </Button>
+                  </div>
+                </MarkerPopup>
+              </MapMarker>
+            );
+          })}
+        </Map>
+
+        {isLoadingIncidents && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-background/90 text-foreground text-xs px-3 py-1.5 rounded-full shadow border">
+            Cargando incidentes...
+          </div>
         )}
-      </Map>
 
-      {locationError && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full shadow">
-          {locationError}
-        </div>
-      )}
-    </div>
+        {!isLoadingIncidents && (
+          <div className="absolute top-3 right-3 z-10 bg-background/90 text-foreground text-xs px-3 py-1.5 rounded-full shadow border">
+            {validIncidents.length} incidentes
+          </div>
+        )}
+
+        {locationError && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full shadow">
+            {locationError}
+          </div>
+        )}
+
+        {incidentsError && (
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full shadow">
+            {incidentsError}
+          </div>
+        )}
+      </div>
+
+      <IncidentDetailDialog
+        incidentId={selectedIncidentId}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
+    </>
   );
 }

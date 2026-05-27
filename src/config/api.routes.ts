@@ -19,9 +19,8 @@ export const API_ROUTES = {
   },
 
   incidents: {
-    list: "/incidents",
-    detail: (id: string) => `/incidents/${id}`,
-    create: "/incidents",
-    update: (id: string) => `/incidents/${id}`,
+    getIncidentsMap: (lng: string, lat: string, radius: string) => `/incidents/map?lng=${lng}&lat=${lat}&radius=${radius}`,
+    getDetailIncidentById: (id: string) => `/incidents/${id}`,
+    createIncidents: "/incidents",
   },
 } as const;
