@@ -56,6 +56,7 @@ export function ShowMunicipalitiesPage() {
   });
 
   useEffect(() => {
+
     async function loadMunicipalities() {
       const response = await municipalitiesService.getMunicipalities();
       setMunicipalities(response);

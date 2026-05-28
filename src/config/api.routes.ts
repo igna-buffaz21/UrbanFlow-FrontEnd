@@ -14,6 +14,7 @@ export const API_ROUTES = {
     createMunicipality: "/municipalities",
   },
 
+
   districts: {
     getDistricts: "/districts",
   },
