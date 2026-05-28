@@ -21,6 +21,7 @@ import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
+import { ShowProfile } from "./modules/users/pages/showProfile.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -122,6 +123,8 @@ function App() {
         }
       >
         <Route index element={<ShowIncidents />} />
+
+        <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
         
       </Route>
     </Routes>

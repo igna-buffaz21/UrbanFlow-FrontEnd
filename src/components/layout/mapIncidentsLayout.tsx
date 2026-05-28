@@ -202,8 +202,8 @@ export function MapIncidentLayout() {
   }
 
   return (
-    <>
-      <div className="relative w-full h-[60vh] min-h-[320px] rounded-2xl overflow-hidden shadow-md">
+    <div className="h-full">
+      <div className="relative w-full h-full overflow-hidden">
         <Map center={center} zoom={zoom}>
           <MapControls />
 
@@ -320,6 +320,6 @@ export function MapIncidentLayout() {
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
       />
-    </>
+    </div>
   );
 }
