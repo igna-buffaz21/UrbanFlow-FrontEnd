@@ -23,9 +23,9 @@ import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
 import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidents";
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
-import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
+import { ShowProfile } from "./modules/users/pages/showProfile.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
