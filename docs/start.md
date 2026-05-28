@@ -10,6 +10,19 @@ npm i
 
 ## 3. Configuracion de .env
 
-cp .env .env.copy.txt
+cp .env.example .env
 
-## 4. Configuracion de APIKEYS
+## 4. Configuracion de variables de entorno
+
+- Extraer APIKEY de clerk y pegarla en el .env
+
+- Completar la url del backend en el .env(asegurarse que termine en /api)
+
+## 5. Iniciar servidor en desarrollo
+
+npm run dev
+
+ - La aplicacion estara disponible en:
+
+➜  Local:   http://localhost:5173/
+➜  Network: http://192.168.x.x:5173/
