@@ -32,3 +32,11 @@ export interface IncidentCreatedBy {
   name: string;
   photoUrl: string | null;
 }
+
+export interface Incident {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  createdAt: string;
+}

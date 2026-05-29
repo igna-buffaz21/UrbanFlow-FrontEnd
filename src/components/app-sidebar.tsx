@@ -88,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Incidentes",
-      url: "/panel/municipalities",
+      url: APP_ROUTES.panel.incidents,
       icon: <MapIcon />,
       allowedRoles: [USER_ROLES.ADMIN], 
       items: [
