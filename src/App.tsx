@@ -21,6 +21,8 @@ import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
+import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidents";
+import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 
 function App() {
@@ -43,7 +45,8 @@ function App() {
         title="Cargando aplicación"
         description="Estamos validando tu sesión..."
       />
-    );  }
+    );
+  }
 
   return (
     <Routes>
@@ -75,33 +78,53 @@ function App() {
 
         <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
-          <Route
-            path={APP_ROUTES.panel.municipalities}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-                <ShowMunicipalitiesPage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.municipalities}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+              <ShowMunicipalitiesPage />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path={APP_ROUTES.panel.createMunicipality}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-                <CreateMunicipality />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.createMunicipality}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+              <CreateMunicipality />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path={APP_ROUTES.panel.createUser}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
-                <CreateUsersPage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.createUser}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <CreateUsersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidents}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <ShowAdminIncidentsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidentDetail}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <AssignIncidentPage />
+            </ProtectedRoute>
+          }
+        />
+
       </Route>
+
 
       <Route
         path={APP_ROUTES.operator.root}
