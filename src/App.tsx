@@ -23,6 +23,7 @@ import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
 import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidents";
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
+import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -118,6 +119,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <AssignIncidentPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidentHistory}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <ShowIncidentsHistoryPage />
             </ProtectedRoute>
           }
         />
