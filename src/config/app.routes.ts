@@ -13,10 +13,11 @@ export const APP_ROUTES = {
     incidents: "/panel/incidents",
     incidentDetail: "incidents/:id",
     incidentDetailPath: (id: string) => `/panel/incidents/${id}`,
-    incidentAssign: "incidents/:id/assign",
     incidentHistory: "/panel/incidents/history",
     municipalities: "/panel/municipalities",
     createMunicipality: "/panel/municipalities/create",
+    operatorDetail: "operators/:id",
+    operatorDetailPath: (id: string) => `/panel/operators/${id}`,
   },
 
   operator: {

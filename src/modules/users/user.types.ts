@@ -1,6 +1,6 @@
 export type UserRole = "superadmin" | "admin" | "operator" | "citizen";
 
-export type UserStatus = "active" | "inactive";
+export type UserStatus = "active" | "inactive" | "blocked";
 
 export interface User {
     _id?: string;
@@ -39,4 +39,32 @@ export interface CreateUserDto {
 
 export interface UpdateUserStatusDto {
   status: UserStatus;
+}
+
+export interface OperatorDetail {
+  id: string;
+  name: string | null;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  municipality: UserMunicipality | null;
+  photoUrl: string | null;
+  createdAt: Date;
+}
+
+export interface InviteUserResponse {
+  id: string;
+  clerkInvitationId: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  municipalityId: string;
+}
+
+export interface UpdateUserStatusResponse {
+  message: string;
+  user: {
+    id: string;
+    status: UserStatus;
+  };
 }

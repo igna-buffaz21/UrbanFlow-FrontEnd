@@ -27,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
+import type { Incident } from "../incidents.type";
 
 const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
@@ -48,7 +49,7 @@ const STATUS_LABELS: Record<string, string> = {
 export function ShowIncidentsHistoryPage() {
     const navigate = useNavigate();
 
-    const [incidents, setIncidents] = useState<any[]>([]);
+    const [incidents, setIncidents] = useState<Incident[]>([]);
     const [status, setStatus] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
 
