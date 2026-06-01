@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SearchIcon, MoreHorizontalIcon } from "lucide-react";
 
 import { userService } from "../user.service";
 
+import { APP_ROUTES } from "@/config/app.routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +36,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuthUser } from "@/modules/auth/auth.context";
 import type { GetUser } from "../user.types";
 
@@ -50,17 +60,21 @@ type User = {
 };
 
 export function ShowUsersPage() {
-  const { user } = useAuthUser()
+  const { user: authUser } = useAuthUser()
 
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("todos");
+  const [status, setStatus] = useState("active");
   const [users, setUsers] = useState<GetUser[]>([]);
-  
+  const [operatorToDelete, setOperatorToDelete] = useState<GetUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const filtered = users.filter((user) => {
+    if (user.status === "blocked") return false;
+
     const matchSearch =
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.municipality?.name.toLowerCase().includes(search.toLowerCase());
+      (user.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
+      (user.municipality?.name?.toLowerCase() ?? "").includes(search.toLowerCase());
 
     const matchStatus = status === "todos" || user.status === status;
 
@@ -70,15 +84,15 @@ export function ShowUsersPage() {
   useEffect(() => {
     async function getUsers() {
       try {
-        if (!user) return;
+        if (!authUser) return;
 
-        if (user.role === "superadmin") {
+        if (authUser.role === "superadmin") {
           const response = await userService.getAdmins();
           setUsers(response);
           return;
         }
 
-        if (user.role === "admin") {
+        if (authUser.role === "admin") {
           const response = await userService.getOperators();
           setUsers(response);
           return;
@@ -92,21 +106,37 @@ export function ShowUsersPage() {
     }
 
     getUsers();
-  }, [user]);
+  }, [authUser]);
+
+  async function handleDelete() {
+    if (!operatorToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await userService.updateUserStatus(operatorToDelete.id, "blocked");
+      setUsers((prev) => prev.filter((u) => u.id !== operatorToDelete.id));
+      setOperatorToDelete(null);
+    } catch (error) {
+      console.error("Error al eliminar operador:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <div className="flex justify-center p-6">
       <div className="w-full max-w-3xl space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Usuarios</CardTitle>
+            <CardTitle>{authUser?.role === "admin" ? "Operadores" : "Usuarios"}</CardTitle>
             <CardDescription>
-              Administrá los usuarios registrados en el sistema.
+              {authUser?.role === "admin"
+                ? "Administrá los operadores de tu municipalidad."
+                : "Administrá los usuarios registrados en el sistema."}
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Filtros */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -131,7 +161,6 @@ export function ShowUsersPage() {
               </Select>
             </div>
 
-            {/* Tabla */}
             <div className="rounded-lg border">
               <Table>
                 <TableHeader>
@@ -182,10 +211,17 @@ export function ShowUsersPage() {
                             </DropdownMenuTrigger>
 
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>Ver detalle</DropdownMenuItem>
-                              <DropdownMenuItem>Editar</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(APP_ROUTES.panel.operatorDetailPath(user.id))}>
+                                Ver detalle
+                              </DropdownMenuItem>
+                              {authUser?.role !== "admin" && (
+                                <DropdownMenuItem>Editar</DropdownMenuItem>
+                              )}
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem variant="destructive">
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setOperatorToDelete(user)}
+                              >
                                 Eliminar
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -199,10 +235,39 @@ export function ShowUsersPage() {
             </div>
 
             <p className="text-xs text-muted-foreground">
-              {filtered.length} usuario{filtered.length !== 1 ? "s" : ""}
+              {filtered.length} {authUser?.role === "admin" ? "operador" : "usuario"}{filtered.length !== 1 ? "es" : ""}
             </p>
           </CardContent>
         </Card>
+
+        <Dialog open={!!operatorToDelete} onOpenChange={() => setOperatorToDelete(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>¿Estás seguro?</DialogTitle>
+              <DialogDescription>
+                El operador <strong>{operatorToDelete?.name ?? operatorToDelete?.email}</strong> será desactivado y no podrá acceder al sistema. Esta acción no tiene vuelta atrás.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setOperatorToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Confirmar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );

@@ -40,3 +40,23 @@ export interface Incident {
   priority: IncidentPriority;
   createdAt: string;
 }
+
+export interface AdminIncidentDetail {
+  id: string;
+  title: string;
+  description: string;
+  photoUrl: string | null;
+  category: {
+    id: string;
+    name: string;
+  } | null;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  createdAt: string;
+  createdBy: IncidentCreatedBy;
+  assignedTo: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
+}

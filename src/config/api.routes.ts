@@ -6,7 +6,7 @@ export const API_ROUTES = {
     getUsers: "/users",
     getUserById: (id: string) => `/users/${id}`,
     inviteUser: "/users/invite",
-
+    updateUserStatus: (id: string) => `/users/${id}/status`,
   },
 
   municipalities: {

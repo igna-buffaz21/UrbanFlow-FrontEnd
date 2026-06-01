@@ -27,14 +27,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
+import type { Incident } from "../incidents.type";
 
-const PRIORITY_LABELS: Record<any, string> = {
+const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
     medium: "Media",
     high: "Alta",
 };
 
-const PRIORITY_VARIANTS: Record<any, "default" | "secondary" | "destructive" | "outline"> = {
+const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
     low: "secondary",
     medium: "outline",
     high: "default",
@@ -43,7 +44,7 @@ const PRIORITY_VARIANTS: Record<any, "default" | "secondary" | "destructive" | "
 export function ShowAdminIncidentsPage() {
     const navigate = useNavigate();
 
-    const [incidents, setIncidents] = useState<any[]>([]);
+    const [incidents, setIncidents] = useState<Incident[]>([]);
     const [priority, setPriority] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
 
