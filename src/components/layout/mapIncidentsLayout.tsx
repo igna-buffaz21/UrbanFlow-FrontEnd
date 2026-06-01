@@ -29,8 +29,8 @@ type Incident = {
   distance: number;
 };
 
-const DEFAULT_CENTER: MapCenter = [-63.267548, -32.416524];
 const DEFAULT_RADIUS = 2420;
+const MAX_ACCEPTED_ACCURACY = 100;
 
 function getPriorityLabel(priority: IncidentPriority) {
   const labels: Record<IncidentPriority, string> = {
@@ -113,11 +113,12 @@ function IncidentMarkerIcon({ priority }: { priority: IncidentPriority }) {
 }
 
 export function MapIncidentLayout() {
-  const [center, setCenter] = useState<MapCenter>(DEFAULT_CENTER);
-  const [zoom, setZoom] = useState(13);
+  const [center, setCenter] = useState<MapCenter | null>(null);
+  const [zoom, setZoom] = useState(14);
 
   const [userLocation, setUserLocation] = useState<MapCenter | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(true);
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
@@ -130,61 +131,95 @@ export function MapIncidentLayout() {
 
   const radius = DEFAULT_RADIUS;
 
-  useEffect(() => {
+  function getUserLocation() {
+    setIsGettingLocation(true);
+    setLocationError(null);
+    setUserLocation(null);
+    setCenter(null);
+    setIncidents([]);
+
     if (!navigator.geolocation) {
       setLocationError("Tu navegador no soporta geolocalización.");
+      setIsGettingLocation(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
+
+        console.log("Ubicación obtenida:", {
+          latitude,
+          longitude,
+          accuracy,
+        });
+
+        if (accuracy > MAX_ACCEPTED_ACCURACY) {
+          setLocationError(
+            "La ubicación obtenida no es precisa. Activá el GPS e intentá nuevamente."
+          );
+          setIsGettingLocation(false);
+          return;
+        }
 
         const currentLocation: MapCenter = [longitude, latitude];
 
-        setCenter(currentLocation);
         setUserLocation(currentLocation);
+        setCenter(currentLocation);
         setZoom(15);
+        setLocationError(null);
+        setIsGettingLocation(false);
       },
       (error) => {
         console.error("Error obteniendo ubicación:", error);
-        setLocationError("No se pudo obtener tu ubicación actual.");
+
+        setLocationError(
+          "No se pudo obtener tu ubicación actual. Revisá los permisos de ubicación."
+        );
+
+        setIsGettingLocation(false);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0,
       }
     );
-  }, []);
+  }
 
   useEffect(() => {
-    const locationToSearch = userLocation ?? center;
+    getUserLocation();
+  }, []);
 
-    async function getIncidents() {
-      try {
-        setIsLoadingIncidents(true);
-        setIncidentsError(null);
+useEffect(() => {
+  if (!userLocation) return;
 
-        const [lng, lat] = locationToSearch;
+  const currentLocation = userLocation;
 
-        const response = await incidentsService.getIncidentsMap(
-          lat.toString(),
-          lng.toString(),
-          radius.toString()
-        );
+  async function getIncidents() {
+    try {
+      setIsLoadingIncidents(true);
+      setIncidentsError(null);
 
-        setIncidents(response);
-      } catch (error) {
-        console.error(error);
-        setIncidentsError("No se pudieron cargar los incidentes.");
-      } finally {
-        setIsLoadingIncidents(false);
-      }
+      const [lng, lat] = currentLocation;
+
+      const response = await incidentsService.getIncidentsMap(
+        lat.toString(),
+        lng.toString(),
+        radius.toString()
+      );
+
+      setIncidents(response);
+    } catch (error) {
+      console.error(error);
+      setIncidentsError("No se pudieron cargar los incidentes.");
+    } finally {
+      setIsLoadingIncidents(false);
     }
+  }
 
-    getIncidents();
-  }, [userLocation, center, radius]);
+  getIncidents();
+}, [userLocation, radius]);
 
   const validIncidents = useMemo(() => {
     return incidents.filter((incident) => {
@@ -201,40 +236,81 @@ export function MapIncidentLayout() {
     setIsDetailDialogOpen(true);
   }
 
+  if (isGettingLocation) {
+    return (
+      <div className="flex h-full items-center justify-center bg-background px-6">
+        <div className="text-center space-y-2">
+          <p className="text-sm font-medium text-foreground">
+            Obteniendo tu ubicación...
+          </p>
+
+          <p className="text-xs text-muted-foreground">
+            Activá el GPS y aceptá los permisos de ubicación.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!center || !userLocation) {
+    return (
+      <div className="flex h-full items-center justify-center bg-background px-6">
+        <div className="max-w-xs text-center space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">
+              No pudimos obtener tu ubicación
+            </p>
+
+            <p className="text-xs text-muted-foreground">
+              Para ver los incidentes cercanos, necesitás permitir el acceso a
+              tu ubicación actual.
+            </p>
+
+            {locationError && (
+              <p className="text-xs text-destructive">{locationError}</p>
+            )}
+          </div>
+
+          <Button type="button" onClick={getUserLocation}>
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       <div className="relative w-full h-full overflow-hidden">
         <Map center={center} zoom={zoom}>
           <MapControls />
 
-          {userLocation && (
-            <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
-              <MarkerContent>
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute size-8 rounded-full bg-primary opacity-30 animate-ping" />
-                  <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
-                </div>
-              </MarkerContent>
+          <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
+            <MarkerContent>
+              <div className="relative flex items-center justify-center">
+                <div className="absolute size-8 rounded-full bg-primary opacity-30 animate-ping" />
+                <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
+              </div>
+            </MarkerContent>
 
-              <MarkerTooltip>Tu ubicación actual</MarkerTooltip>
+            <MarkerTooltip>Tu ubicación actual</MarkerTooltip>
 
-              <MarkerPopup>
-                <div className="space-y-1">
-                  <p className="text-foreground font-medium">
-                    Tu ubicación actual
-                  </p>
+            <MarkerPopup>
+              <div className="space-y-1">
+                <p className="text-foreground font-medium">
+                  Tu ubicación actual
+                </p>
 
-                  <p className="text-muted-foreground text-xs">
-                    Lat: {userLocation[1].toFixed(6)}
-                  </p>
+                <p className="text-muted-foreground text-xs">
+                  Lat: {userLocation[1].toFixed(6)}
+                </p>
 
-                  <p className="text-muted-foreground text-xs">
-                    Lng: {userLocation[0].toFixed(6)}
-                  </p>
-                </div>
-              </MarkerPopup>
-            </MapMarker>
-          )}
+                <p className="text-muted-foreground text-xs">
+                  Lng: {userLocation[0].toFixed(6)}
+                </p>
+              </div>
+            </MarkerPopup>
+          </MapMarker>
 
           {validIncidents.map((incident) => {
             const [lng, lat] = incident.location.coordinates;
