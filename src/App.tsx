@@ -21,6 +21,10 @@ import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
+import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidents";
+import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
+import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
+import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -42,7 +46,8 @@ function App() {
         title="Cargando aplicación"
         description="Estamos validando tu sesión..."
       />
-    );  }
+    );
+  }
 
   return (
     <Routes>
@@ -74,33 +79,72 @@ function App() {
 
         <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
-          <Route
-            path={APP_ROUTES.panel.municipalities}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-                <ShowMunicipalitiesPage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.municipalities}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+              <ShowMunicipalitiesPage />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path={APP_ROUTES.panel.createMunicipality}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-                <CreateMunicipality />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.createMunicipality}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+              <CreateMunicipality />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path={APP_ROUTES.panel.createUser}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
-                <CreateUsersPage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={APP_ROUTES.panel.createUser}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <CreateUsersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidents}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <ShowAdminIncidentsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidentDetail}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <AssignIncidentPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidentHistory}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+              <ShowIncidentsHistoryPage />
+            </ProtectedRoute>
+          }
+
+        />
+
+        <Route
+          path={APP_ROUTES.panel.operatorDetail}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <OperatorDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
       </Route>
+
 
       <Route
         path={APP_ROUTES.operator.root}
@@ -122,7 +166,7 @@ function App() {
         }
       >
         <Route index element={<ShowIncidents />} />
-        
+
       </Route>
     </Routes>
   );

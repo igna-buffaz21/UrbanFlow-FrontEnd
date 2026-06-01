@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      title: "Usuarios",
+      title: user?.role === "admin" ? "Operadores" : "Usuarios",
       url: APP_ROUTES.panel.users,
       icon: <TerminalSquareIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
@@ -88,29 +88,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Incidentes",
-      url: "/panel/municipalities",
+      url: APP_ROUTES.panel.incidents,
       icon: <MapIcon />,
-      allowedRoles: [USER_ROLES.ADMIN], 
-      items: [
-        {
-          title: "Visualizar",
-          url: "/panel/municipalities",
-        },
-        {
-          title: "Historial",
-          url: "/panel/municipalities/create",
-        },
-      ],
-    },
-    {
-      title: "Estadisticas",
-      url: "/panel/operators",
-      icon: <BotIcon />,
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
           title: "Visualizar",
-          url: "/panel/operators",
+          url: APP_ROUTES.panel.incidents,
+        },
+        {
+          title: "Historial",
+          url: APP_ROUTES.panel.incidentHistory,
         },
       ],
     }

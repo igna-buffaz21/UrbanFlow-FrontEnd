@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select"
 
 import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "@/config/app.routes";
 
 import { municipalitiesService } from "@/modules/municipalities/municipalities.service"
 import type { Municipality } from "@/modules/municipalities/municipalities.type"
@@ -47,6 +49,8 @@ export function CreateUsersPage() {
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [form, setForm] = useState<CreateUserForm>(initialForm)
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
 
   const isSuperAdmin = user?.role === USER_ROLES.SUPERADMIN
   const isAdmin = user?.role === USER_ROLES.ADMIN
@@ -91,6 +95,7 @@ export function CreateUsersPage() {
 
     try {
       setIsLoading(true)
+      setErrorMessage("")
 
       const municipalityId = isSuperAdmin
         ? form.municipalityId
@@ -100,24 +105,23 @@ export function CreateUsersPage() {
         throw new Error("No se pudo resolver la municipalidad")
       }
 
-      const response = await userService.inviteUser({
+      await userService.inviteUser({
         email: form.email,
         role: config.roleToCreate,
         municipalityId,
       })
 
-      console.log("data", response)
-
       setForm(initialForm)
-    } catch (error) {
-      console.error("Error al crear usuario:", error)
+      navigate(APP_ROUTES.panel.users)
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message ?? "Error al crear el usuario")
     } finally {
       setIsLoading(false)
     }
   }
 
   function handleCancel() {
-    setForm(initialForm)
+    navigate(APP_ROUTES.panel.users)
   }
 
   if (!config) {
@@ -204,6 +208,9 @@ export function CreateUsersPage() {
                 )}
               </FieldGroup>
             </FieldSet>
+            {errorMessage && (
+              <p className="text-sm text-destructive mt-2">{errorMessage}</p>
+            )}
           </CardContent>
 
           <CardFooter className="flex gap-2 pt-2">
