@@ -1,4 +1,4 @@
-export type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
+export type IncidentStatus = | "in_review" | "open" | "assigned" | "resolved" | "closed" | "rejected";
 
 export type IncidentPriority = "low" | "medium" | "high";
 
@@ -46,14 +46,21 @@ export interface AdminIncidentDetail {
   title: string;
   description: string;
   photoUrl: string | null;
+
+  location: GeoJSONPoint;
+
   category: {
     id: string;
     name: string;
   } | null;
+
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
   createdBy: IncidentCreatedBy;
+
+  assignedAt?: string;
+
   assignedTo: {
     id: string;
     name: string;
