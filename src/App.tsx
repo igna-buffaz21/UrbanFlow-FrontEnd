@@ -25,6 +25,7 @@ import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncid
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
 import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
+import { ShowProfile } from "./modules/users/pages/showProfile.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -167,6 +168,8 @@ function App() {
       >
         <Route index element={<ShowIncidents />} />
 
+        <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
+        
       </Route>
     </Routes>
   );

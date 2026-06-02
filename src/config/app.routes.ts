@@ -28,6 +28,7 @@ export const APP_ROUTES = {
 
   app: {
     root: "/app",
+    feed: "app/feed",
     report: "/app/report",
     myReports: "/app/my-reports",
     profile: "/app/profile",
