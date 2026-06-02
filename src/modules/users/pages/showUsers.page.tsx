@@ -249,7 +249,7 @@ export function ShowUsersPage() {
             <DialogHeader>
               <DialogTitle>¿Estás seguro?</DialogTitle>
               <DialogDescription>
-                El operador <strong>{operatorToDelete?.name ?? operatorToDelete?.email}</strong> será desactivado y no podrá acceder al sistema. Esta acción no tiene vuelta atrás.
+                El operador <strong>{operatorToDelete?.name ?? operatorToDelete?.email}</strong> será desactivado y no podrá acceder al sistema. El operador no será eliminado permanentemente y podrás reactivarlo si es necesario.
               </DialogDescription>
             </DialogHeader>
 
