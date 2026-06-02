@@ -27,7 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
-import type { Incident } from "../incidents.type";
+import type { Incident, IncidentStatus } from "../incidents.type";
 
 const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
@@ -35,15 +35,19 @@ const PRIORITY_LABELS: Record<string, string> = {
     high: "Alta",
 };
 
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    low: "secondary",
-    medium: "outline",
-    high: "default",
+const PRIORITY_STYLES: Record<string, string> = {
+    low: "bg-green-500 text-white hover:bg-green-600",
+    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
+    high: "bg-red-500 text-white hover:bg-red-600",
 };
 
-const STATUS_LABELS: Record<string, string> = {
+export const STATUS_LABELS: Record<IncidentStatus, string> = {
+    open: "Abierto",
+    in_review: "En revisión",
+    assigned: "Asignado",
     resolved: "Resuelto",
     closed: "Cerrado",
+    rejected: "Rechazado",
 };
 
 export function ShowIncidentsHistoryPage() {
@@ -141,7 +145,9 @@ export function ShowIncidentsHistoryPage() {
                                                 </TableCell>
 
                                                 <TableCell>
-                                                    <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
+                                                    <Badge
+                                                        className={PRIORITY_STYLES[incident.priority]}
+                                                    >
                                                         {PRIORITY_LABELS[incident.priority]}
                                                     </Badge>
                                                 </TableCell>

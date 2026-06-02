@@ -70,8 +70,7 @@ export function ShowUsersPage() {
   const navigate = useNavigate();
 
   const filtered = users.filter((user) => {
-    if (user.status === "blocked") return false;
-
+    
     const matchSearch =
       (user.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (user.municipality?.name?.toLowerCase() ?? "").includes(search.toLowerCase());
@@ -108,14 +107,19 @@ export function ShowUsersPage() {
     getUsers();
   }, [authUser]);
 
-  async function handleDelete() {
+  async function handleDeactivate() {
     if (!operatorToDelete) return;
 
     try {
       setIsDeleting(true);
-      await userService.updateUserStatus(operatorToDelete.id, "blocked");
-      setUsers((prev) => prev.filter((u) => u.id !== operatorToDelete.id));
-      setOperatorToDelete(null);
+      await userService.updateUserStatus(operatorToDelete.id, "inactive");
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === operatorToDelete.id
+            ? { ...user, status: "inactive" }
+            : user
+        )
+      ); setOperatorToDelete(null);
     } catch (error) {
       console.error("Error al eliminar operador:", error);
     } finally {
@@ -259,10 +263,10 @@ export function ShowUsersPage() {
               </Button>
               <Button
                 variant="destructive"
-                onClick={handleDelete}
+                onClick={handleDeactivate}
                 disabled={isDeleting}
               >
-                {isDeleting ? "Eliminando..." : "Confirmar"}
+                {isDeleting ? "Desactivando..." : "Confirmar"}
               </Button>
             </DialogFooter>
           </DialogContent>
