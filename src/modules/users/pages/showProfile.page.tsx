@@ -102,26 +102,6 @@ export function ShowProfile() {
       },
     },
     {
-      key: "saved",
-      icon: Bookmark,
-      label: "Guardados",
-      description: "Incidentes que guardaste",
-      roles: ["user", "moderator"],
-      onClick: () => {
-        // TODO: navegar o abrir sheet de guardados
-      },
-    },
-    {
-      key: "notifications",
-      icon: Bell,
-      label: "Notificaciones",
-      description: "Configurá tus alertas",
-      roles: ["user", "moderator", "superadmin"],
-      onClick: () => {
-        // TODO: navegar o abrir sheet de notificaciones
-      },
-    },
-    {
       key: "moderation",
       icon: Shield,
       label: "Panel de moderación",
@@ -141,16 +121,6 @@ export function ShowProfile() {
         {/* Header */}
         <header className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
           <span className="text-sm font-semibold tracking-tight">Perfil</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground"
-            onClick={() => {
-              // TODO: navegar a configuración
-            }}
-          >
-            <Settings className="size-4" />
-          </Button>
         </header>
 
         {/* Hero del perfil */}

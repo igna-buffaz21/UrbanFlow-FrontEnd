@@ -17,7 +17,9 @@ function LoginPage() {
   async function handleRetryLogin() {
     setError(null);
     hasLoadedUser.current = false;
+
     await signOut();
+
     navigate("/login", { replace: true });
   }
 
@@ -33,12 +35,15 @@ function LoginPage() {
 
         const user = await authService.getAuth();
         const redirectPath = getRedirectPathByRole(user.role);
+
         navigate(redirectPath, { replace: true });
       } catch (err) {
         console.error("Error al obtener el usuario autenticado:", err);
+
         setError(
           "No pudimos obtener los datos del usuario. Verificá que tu cuenta esté habilitada."
         );
+
         hasLoadedUser.current = false;
       } finally {
         setIsLoadingUserData(false);
@@ -49,9 +54,8 @@ function LoginPage() {
   }, [isLoaded, isSignedIn, navigate]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-background">
+    <div className="fixed inset-0 flex items-center justify-center bg-background text-foreground">
       <div className="w-full max-w-sm space-y-6 px-4">
-
         {isLoadingUserData && (
           <p className="text-center text-sm text-muted-foreground">
             Cargando datos del usuario...
@@ -61,6 +65,7 @@ function LoginPage() {
         {error && (
           <div className="space-y-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
             <p className="text-sm text-destructive">{error}</p>
+
             <button
               type="button"
               onClick={handleRetryLogin}
@@ -73,24 +78,11 @@ function LoginPage() {
 
         {!isSignedIn && !error && (
           <SignIn
+            signUpUrl="/sign-up"
             appearance={{
               elements: {
                 rootBox: "w-full",
-                card: "w-full rounded-lg border bg-card shadow-none p-6",
-                headerTitle: "text-2xl font-bold tracking-tight",
-                headerSubtitle: "text-sm text-muted-foreground",
-                socialButtonsBlockButton:
-                  "w-full rounded-md border bg-background text-sm font-normal hover:bg-muted",
-                formButtonPrimary:
-                  "w-full rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90",
-                formFieldLabel: "text-sm font-medium text-foreground",
-                formFieldInput:
-                  "w-full rounded-md border bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                footerActionLink:
-                  "text-sm text-primary underline-offset-4 hover:underline",
-                dividerLine: "bg-border",
-                dividerText: "text-xs text-muted-foreground",
-                formFieldErrorText: "text-xs text-destructive",
+                card: "w-full border bg-card shadow-none",
               },
             }}
           />

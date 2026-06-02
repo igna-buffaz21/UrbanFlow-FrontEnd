@@ -15,19 +15,16 @@ import {
 } from "@/components/ui/sidebar";
 import {
   TerminalSquareIcon,
-  BotIcon,
-  BookOpenIcon,
-  Settings2Icon,
   LifeBuoyIcon,
-  SendIcon,
-  FrameIcon,
   PieChartIcon,
   MapIcon,
-  TerminalIcon,
 } from "lucide-react";
+
+import logo from "@/assets/logo2.png";
 
 import { useAuthUser } from "@/modules/auth/auth.context";
 import { APP_ROUTES } from "@/config/app.routes";
+import { APP_NAME } from "@/config/const.globs";
 
 const USER_ROLES = {
   SUPERADMIN: "superadmin",
@@ -174,12 +171,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href={user?.role === USER_ROLES.OPERATOR ? "/operator" : "/panel"}>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <TerminalIcon className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white overflow-hidden">
+                  <img
+                    src={logo}
+                    alt={APP_NAME}
+                    className="h-6 w-6 object-contain"
+                  />
                 </div>
-
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">UrbanFlow</span>
+                  <span className="truncate font-medium">{APP_NAME}</span>
                   <span className="truncate text-xs">
                     {user?.role === USER_ROLES.SUPERADMIN
                       ? "Panel global"

@@ -11,25 +11,18 @@ import { incidentsService } from "@/modules/incidents/incidents.service";
 import { IncidentDetailDialog } from "../dialog-incident";
 import { TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { MapIncident } from "@/modules/incidents/incidents.type";
 
 type MapCenter = [number, number];
+
+type MapIncidentLayoutProps = {
+  refreshKey: number;
+};
 
 type IncidentPriority = "low" | "medium" | "high";
 type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
 
-type Incident = {
-  id: string;
-  title: string;
-  status: IncidentStatus;
-  priority: IncidentPriority;
-  location: {
-    type: "Point";
-    coordinates: MapCenter;
-  };
-  distance: number;
-};
-
-const DEFAULT_RADIUS = 2420;
+const DEFAULT_RADIUS = 5000;
 const MAX_ACCEPTED_ACCURACY = 100;
 
 function getPriorityLabel(priority: IncidentPriority) {
@@ -112,7 +105,7 @@ function IncidentMarkerIcon({ priority }: { priority: IncidentPriority }) {
   );
 }
 
-export function MapIncidentLayout() {
+export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
   const [center, setCenter] = useState<MapCenter | null>(null);
   const [zoom, setZoom] = useState(14);
 
@@ -120,7 +113,7 @@ export function MapIncidentLayout() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(true);
 
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidents, setIncidents] = useState<MapIncident[]>([]);
   const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
   const [incidentsError, setIncidentsError] = useState<string | null>(null);
 
@@ -189,7 +182,7 @@ export function MapIncidentLayout() {
 
   useEffect(() => {
     getUserLocation();
-  }, []);
+  }, [refreshKey]);
 
 useEffect(() => {
   if (!userLocation) return;
@@ -219,7 +212,7 @@ useEffect(() => {
   }
 
   getIncidents();
-}, [userLocation, radius]);
+}, [userLocation, radius, refreshKey]);
 
   const validIncidents = useMemo(() => {
     return incidents.filter((incident) => {
@@ -300,14 +293,6 @@ useEffect(() => {
                 <p className="text-foreground font-medium">
                   Tu ubicación actual
                 </p>
-
-                <p className="text-muted-foreground text-xs">
-                  Lat: {userLocation[1].toFixed(6)}
-                </p>
-
-                <p className="text-muted-foreground text-xs">
-                  Lng: {userLocation[0].toFixed(6)}
-                </p>
               </div>
             </MarkerPopup>
           </MapMarker>
@@ -324,9 +309,9 @@ useEffect(() => {
                 <MarkerTooltip>{incident.title}</MarkerTooltip>
 
                 <MarkerPopup>
-                  <div className="w-60 space-y-3">
+                  <div className="max-w-[260px] box-border space-y-3 overflow-hidden">
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-sm font-semibold text-foreground break-words">
                         {incident.title}
                       </p>
 
@@ -344,9 +329,9 @@ useEffect(() => {
                       </p>
 
                       <p>
-                        Estado:{" "}
+                        Estado:{" Abierto "}
                         <span className="font-medium text-foreground">
-                          {getStatusLabel(incident.status)}
+                          
                         </span>
                       </p>
                     </div>
@@ -354,10 +339,10 @@ useEffect(() => {
                     <Button
                       type="button"
                       size="sm"
-                      className="w-full"
+                      className="w-full max-w-full box-border"
                       onClick={() => handleOpenIncidentDetail(incident.id)}
                     >
-                      Ver detalle
+                      Ver mas
                     </Button>
                   </div>
                 </MarkerPopup>

@@ -17,6 +17,7 @@ import {
   type MapCenter,
 } from "./incident-picker"
 import { incidentsService } from "@/modules/incidents/incidents.service";
+import { useAppToast } from "./app-alert-toast";
 
 type CreateIncidentDialogProps = {
   open: boolean;
@@ -45,6 +46,8 @@ export function CreateIncidentDialog({
   defaultLocation,
   onCreated,
 }: CreateIncidentDialogProps) {
+  const toast = useAppToast();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<MapCenter | null>(
@@ -79,6 +82,8 @@ export function CreateIncidentDialog({
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+
+    console.log("Selected file:", file);
 
     if (!file) {
       setImage(null);
@@ -137,9 +142,11 @@ export function CreateIncidentDialog({
       resetForm();
       onOpenChange(false);
       onCreated?.();
+
+      //toast.success("Incidente reportado con éxito.");
     } catch (error) {
       console.error(error);
-      setErrorMessage("No se pudo reportar el incidente.");
+      //toast.error("No se pudo reportar el incidente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,6 +161,10 @@ export function CreateIncidentDialog({
   }
 
   return (
+    <>
+    <toast.Toast />
+
+
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
@@ -306,5 +317,6 @@ export function CreateIncidentDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }

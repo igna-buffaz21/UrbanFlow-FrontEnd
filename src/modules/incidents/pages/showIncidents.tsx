@@ -17,6 +17,9 @@ export function ShowIncidents() {
   const [isCreateIncidentOpen, setIsCreateIncidentOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<MapCenter | null>(null);
 
+  // Cada vez que cambia este valor, el mapa se refresca
+  const [refreshKey, setRefreshKey] = useState(0);
+
   async function handleLogout() {
     await signOut();
     navigate(APP_ROUTES.auth.login, { replace: true });
@@ -43,7 +46,7 @@ export function ShowIncidents() {
   }, []);
 
   return (
-    <div className="relative flex flex-col bg-background h-full">
+    <div className="relative flex h-full flex-col bg-background">
       <header className="z-10 flex items-center justify-between border-b bg-background/80 px-4 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <AlertTriangle className="size-5 text-primary" />
@@ -68,7 +71,7 @@ export function ShowIncidents() {
       </header>
 
       <div className="flex-1 overflow-hidden">
-        <MapIncidentLayout />
+        <MapIncidentLayout refreshKey={refreshKey} />
       </div>
 
       <div className="absolute bottom-6 right-4 z-20">
@@ -87,8 +90,7 @@ export function ShowIncidents() {
         onOpenChange={setIsCreateIncidentOpen}
         defaultLocation={userLocation}
         onCreated={() => {
-          // Idealmente acá refrescás los incidentes del mapa.
-          // Por ahora podés dejarlo vacío.
+          setRefreshKey((prev) => prev + 1);
         }}
       />
     </div>

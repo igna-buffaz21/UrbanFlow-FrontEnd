@@ -10,6 +10,8 @@ import { AuthProvider } from "./modules/auth/auth.context";
 import "./index.css";
 import { ThemeProvider } from "./components/theme-provider";
 
+import { shadcn } from "@clerk/ui/themes";
+
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!clerkPublishableKey) {
@@ -18,7 +20,12 @@ if (!clerkPublishableKey) {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider 
+    publishableKey={clerkPublishableKey}
+      appearance={{
+    theme: shadcn,
+  }}
+    >
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider defaultTheme="dark" storageKey="urbanflow-theme">

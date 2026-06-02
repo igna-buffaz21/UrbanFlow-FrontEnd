@@ -8,3 +8,5 @@ export const USER_ROLES = {
   OPERATOR: "operator",
   CITIZEN: "citizen",
 } as const satisfies Record<string, AuthUserResponse["role"]>;
+
+export const APP_NAME = "ReportaYa";
