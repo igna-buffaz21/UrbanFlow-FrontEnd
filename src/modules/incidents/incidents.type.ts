@@ -67,3 +67,11 @@ export interface AdminIncidentDetail {
     photoUrl: string | null;
   } | null;
 }
+
+export interface OperatorIncident {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  assignedAt: string;
+}

@@ -32,6 +32,7 @@ import { APP_ROUTES } from "@/config/app.routes";
 const USER_ROLES = {
   SUPERADMIN: "superadmin",
   ADMIN: "admin",
+  OPERATOR: "operator",
 } as const;
 
 type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
@@ -101,7 +102,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.incidentHistory,
         },
       ],
-    }
+    },
+
+    {
+      title: "Incidentes",
+      url: APP_ROUTES.operator.root,
+      icon: <MapIcon />,
+      allowedRoles: [USER_ROLES.OPERATOR],
+      items: [
+        {
+          title: "Visualizar",
+          url: APP_ROUTES.operator.root,
+        },
+        {
+          title: "Historial",
+          url: APP_ROUTES.operator.history,
+        },
+      ],
+    },
+
   ];
 
   const navSecondary = [
@@ -154,7 +173,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/panel">
+              <a href={user?.role === USER_ROLES.OPERATOR ? "/operator" : "/panel"}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <TerminalIcon className="size-4" />
                 </div>

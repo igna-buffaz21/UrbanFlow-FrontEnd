@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident } from "./incidents.type";
+import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -40,4 +40,19 @@ export const incidentsService = {
       operatorId,
     });
   },
+
+  async getAssignedIncidents(filters?: GetIncidentsFilters): Promise<OperatorIncident[]> {
+    const response = await api.get<OperatorIncident[]>(API_ROUTES.incidents.getAssigned, {
+      params: filters,
+    });
+
+    return response.data;
+  },
+
+  async updateIncidentStatus(id: string, status: string): Promise<void> {
+    await api.patch(API_ROUTES.incidents.updateStatus(id), {
+      status,
+    });
+  },
 };
+

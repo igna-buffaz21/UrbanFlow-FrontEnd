@@ -23,7 +23,9 @@ export const APP_ROUTES = {
   operator: {
     root: "/operator",
     incidents: "/operator/incidents",
-    tasks: "/operator/tasks",
+    incidentDetail: "incidents/:id",
+    incidentDetailPath: (id: string) => `/operator/incidents/${id}`,
+    history: "/operator/incidents/history",
   },
 
   app: {
