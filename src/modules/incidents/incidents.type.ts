@@ -1,4 +1,4 @@
-export type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
+export type IncidentStatus = | "in_review" | "open" | "assigned" | "resolved" | "closed" | "rejected";
 
 export type IncidentPriority = "low" | "medium" | "high";
 
@@ -59,4 +59,12 @@ export interface AdminIncidentDetail {
     name: string;
     photoUrl: string | null;
   } | null;
+}
+
+export interface OperatorIncident {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  assignedAt: string;
 }

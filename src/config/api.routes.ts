@@ -24,7 +24,9 @@ export const API_ROUTES = {
     getDetailIncidentById: (id: string) => `/incidents/${id}`,
     createIncidents: "/incidents",
     getAll: "/incidents",
+    getAssigned: "/incidents/assigned",
     getById: (id: string) => `/incidents/${id}`,
+    updateStatus: (id: string) => `/incidents/${id}/status`,
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
   },
 } as const;
