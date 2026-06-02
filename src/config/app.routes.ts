@@ -14,6 +14,7 @@ export const APP_ROUTES = {
     incidentDetail: "incidents/:id",
     incidentDetailPath: (id: string) => `/panel/incidents/${id}`,
     incidentAssign: "incidents/:id/assign",
+    incidentHistory: "/panel/incidents/history",
     municipalities: "/panel/municipalities",
     createMunicipality: "/panel/municipalities/create",
   },

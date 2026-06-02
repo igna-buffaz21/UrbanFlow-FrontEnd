@@ -94,23 +94,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [
         {
           title: "Visualizar",
-          url: "/panel/municipalities",
+          url: APP_ROUTES.panel.incidents,
         },
         {
           title: "Historial",
-          url: "/panel/municipalities/create",
-        },
-      ],
-    },
-    {
-      title: "Estadisticas",
-      url: "/panel/operators",
-      icon: <BotIcon />,
-      allowedRoles: [USER_ROLES.ADMIN],
-      items: [
-        {
-          title: "Visualizar",
-          url: "/panel/operators",
+          url: APP_ROUTES.panel.incidentHistory,
         },
       ],
     }

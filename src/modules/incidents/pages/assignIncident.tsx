@@ -144,11 +144,10 @@ export function AssignIncidentPage() {
                                 <div
                                     key={operator.id}
                                     onClick={() => setSelectedOperatorId(operator.id)}
-                                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                                        selectedOperatorId === operator.id
+                                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedOperatorId === operator.id
                                             ? "border-primary bg-primary/10"
                                             : "hover:bg-muted/50"
-                                    }`}
+                                        }`}
                                 >
                                     <input
                                         type="radio"
@@ -156,9 +155,14 @@ export function AssignIncidentPage() {
                                         checked={selectedOperatorId === operator.id}
                                         className="accent-primary"
                                     />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">{operator.name}</span>
-                                        <span className="text-xs text-muted-foreground">{operator.email}</span>
+                                    <div className="flex flex-1 items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium">{operator.name}</span>
+                                            <span className="text-xs text-muted-foreground">{operator.email}</span>
+                                        </div>
+                                        <Badge variant={operator.status === "active" ? "default" : "secondary"}>
+                                            {operator.status === "active" ? "Disponible" : "Inactivo"}
+                                        </Badge>
                                     </div>
                                 </div>
                             ))
