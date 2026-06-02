@@ -43,7 +43,7 @@ export function ShowIncidents() {
   }, []);
 
   return (
-    <div className="relative flex h-dvh flex-col bg-background">
+    <div className="relative flex flex-col bg-background h-full">
       <header className="z-10 flex items-center justify-between border-b bg-background/80 px-4 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <AlertTriangle className="size-5 text-primary" />

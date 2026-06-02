@@ -28,6 +28,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
+import { ShowProfile } from "./modules/users/pages/showProfile.page";
 
 
 function App() {
@@ -180,6 +181,8 @@ function App() {
       >
         <Route index element={<ShowIncidents />} />
 
+        <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
+        
       </Route>
     </Routes>
   );
