@@ -78,7 +78,7 @@ export function ShowProfile() {
       description: "Incidentes que reportaste",
       roles: ["user", "moderator"],
       onClick: () => {
-        // TODO: navegar o abrir sheet de incidentes
+        navigate(APP_ROUTES.app.myReports);
       },
     },
     {

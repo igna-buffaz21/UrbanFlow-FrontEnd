@@ -28,5 +28,6 @@ export const API_ROUTES = {
     getById: (id: string) => `/incidents/${id}`,
     updateStatus: (id: string) => `/incidents/${id}/status`,
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
+    getIncidentsCitizen: () => `/incidents/me`,
   },
 } as const;

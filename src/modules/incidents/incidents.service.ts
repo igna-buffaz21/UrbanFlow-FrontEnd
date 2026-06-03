@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident } from "./incidents.type";
+import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -54,5 +54,10 @@ export const incidentsService = {
       status,
     });
   },
+
+    async getIncidentsCitizen(): Promise<IncidentMe[]> {
+    const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
+    return response.data;
+  }
 };
 

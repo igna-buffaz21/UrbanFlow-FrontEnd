@@ -25,6 +25,7 @@ export interface IncidentDetail {
   priority: IncidentPriority;
   createdAt: string;
   createdBy: IncidentCreatedBy;
+  is_owner: boolean;
 }
 
 export interface IncidentCreatedBy {
@@ -74,4 +75,13 @@ export interface OperatorIncident {
   status: IncidentStatus;
   priority: IncidentPriority;
   assignedAt: string;
+}
+
+
+export interface IncidentMe {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  createdAt: string;
 }
