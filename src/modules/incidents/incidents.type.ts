@@ -2,6 +2,8 @@ export type IncidentStatus = | "in_review" | "open" | "assigned" | "resolved" | 
 
 export type IncidentPriority = "low" | "medium" | "high";
 
+export type IncidentCommentStatus = "visible" | "hidden" | "deleted";
+
 export type GeoJSONPoint = {
   type: "Point";
   coordinates: [number, number]; // [lng, lat]
@@ -84,4 +86,26 @@ export interface IncidentMe {
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
+}
+
+export interface IncidentCommentUser {
+  id: string;
+  name: string;
+  role: string;
+  photoUrl?: string | null;
+}
+
+export interface IncidentCommentResponse {
+  id: string;
+  comment: string;
+  photoUrl?: string | null;
+  status: IncidentCommentStatus;
+  createdBy: IncidentCommentUser;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IncidentReportResponse {
+  reportedByMe: boolean;
+  reportsCount: number;
 }
