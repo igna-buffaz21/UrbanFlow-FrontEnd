@@ -14,12 +14,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { incidentsService } from "@/modules/incidents/incidents.service";
-import { useAuthUser } from "@/modules/auth/auth.context";
-import { CalendarDays, ImageOff, MoreHorizontal, Trash2, User, XIcon } from "lucide-react";
+import {
+  CalendarDays,
+  Flag,
+  ImageOff,
+  MessageSquare,
+  MoreHorizontal,
+  Trash2,
+  User,
+  Users,
+  XIcon,
+} from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -27,14 +38,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import type { IncidentCommentResponse, IncidentReportResponse } from "@/modules/incidents/incidents.type";
+import { Textarea } from "@/components/ui/textarea";
 
 type IncidentPriority = "low" | "medium" | "high";
 
@@ -66,7 +73,6 @@ function getPriorityLabel(priority: IncidentPriority) {
     medium: "Media",
     high: "Alta",
   };
-
   return labels[priority];
 }
 
@@ -76,18 +82,27 @@ function getPriorityBadgeClass(priority: IncidentPriority) {
     medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
     high: "bg-red-100 text-red-700 border-red-200",
   };
-
   return classes[priority];
 }
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("es-AR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date));
+function formatRelativeDate(date: string) {
+  const now = new Date();
+  const then = new Date(date);
+  const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
+
+  if (diff < 60) return "hace un momento";
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+  return `hace ${Math.floor(diff / 86400)} días`;
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 }
 
 export function IncidentDetailDialog({
@@ -95,19 +110,17 @@ export function IncidentDetailDialog({
   open,
   onOpenChange,
 }: IncidentDetailDialogProps) {
-  const { user } = useAuthUser();
-
-  const isOperator = user?.role === "operator";
-
   const [incident, setIncident] = useState<IncidentDetail | null>(null);
+  const [report, setReport] = useState<IncidentReportResponse | null>(null);
+  const [comments, setComments] = useState<IncidentCommentResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const [selectedStatus, setSelectedStatus] = useState<"assigned" | "resolved">("assigned");
-  const [resolvedImage, setResolvedImage] = useState<File | null>(null);
-  const [isSavingStatus, setIsSavingStatus] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [commentValue, setCommentValue] = useState("");
+  const [isCommenting, setIsCommenting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !incidentId) return;
@@ -117,11 +130,15 @@ export function IncidentDetailDialog({
         setIsLoading(true);
         setErrorMessage(null);
 
-        const response = await incidentsService.getDetailIncidentById(incidentId!!);
+        const [incidentData, reportData, commentsData] = await Promise.all([
+          incidentsService.getDetailIncidentById(incidentId!!),
+          incidentsService.getIncidentReport(incidentId!!),
+          incidentsService.getIncidentComments(incidentId!!),
+        ]);
 
-        setIncident(response);
-        setSelectedStatus("assigned");
-        setResolvedImage(null);
+        setIncident(incidentData);
+        setReport(reportData);
+        setComments(commentsData);
       } catch (error) {
         console.error(error);
         setErrorMessage("No se pudo cargar el detalle del incidente.");
@@ -138,45 +155,16 @@ export function IncidentDetailDialog({
 
     if (!value) {
       setIncident(null);
+      setReport(null);
+      setComments([]);
       setErrorMessage(null);
-      setSelectedStatus("assigned");
-      setResolvedImage(null);
-    }
-  }
-
-  async function handleSaveStatus() {
-
-    if (!incidentId) return;
-
-    if (selectedStatus === "resolved" && !resolvedImage) {
-      alert("Para marcarlo como resuelto tenés que subir una foto.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("status", selectedStatus);
-
-    if (resolvedImage) {
-      formData.append("image", resolvedImage);
-    }
-
-    try {
-      setIsSavingStatus(true);
-
-      await incidentsService.updateIncidentStatus(incidentId, formData);
-
-      onOpenChange(false);
-    } catch (error) {
-      console.error(error);
-      alert("No se pudo actualizar el estado.");
-    } finally {
-      setIsSavingStatus(false);
+      setCommentValue("");
+      setCommentError(null);
     }
   }
 
   async function handleDelete() {
     if (!incidentId) return;
-
     try {
       setIsDeleting(true);
       // await incidentsService.changeStatusIncident(incidentId);
@@ -190,16 +178,65 @@ export function IncidentDetailDialog({
     }
   }
 
+  async function handleToggleReport() {
+    if (!incidentId || !report) return;
+    try {
+      setIsReporting(true);
+      if (report.reportedByMe) {
+        await incidentsService.deleteIncidentReport(incidentId);
+        setReport({
+          reportedByMe: false,
+          reportsCount: Math.max(0, report.reportsCount - 1),
+        });
+      } else {
+        await incidentsService.addIncidentReport(incidentId);
+        setReport({
+          reportedByMe: true,
+          reportsCount: report.reportsCount + 1,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsReporting(false);
+    }
+  }
+
+  async function handleCreateComment(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  if (!incidentId) return;
+
+  const trimmedComment = commentValue.trim();
+
+  if (!trimmedComment) {
+    setCommentError("El comentario no puede estar vacío.");
+    return;
+  }
+
+  try {
+    setIsCommenting(true);
+    setCommentError(null);
+
+    const response = await incidentsService.addCommentReport(incidentId, trimmedComment);
+
+    setComments((prevComments) => [response, ...prevComments]);
+    setCommentValue("");
+  } catch (error) {
+    console.error(error);
+    setCommentError("No se pudo publicar el comentario.");
+  } finally {
+    setIsCommenting(false);
+  }
+}
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent
-          className="max-h-[90vh] max-w-2xl overflow-y-auto"
-          showCloseButton={false}
-        >
-          <DialogHeader className="flex-row items-center justify-between">
+        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0" showCloseButton={false}>
+          {/* Header — fijo */}
+          <DialogHeader className="flex-row items-center justify-between px-6 pt-6 pb-4">
             <DialogTitle>Detalle del incidente</DialogTitle>
-
             <div className="flex items-center gap-1">
               {incident?.is_owner && (
                 <DropdownMenu>
@@ -209,7 +246,6 @@ export function IncidentDetailDialog({
                       <span className="sr-only">Más opciones</span>
                     </Button>
                   </DropdownMenuTrigger>
-
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive gap-2"
@@ -221,7 +257,6 @@ export function IncidentDetailDialog({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-
               <DialogClose asChild>
                 <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
                   <XIcon className="h-4 w-4" />
@@ -231,151 +266,213 @@ export function IncidentDetailDialog({
             </div>
           </DialogHeader>
 
-          {isLoading && (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              Cargando detalle...
-            </div>
-          )}
-
-          {errorMessage && !isLoading && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              {errorMessage}
-            </div>
-          )}
-
-          {incident && !isLoading && (
-            <div className="space-y-5">
-              <div className="overflow-hidden rounded-xl border bg-muted/30">
-                {incident.photoUrl ? (
-                  <img
-                    src={incident.photoUrl}
-                    alt={incident.title}
-                    className="h-64 w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-48 w-full flex-col items-center justify-center gap-2 text-muted-foreground">
-                    <ImageOff className="size-8" />
-                    <p className="text-sm">Este incidente no tiene imagen</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={getPriorityBadgeClass(incident.priority)}
-                  >
-                    Prioridad {getPriorityLabel(incident.priority)}
-                  </Badge>
-
-                  {incident.category && (
-                    <Badge variant="secondary">{incident.category}</Badge>
-                  )}
+          {/* Contenido scrolleable */}
+          <ScrollArea className="flex-1 overflow-auto">
+            <div className="px-6 pb-6">
+              {isLoading && (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  Cargando detalle...
                 </div>
+              )}
 
-                <h2 className="text-xl font-semibold text-foreground">
-                  {incident.title}
-                </h2>
+              {errorMessage && !isLoading && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  {errorMessage}
+                </div>
+              )}
 
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {incident.description}
-                </p>
-              </div>
+              {incident && !isLoading && (
+                <div className="space-y-5">
+                  {/* Imagen */}
+                  <div className="overflow-hidden rounded-xl border bg-muted/30">
+                    {incident.photoUrl ? (
+                      <img
+                        src={incident.photoUrl}
+                        alt={incident.title}
+                        className="h-64 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-48 w-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                        <ImageOff className="size-8" />
+                        <p className="text-sm">Este incidente no tiene imagen</p>
+                      </div>
+                    )}
+                  </div>
 
-              <div className="grid gap-3 rounded-xl border bg-background p-4 sm:grid-cols-2">
-                <div className="flex items-center gap-3">
-                  {incident.createdBy.photoUrl ? (
-                    <img
-                      src={incident.createdBy.photoUrl}
-                      alt={incident.createdBy.name}
-                      className="size-9 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-9 items-center justify-center rounded-full bg-muted">
-                      <User className="size-4 text-muted-foreground" />
+                  {/* Título y descripción */}
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={getPriorityBadgeClass(incident.priority)}
+                      >
+                        Prioridad {getPriorityLabel(incident.priority)}
+                      </Badge>
+                      {incident.category && (
+                        <Badge variant="secondary">{incident.category}</Badge>
+                      )}
+                    </div>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      {incident.title}
+                    </h2>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {incident.description}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Sección reportes */}
+                  {report && (
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="size-4 shrink-0" />
+                        {report.reportsCount > 0 ? (
+                          <span>
+                            <span className="font-medium text-foreground">
+                              {report.reportsCount}
+                            </span>{" "}
+                            {report.reportsCount === 1
+                              ? "persona también reportó esto"
+                              : "personas también reportaron esto"}
+                          </span>
+                        ) : (
+                          <span>Sé el primero en reportar este incidente</span>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isReporting}
+                        onClick={handleToggleReport}
+                        className={cn(
+                          "shrink-0 gap-2",
+                          report.reportedByMe &&
+                            "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                        )}
+                      >
+                        <Flag className="size-3.5" />
+                        {report.reportedByMe ? "Reportado" : "Reportar"}
+                      </Button>
                     </div>
                   )}
 
-                  <div>
-                    <p className="text-xs text-muted-foreground">Reportado por</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {incident.createdBy.name}
-                    </p>
-                  </div>
-                </div>
+                  <Separator />
 
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 items-center justify-center rounded-full bg-muted">
-                    <CalendarDays className="size-4 text-muted-foreground" />
-                  </div>
+                  {/* Sección comentarios */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <MessageSquare className="size-4 text-muted-foreground" />
+                      Comentarios
+                      {comments.length > 0 && (
+                        <span className="font-normal text-muted-foreground">
+                          ({comments.length})
+                        </span>
+                      )}
+                    </div>
 
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Fecha de creación
-                    </p>
-                    <p className="text-sm font-medium text-foreground">
-                      {formatDate(incident.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                    {comments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Todavía no hay comentarios para este incidente.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {comments.map((c) => (
+                          <div key={c.id} className="flex gap-3">
+                            <Avatar className="size-8 shrink-0">
+                              <AvatarImage
+                                src={c.createdBy.photoUrl ?? undefined}
+                                alt={c.createdBy.name}
+                              />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(c.createdBy.name)}
+                              </AvatarFallback>
+                            </Avatar>
 
-              {isOperator && (
-                <div className="space-y-3 rounded-xl border bg-background p-4">
-                  <p className="text-sm font-medium">Actualizar estado</p>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-sm font-medium text-foreground">
+                                  {c.createdBy.name}
+                                </span>
 
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={(value) =>
-                      setSelectedStatus(value as "assigned" | "resolved")
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar estado" />
-                    </SelectTrigger>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatRelativeDate(c.createdAt)}
+                                </span>
+                              </div>
 
-                    <SelectContent>
-                      <SelectItem value="assigned">Asignado</SelectItem>
-                      <SelectItem value="resolved">Resuelto</SelectItem>
-                    </SelectContent>
-                  </Select>
+                              <p className="rounded-lg rounded-tl-none bg-muted/50 px-3 py-2 text-sm leading-relaxed text-foreground">
+                                {c.comment}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                  {selectedStatus === "resolved" && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Foto del incidente resuelto</p>
-
-                      <input
-                        id="resolved-image"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(event) =>
-                          setResolvedImage(event.target.files?.[0] ?? null)
-                        }
+                    {/* Crear comentario */}
+                    <form onSubmit={handleCreateComment} className="space-y-2 border-t pt-4">
+                      <Textarea
+                        value={commentValue}
+                        onChange={(event) => setCommentValue(event.target.value)}
+                        placeholder="Escribí un comentario..."
+                        disabled={isCommenting}
+                        className="min-h-20 resize-none text-sm"
                       />
 
-                      <label
-                        htmlFor="resolved-image"
-                        className="flex h-10 cursor-pointer items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
-                      >
-                        {resolvedImage ? resolvedImage.name : "Seleccionar imagen"}
-                      </label>
-                    </div>
-                  )}
+                      {commentError && (
+                        <p className="text-xs text-destructive">{commentError}</p>
+                      )}
 
-                  <Button
-                    type="button"
-                    onClick={handleSaveStatus}
-                    disabled={isSavingStatus}
-                    className="w-full"
-                  >
-                    {isSavingStatus ? "Guardando..." : "Guardar cambios"}
-                  </Button>
+                      <div className="flex justify-end">
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={isCommenting || !commentValue.trim()}
+                        >
+                          {isCommenting ? "Publicando..." : "Comentar"}
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Meta: autor y fecha — discreta, al pie */}
+                  {/* Meta: autor y fecha — centradas */}
+                    {/* Meta: autor y fecha */}
+                    <div className="space-y-1 pt-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5">
+                        {incident.createdBy.photoUrl ? (
+                          <img
+                            src={incident.createdBy.photoUrl}
+                            alt={incident.createdBy.name}
+                            className="size-4 rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="size-3.5" />
+                        )}
+
+                        <span>
+                          Creado por:{" "}
+                          <span className="font-medium text-foreground">
+                            {incident.createdBy.name}
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <CalendarDays className="size-3.5" />
+
+                        <span>
+                          Creado hace:{" "}
+                          <span className="font-medium text-foreground">
+                            {formatRelativeDate(incident.createdAt)}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
                 </div>
               )}
             </div>
-          )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
@@ -384,11 +481,10 @@ export function IncidentDetailDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Dar de baja este incidente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El incidente será dado de baja
-              y dejará de estar visible.
+              Esta acción no se puede deshacer. El incidente será dado de baja y
+              dejará de estar visible.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction

@@ -30,4 +30,15 @@ export const API_ROUTES = {
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
     getIncidentsCitizen: () => `/incidents/me`,
   },
+
+  incident_reports: {
+    getReportByIncidentId: (id: string) => `/incident-report/${id}/report`,
+    createReport: (id: string) => `/incident-report/${id}/report`,
+    deleteReport: (id: string) => `/incident-report/${id}/report`,
+  },
+
+  incident_comments: {
+    getCommentsByIncidentId: (id: string) => `/incident-comments/${id}/comments`,
+    createComment: (id: string) => `/incident-comments/${id}/comments`,
+  }
 } as const;

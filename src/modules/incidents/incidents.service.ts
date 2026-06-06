@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe } from "./incidents.type";
+import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -61,6 +61,32 @@ export const incidentsService = {
   async getIncidentsCitizen(): Promise<IncidentMe[]> {
     const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
     return response.data;
+  },
+
+  async getIncidentReport(id: string): Promise<IncidentReportResponse> {
+    const response = await api.get<IncidentReportResponse>(API_ROUTES.incident_reports.getReportByIncidentId(id), {});
+    return response.data;
+  },
+
+  async getIncidentComments(id: string): Promise<IncidentCommentResponse[]> {
+    const response = await api.get<IncidentCommentResponse[]>(API_ROUTES.incident_comments.getCommentsByIncidentId(id), {});
+    return response.data;
+  },
+
+  async addIncidentReport(id: string): Promise<void> {
+    const response = await api.post(API_ROUTES.incident_reports.createReport(id));
+    return response.data;
+  },
+
+  async deleteIncidentReport(id: string): Promise<void> {
+    const response = await api.delete(API_ROUTES.incident_reports.createReport(id));
+    return response.data;
+  },
+
+  async addCommentReport(id: string, comment: string): Promise<IncidentCommentResponse> {
+    const response = await api.post(API_ROUTES.incident_comments.createComment(id), { comment });
+    return response.data;
   }
+
 };
 
