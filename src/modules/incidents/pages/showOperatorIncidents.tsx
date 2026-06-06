@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/react";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 import { incidentsService } from "../incidents.service";
 import type {
@@ -59,6 +62,9 @@ const PRIORITY_VARIANTS: Record<
 };
 
 export function ShowOperatorIncidents() {
+    const { signOut } = useAuth();
+    const navigate = useNavigate();
+
     const [incidents, setIncidents] = useState<OperatorIncident[]>([]);
     const [status, setStatus] = useState<IncidentStatus | "all">("all");
     const [priority, setPriority] = useState<IncidentPriority | "all">("all");
@@ -66,6 +72,11 @@ export function ShowOperatorIncidents() {
 
     const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+    async function handleLogout() {
+        await signOut();
+        navigate("/login", { replace: true });
+    }
 
     async function loadIncidents() {
         try {
@@ -83,7 +94,6 @@ export function ShowOperatorIncidents() {
             );
 
             setIncidents(visibleIncidents);
-
         } catch (error) {
             console.error("Error al obtener incidentes asignados:", error);
         } finally {
@@ -104,10 +114,25 @@ export function ShowOperatorIncidents() {
         <div className="min-h-dvh w-full px-3 py-4 sm:flex sm:justify-center sm:p-6">
             <Card className="w-full max-w-5xl">
                 <CardHeader>
-                    <CardTitle>Mis incidentes asignados</CardTitle>
-                    <CardDescription>
-                        Consultá y gestioná los incidentes que tenés asignados.
-                    </CardDescription>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <CardTitle>Mis incidentes asignados</CardTitle>
+                            <CardDescription>
+                                Consultá y gestioná los incidentes que tenés asignados.
+                            </CardDescription>
+                        </div>
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleLogout}
+                            className="w-full sm:w-auto"
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Cerrar sesión
+                        </Button>
+                    </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
@@ -172,10 +197,11 @@ export function ShowOperatorIncidents() {
                                     </TableRow>
                                 ) : (
                                     incidents.map((incident) => (
-                                        <TableRow key={incident.id}
+                                        <TableRow
+                                            key={incident.id}
                                             onClick={() => handleOpenDetail(incident.id)}
-                                            className="cursor-pointer">
-
+                                            className="cursor-pointer"
+                                        >
                                             <TableCell className="font-medium">
                                                 {incident.title}
                                             </TableCell>
@@ -195,7 +221,6 @@ export function ShowOperatorIncidents() {
                                                     ? new Date(incident.assignedAt).toLocaleDateString("es-AR")
                                                     : "-"}
                                             </TableCell>
-
                                         </TableRow>
                                     ))
                                 )}
