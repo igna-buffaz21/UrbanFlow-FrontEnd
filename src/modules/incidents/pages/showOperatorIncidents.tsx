@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { incidentsService } from "../incidents.service";
-import type { IncidentPriority, IncidentStatus, OperatorIncident } from "../incidents.type";
+import type {
+    IncidentPriority,
+    IncidentStatus,
+    OperatorIncident,
+} from "../incidents.type";
 
-import { APP_ROUTES } from "@/config/app.routes";
+import { IncidentDetailDialogOperador } from "@/components/dialog-incident-operador";
 
 import {
     Card,
@@ -36,6 +39,7 @@ import { Button } from "@/components/ui/button";
 
 const STATUS_LABELS: Record<string, string> = {
     assigned: "Asignado",
+    in_progress: "En progreso",
     resolved: "Resuelto",
 };
 
@@ -55,12 +59,13 @@ const PRIORITY_VARIANTS: Record<
 };
 
 export function ShowOperatorIncidents() {
-    const navigate = useNavigate();
-
     const [incidents, setIncidents] = useState<OperatorIncident[]>([]);
     const [status, setStatus] = useState<IncidentStatus | "all">("all");
     const [priority, setPriority] = useState<IncidentPriority | "all">("all");
     const [isLoading, setIsLoading] = useState(false);
+
+    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+    const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
     async function loadIncidents() {
         try {
@@ -73,7 +78,12 @@ export function ShowOperatorIncidents() {
 
             const data = await incidentsService.getAssignedIncidents(filters);
 
-            setIncidents(data);
+            const visibleIncidents = data.filter(
+                (incident) => incident.status !== "resolved"
+            );
+
+            setIncidents(visibleIncidents);
+
         } catch (error) {
             console.error("Error al obtener incidentes asignados:", error);
         } finally {
@@ -85,8 +95,13 @@ export function ShowOperatorIncidents() {
         loadIncidents();
     }, [status, priority]);
 
+    function handleOpenDetail(incidentId: string) {
+        setSelectedIncidentId(incidentId);
+        setIsDetailDialogOpen(true);
+    }
+
     return (
-        <div className="flex justify-center p-6">
+        <div className="min-h-dvh w-full px-3 py-4 sm:flex sm:justify-center sm:p-6">
             <Card className="w-full max-w-5xl">
                 <CardHeader>
                     <CardTitle>Mis incidentes asignados</CardTitle>
@@ -96,19 +111,19 @@ export function ShowOperatorIncidents() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                    <div className="grid gap-2 md:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <Select
                             value={status}
                             onValueChange={(value) => setStatus(value as IncidentStatus | "all")}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Estado" />
                             </SelectTrigger>
 
                             <SelectContent>
                                 <SelectItem value="all">Todos los estados</SelectItem>
                                 <SelectItem value="assigned">Asignado</SelectItem>
-                                <SelectItem value="resolved">Resuelto</SelectItem>
+                                <SelectItem value="in_progress">En progreso</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -118,7 +133,7 @@ export function ShowOperatorIncidents() {
                                 setPriority(value as IncidentPriority | "all")
                             }
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Prioridad" />
                             </SelectTrigger>
 
@@ -139,26 +154,28 @@ export function ShowOperatorIncidents() {
                                     <TableHead>Estado</TableHead>
                                     <TableHead>Prioridad</TableHead>
                                     <TableHead>Asignado</TableHead>
-                                    <TableHead className="text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
 
                             <TableBody>
                                 {isLoading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-8 text-center">
+                                        <TableCell colSpan={4} className="py-8 text-center">
                                             Cargando...
                                         </TableCell>
                                     </TableRow>
                                 ) : incidents.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-8 text-center">
+                                        <TableCell colSpan={4} className="py-8 text-center">
                                             No tenés incidentes asignados.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     incidents.map((incident) => (
-                                        <TableRow key={incident.id}>
+                                        <TableRow key={incident.id}
+                                            onClick={() => handleOpenDetail(incident.id)}
+                                            className="cursor-pointer">
+
                                             <TableCell className="font-medium">
                                                 {incident.title}
                                             </TableCell>
@@ -175,21 +192,10 @@ export function ShowOperatorIncidents() {
 
                                             <TableCell>
                                                 {incident.assignedAt
-                                                    ? new Date(incident.assignedAt).toLocaleDateString()
+                                                    ? new Date(incident.assignedAt).toLocaleDateString("es-AR")
                                                     : "-"}
                                             </TableCell>
 
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        navigate(APP_ROUTES.operator.incidentDetailPath(incident.id))
-                                                    }
-                                                >
-                                                    Ver detalle
-                                                </Button>
-                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}
@@ -202,6 +208,18 @@ export function ShowOperatorIncidents() {
                     </p>
                 </CardContent>
             </Card>
+
+            <IncidentDetailDialogOperador
+                incidentId={selectedIncidentId}
+                open={isDetailDialogOpen}
+                onOpenChange={(open) => {
+                    setIsDetailDialogOpen(open);
+
+                    if (!open) {
+                        loadIncidents();
+                    }
+                }}
+            />
         </div>
     );
 }
