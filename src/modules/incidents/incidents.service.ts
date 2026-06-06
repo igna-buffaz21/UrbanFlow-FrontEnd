@@ -49,13 +49,16 @@ export const incidentsService = {
     return response.data;
   },
 
-  async updateIncidentStatus(id: string, status: string): Promise<void> {
-    await api.patch(API_ROUTES.incidents.updateStatus(id), {
-      status,
-    });
+  async updateIncidentStatus(id: string, data: FormData) {
+    const response = await api.patch(
+      API_ROUTES.incidents.updateStatus(id),
+      data
+    );
+
+    return response.data;
   },
 
-    async getIncidentsCitizen(): Promise<IncidentMe[]> {
+  async getIncidentsCitizen(): Promise<IncidentMe[]> {
     const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
     return response.data;
   }

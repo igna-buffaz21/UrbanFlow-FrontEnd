@@ -1,4 +1,4 @@
-export type IncidentStatus = | "in_review" | "open" | "assigned" | "resolved" | "closed" | "rejected";
+export type IncidentStatus = | "in_review" | "open" | "assigned" | "in_progress" | "resolved" | "closed" | "rejected";
 
 export type IncidentPriority = "low" | "medium" | "high";
 
@@ -22,6 +22,7 @@ export interface IncidentDetail {
   description: string;
   photoUrl: string | null;
   category: string | null;
+  status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
   createdBy: IncidentCreatedBy;

@@ -16,10 +16,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { incidentsService } from "@/modules/incidents/incidents.service";
 import { useAuthUser } from "@/modules/auth/auth.context";
-import { CalendarDays, ImageOff, MoreHorizontal, Trash2, User, XIcon } from "lucide-react";
+import {
+  CalendarDays,
+  ImageOff,
+  MoreHorizontal,
+  Trash2,
+  User,
+  XIcon,
+} from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -37,13 +43,15 @@ import {
 import { useEffect, useState } from "react";
 
 type IncidentPriority = "low" | "medium" | "high";
+type IncidentStatus = "assigned" | "in_progress" | "resolved";
 
-type IncidentDetail = {
+type IncidentDetailOperador = {
   id: string;
   title: string;
   description: string;
   photoUrl: string | null;
   category: string | null;
+  status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
   is_owner: boolean;
@@ -54,7 +62,7 @@ type IncidentDetail = {
   };
 };
 
-type IncidentDetailDialogProps = {
+type IncidentDetailDialogOperadorProps = {
   incidentId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -90,37 +98,41 @@ function formatDate(date: string) {
   }).format(new Date(date));
 }
 
-export function IncidentDetailDialog({
+export function IncidentDetailDialogOperador({
   incidentId,
   open,
   onOpenChange,
-}: IncidentDetailDialogProps) {
+}: IncidentDetailDialogOperadorProps) {
   const { user } = useAuthUser();
 
   const isOperator = user?.role === "operator";
 
-  const [incident, setIncident] = useState<IncidentDetail | null>(null);
+  const [incident, setIncident] = useState<IncidentDetailOperador | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [selectedStatus, setSelectedStatus] = useState<"assigned" | "resolved">("assigned");
+  const [selectedStatus, setSelectedStatus] =
+    useState<IncidentStatus>("assigned");
+
   const [resolvedImage, setResolvedImage] = useState<File | null>(null);
   const [isSavingStatus, setIsSavingStatus] = useState(false);
 
   useEffect(() => {
     if (!open || !incidentId) return;
 
-    async function getIncidentDetail() {
+    async function getIncidentDetailOperador() {
       try {
         setIsLoading(true);
         setErrorMessage(null);
 
         const response = await incidentsService.getDetailIncidentById(incidentId!!);
 
-        setIncident(response);
-        setSelectedStatus("assigned");
+        const incidentData = response as IncidentDetailOperador;
+
+        setIncident(incidentData);
+        setSelectedStatus(incidentData.status);
         setResolvedImage(null);
       } catch (error) {
         console.error(error);
@@ -130,7 +142,7 @@ export function IncidentDetailDialog({
       }
     }
 
-    getIncidentDetail();
+    getIncidentDetailOperador();
   }, [open, incidentId]);
 
   function handleOpenChange(value: boolean) {
@@ -145,7 +157,6 @@ export function IncidentDetailDialog({
   }
 
   async function handleSaveStatus() {
-
     if (!incidentId) return;
 
     if (selectedStatus === "resolved" && !resolvedImage) {
@@ -166,9 +177,16 @@ export function IncidentDetailDialog({
       await incidentsService.updateIncidentStatus(incidentId, formData);
 
       onOpenChange(false);
-    } catch (error) {
-      console.error(error);
-      alert("No se pudo actualizar el estado.");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "No se pudo actualizar el estado.";
+
+      console.log("Mensaje backend:", error?.response?.data?.message);
+      console.log("Respuesta completa:", error?.response?.data);
+
+      alert(message);
     } finally {
       setIsSavingStatus(false);
     }
@@ -179,7 +197,6 @@ export function IncidentDetailDialog({
 
     try {
       setIsDeleting(true);
-      // await incidentsService.changeStatusIncident(incidentId);
       setIsConfirmOpen(false);
       onOpenChange(false);
     } catch (error) {
@@ -204,7 +221,11 @@ export function IncidentDetailDialog({
               {incident?.is_owner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Más opciones</span>
                     </Button>
@@ -223,7 +244,11 @@ export function IncidentDetailDialog({
               )}
 
               <DialogClose asChild>
-                <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground"
+                >
                   <XIcon className="h-4 w-4" />
                   <span className="sr-only">Cerrar</span>
                 </Button>
@@ -298,7 +323,9 @@ export function IncidentDetailDialog({
                   )}
 
                   <div>
-                    <p className="text-xs text-muted-foreground">Reportado por</p>
+                    <p className="text-xs text-muted-foreground">
+                      Reportado por
+                    </p>
                     <p className="text-sm font-medium text-foreground">
                       {incident.createdBy.name}
                     </p>
@@ -328,7 +355,7 @@ export function IncidentDetailDialog({
                   <Select
                     value={selectedStatus}
                     onValueChange={(value) =>
-                      setSelectedStatus(value as "assigned" | "resolved")
+                      setSelectedStatus(value as IncidentStatus)
                     }
                   >
                     <SelectTrigger>
@@ -337,13 +364,16 @@ export function IncidentDetailDialog({
 
                     <SelectContent>
                       <SelectItem value="assigned">Asignado</SelectItem>
+                      <SelectItem value="in_progress">En progreso</SelectItem>
                       <SelectItem value="resolved">Resuelto</SelectItem>
                     </SelectContent>
                   </Select>
 
                   {selectedStatus === "resolved" && (
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">Foto del incidente resuelto</p>
+                      <p className="text-sm font-medium">
+                        Foto del incidente resuelto
+                      </p>
 
                       <input
                         id="resolved-image"
@@ -359,7 +389,9 @@ export function IncidentDetailDialog({
                         htmlFor="resolved-image"
                         className="flex h-10 cursor-pointer items-center justify-center rounded-md border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
                       >
-                        {resolvedImage ? resolvedImage.name : "Seleccionar imagen"}
+                        {resolvedImage
+                          ? resolvedImage.name
+                          : "Seleccionar imagen"}
                       </label>
                     </div>
                   )}
@@ -384,13 +416,16 @@ export function IncidentDetailDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Dar de baja este incidente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El incidente será dado de baja
-              y dejará de estar visible.
+              Esta acción no se puede deshacer. El incidente será dado de baja y
+              dejará de estar visible.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}

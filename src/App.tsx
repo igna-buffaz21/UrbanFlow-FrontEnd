@@ -158,21 +158,10 @@ function App() {
         path={APP_ROUTES.operator.root}
         element={
           <ProtectedRoute allowedRoles={[USER_ROLES.OPERATOR]}>
-            <PanelLayout />
+            <ShowOperatorIncidents />
           </ProtectedRoute>
         }
-      >
-        <Route index element={<ShowOperatorIncidents />} />
-
-        <Route
-          path="incidents/history"
-          element={<ShowOperatorIncidentsHistory />}
-        />
-        <Route
-          path={APP_ROUTES.operator.incidentDetail}
-          element={<OperatorIncidentDetailPage />}
-        />
-      </Route>
+      />
 
       <Route
         path={APP_ROUTES.app.root}
@@ -187,7 +176,7 @@ function App() {
         <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
 
         <Route path={APP_ROUTES.app.myReports} element={<ShowIncidentsCitizen />} />
-        
+
       </Route>
     </Routes>
   );
