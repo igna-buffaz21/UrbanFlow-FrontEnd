@@ -45,6 +45,7 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     open: "Abierto",
     in_review: "En revisión",
     assigned: "Asignado",
+    in_progress: "En progreso",
     resolved: "Resuelto",
     closed: "Cerrado",
     rejected: "Rechazado",
