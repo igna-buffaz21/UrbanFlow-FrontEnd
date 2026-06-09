@@ -117,23 +117,33 @@ export function ShowUsersPage() {
     getUsers();
   }, [authUser]);
 
-  // --- original ---
   async function handleDeactivate() {
     if (!operatorToDelete) return;
 
     try {
       setIsDeleting(true);
-      await userService.updateUserStatus(operatorToDelete.id, "inactive");
+
+      const newStatus =
+        operatorToDelete.status === "active"
+          ? "inactive"
+          : "active";
+
+      await userService.updateUserStatus(
+        operatorToDelete.id,
+        newStatus
+      );
+
       setUsers((prev) =>
         prev.map((user) =>
           user.id === operatorToDelete.id
-            ? { ...user, status: "inactive" }
+            ? { ...user, status: newStatus }
             : user
         )
       );
+
       setOperatorToDelete(null);
     } catch (error) {
-      console.error("Error al eliminar operador:", error);
+      console.error("Error al actualizar operador:", error);
     } finally {
       setIsDeleting(false);
     }
@@ -327,7 +337,9 @@ export function ShowUsersPage() {
             <DialogHeader>
               <DialogTitle>¿Estás seguro?</DialogTitle>
               <DialogDescription>
-                El operador <strong>{operatorToDelete?.name ?? operatorToDelete?.email}</strong> será desactivado y no podrá acceder al sistema. El operador no será eliminado permanentemente y podrás reactivarlo si es necesario.
+                {operatorToDelete?.status === "active"
+                  ? `El operador ${operatorToDelete?.name} será desactivado y no podrá acceder al sistema.`
+                  : `El operador ${operatorToDelete?.name} volverá a estar habilitado para acceder al sistema.`}
               </DialogDescription>
             </DialogHeader>
 
@@ -358,7 +370,7 @@ export function ShowUsersPage() {
           onOpenChange={(open) => !open && setSelectedOperator(null)}
         />
 
-        {/* Dialog crear operador — solo admin */}
+        {/* Dialog crear operador */}
         {authUser?.role === "admin" && (
           <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); setCreateError(""); setCreateSuccess(""); setCreateEmail(""); }}>
             <DialogContent>

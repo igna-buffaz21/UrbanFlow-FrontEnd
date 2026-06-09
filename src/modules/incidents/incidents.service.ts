@@ -58,6 +58,10 @@ export const incidentsService = {
     return response.data;
   },
 
+  async updateStatus(incidentId: string, status: string): Promise<void> {
+    await api.patch(API_ROUTES.incidents.updateStatus(incidentId), { status });
+},
+
   async getIncidentsCitizen(): Promise<IncidentMe[]> {
     const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
     return response.data;

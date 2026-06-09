@@ -5,6 +5,7 @@ import { incidentsService } from "../incidents.service";
 import { userService } from "@/modules/users/user.service";
 import type { GetUser } from "@/modules/users/user.types";
 import type { AdminIncidentDetail, IncidentStatus } from "../incidents.type";
+import { IncidentDetailCard } from "@/components/IncidentDetailCard";
 
 import { APP_ROUTES } from "@/config/app.routes";
 
@@ -69,6 +70,10 @@ export function AssignIncidentPage() {
     const [isAssigning, setIsAssigning] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const canAssign = incident?.status === "in_review" && !incident?.assignedTo;
+    console.log("Estado incidente:", incident?.status);
+    console.log("Asignado a:", incident?.assignedTo);
+    console.log("canAssign:", canAssign);
 
     useEffect(() => {
         async function loadData() {
@@ -134,140 +139,10 @@ export function AssignIncidentPage() {
         <div className="flex justify-center p-6">
             <div className="w-full max-w-2xl space-y-4">
 
-                {/* Detalle del incidente */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{incident.title}</CardTitle>
-                        <CardDescription>
-                            {incident.description ?? "Sin descripción"}
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-
-                        {/* Foto del incidente */}
-                        {incident.photoUrl && (
-                            <div className="space-y-2">
-                                <span className="text-sm font-medium">
-                                    Evidencia fotográfica
-                                </span>
-
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <img
-                                            src={incident.photoUrl}
-                                            alt={incident.title}
-                                            className="w-full max-h-80 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
-                                        />
-                                    </DialogTrigger>
-
-                                    <DialogContent className="max-w-5xl p-2">
-                                        <img
-                                            src={incident.photoUrl}
-                                            alt={incident.title}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        )}
-
-                        {incident.location && (
-                            <div className="space-y-2">
-                                <span className="text-sm font-medium">
-                                    Ubicación del incidente
-                                </span>
-
-                                <div className="h-64 overflow-hidden rounded-lg border">
-                                    <Map center={incident.location.coordinates} zoom={16}>
-                                        <MapMarker
-                                            longitude={incident.location.coordinates[0]}
-                                            latitude={incident.location.coordinates[1]}
-                                        >
-                                            <MarkerContent>
-                                                <div className="bg-red-600 size-4 rounded-full border-2 border-white shadow-lg" />
-                                            </MarkerContent>
-
-                                            <MarkerTooltip>
-                                                {incident.title}
-                                            </MarkerTooltip>
-
-                                            <MarkerPopup>
-                                                <div>
-                                                    <p className="font-medium">{incident.title}</p>
-                                                </div>
-                                            </MarkerPopup>
-                                        </MapMarker>
-                                    </Map>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid gap-3 md:grid-cols-2">
-
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Estado:</span>
-                                <span className="text-sm">
-                                    {STATUS_LABELS[incident.status]}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Prioridad:</span>
-                                <Badge
-                                    className={PRIORITY_STYLES[incident.priority]}
-                                >
-                                    {PRIORITY_LABELS[incident.priority]}
-                                </Badge>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Categoría:</span>
-                                <span className="text-sm">
-                                    {incident.category?.name ?? "Sin categoría"}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Creado por:</span>
-                                <span className="text-sm">
-                                    {incident.createdBy?.name ?? "Sin datos"}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">
-                                    Fecha de creación:
-                                </span>
-                                <span className="text-sm">
-                                    {new Date(incident.createdAt).toLocaleString("es-AR")}
-                                </span>
-                            </div>
-
-                            {incident.assignedTo && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">
-                                        Asignado a:
-                                    </span>
-                                    <span className="text-sm">
-                                        {incident.assignedTo.name}
-                                    </span>
-                                </div>
-                            )}
-
-                            {incident.assignedAt && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">
-                                        Fecha de asignación:
-                                    </span>
-                                    <span className="text-sm">
-                                        {new Date(incident.assignedAt).toLocaleString("es-AR")}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                <IncidentDetailCard
+                    incident={incident}
+                    showMap={true}
+                />
 
                 {/* Lista de operadores */}
                 <Card>
@@ -279,6 +154,15 @@ export function AssignIncidentPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-2">
+                        {incident.assignedTo && (
+                            <div className="rounded-lg border bg-muted/30 p-3">
+                                <p className="text-sm">
+                                    <span className="font-medium">Asignado a:</span>{" "}
+                                    {incident.assignedTo.name}
+                                </p>
+                            </div>
+                        )}
+
                         {operators.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
                                 No hay operadores disponibles.
@@ -287,15 +171,20 @@ export function AssignIncidentPage() {
                             operators.map((operator) => (
                                 <div
                                     key={operator.id}
-                                    onClick={() => setSelectedOperatorId(operator.id)}
-                                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedOperatorId === operator.id
-                                        ? "border-primary bg-primary/10"
-                                        : "hover:bg-muted/50"
+                                    onClick={() => {
+                                        if (!canAssign) return;
+                                        setSelectedOperatorId(operator.id);
+                                    }} className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${!canAssign
+                                        ? "opacity-60 cursor-not-allowed"
+                                        : selectedOperatorId === operator.id
+                                            ? "border-primary bg-primary/10 cursor-pointer"
+                                            : "hover:bg-muted/50 cursor-pointer"
                                         }`}
                                 >
                                     <input
                                         type="radio"
                                         readOnly
+                                        disabled={!canAssign}
                                         checked={selectedOperatorId === operator.id}
                                         className="accent-primary"
                                     />
@@ -327,9 +216,7 @@ export function AssignIncidentPage() {
                                 disabled={
                                     !selectedOperatorId ||
                                     isAssigning ||
-                                    incident.status === "resolved" ||
-                                    incident.status === "closed" ||
-                                    incident.status === "assigned"
+                                    !canAssign
                                 }
                             >
                                 {isAssigning ? "Asignando..." : "Confirmar asignación"}
@@ -344,9 +231,9 @@ export function AssignIncidentPage() {
                                 Cancelar
                             </Button>
                         </div>
-                        {incident.status === "assigned" && (
+                        {!canAssign && (
                             <p className="text-sm text-muted-foreground">
-                                Este incidente ya tiene un operador asignado.
+                                Solo se pueden asignar operadores a incidentes en estado "En revisión".
                             </p>
                         )}
                     </CardContent>

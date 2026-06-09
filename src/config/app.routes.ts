@@ -18,6 +18,9 @@ export const APP_ROUTES = {
     createMunicipality: "/panel/municipalities/create",
     operatorDetail: "operators/:id",
     operatorDetailPath: (id: string) => `/panel/operators/${id}`,
+    incidentResolved: "/panel/incidents/resolved",
+    incidentResolvedDetail: "/panel/incidents/resolved/:id",
+    incidentResolvedDetailPath: (id: string) => `/panel/incidents/resolved/${id}`,
   },
 
   operator: {
