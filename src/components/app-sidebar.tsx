@@ -95,10 +95,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.incidents,
         },
         {
-          title: "Resueltos",
-          url: APP_ROUTES.panel.incidentResolved,
-        },
-        {
           title: "Historial",
           url: APP_ROUTES.panel.incidentHistory,
         },

@@ -1,3 +1,4 @@
+import React from "react";
 import {
     Dialog,
     DialogContent,
@@ -48,6 +49,7 @@ interface IncidentDetailCardProps {
     showMap?: boolean;
     showResolutionPhoto?: boolean;
     showAssignmentData?: boolean;
+    actions?: React.ReactNode;
 }
 
 export function IncidentDetailCard({
@@ -55,6 +57,7 @@ export function IncidentDetailCard({
     showMap = false,
     showResolutionPhoto = true,
     showAssignmentData = true,
+    actions,
 }: IncidentDetailCardProps) {
     return (
         <Card>
@@ -83,6 +86,28 @@ export function IncidentDetailCard({
                     </div>
                 )}
 
+                {showMap && incident.location && (
+                    <div className="space-y-2">
+                        <span className="text-sm font-medium">Ubicación del incidente</span>
+                        <div className="h-80 overflow-hidden rounded-lg border">
+                            <Map center={incident.location.coordinates} zoom={16}>
+                                <MapMarker
+                                    longitude={incident.location.coordinates[0]}
+                                    latitude={incident.location.coordinates[1]}
+                                >
+                                    <MarkerContent>
+                                        <div className="bg-red-600 size-4 rounded-full border-2 border-white shadow-lg" />
+                                    </MarkerContent>
+                                    <MarkerTooltip>{incident.title}</MarkerTooltip>
+                                    <MarkerPopup>
+                                        <div><p className="font-medium">{incident.title}</p></div>
+                                    </MarkerPopup>
+                                </MapMarker>
+                            </Map>
+                        </div>
+                    </div>
+                )}
+
                 {showResolutionPhoto &&
                     incident.resolutionPhotoUrl && (<div className="space-y-2">
                         <span className="text-sm font-medium">Foto de resolución del operador</span>
@@ -98,38 +123,6 @@ export function IncidentDetailCard({
                                 <img src={incident.resolutionPhotoUrl} alt="Resolución" className="w-full h-auto rounded-lg" />
                             </DialogContent>
                         </Dialog>
-
-                        {showMap && incident.location && (
-                            <div className="space-y-2">
-                                <span className="text-sm font-medium">
-                                    Ubicación del incidente
-                                </span>
-
-                                <div className="h-80 overflow-hidden rounded-lg border">                                <Map center={incident.location.coordinates} zoom={16}>
-                                    <MapMarker
-                                        longitude={incident.location.coordinates[0]}
-                                        latitude={incident.location.coordinates[1]}
-                                    >
-                                        <MarkerContent>
-                                            <div className="bg-red-600 size-4 rounded-full border-2 border-white shadow-lg" />
-                                        </MarkerContent>
-
-                                        <MarkerTooltip>
-                                            {incident.title}
-                                        </MarkerTooltip>
-
-                                        <MarkerPopup>
-                                            <div>
-                                                <p className="font-medium">
-                                                    {incident.title}
-                                                </p>
-                                            </div>
-                                        </MarkerPopup>
-                                    </MapMarker>
-                                </Map>
-                                </div>
-                            </div>
-                        )}
                     </div>
                     )}
 
@@ -194,6 +187,11 @@ export function IncidentDetailCard({
                         </div>
                     )}
                 </div>
+                {actions && (
+                    <div className="flex gap-2 pt-2">
+                        {actions}
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

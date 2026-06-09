@@ -27,8 +27,6 @@ import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncident
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
-import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolvedIncidents";
-import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import SignUpPage from "./modules/auth/pages/signup";
@@ -152,25 +150,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolved}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <ShowResolvedIncidentsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolvedDetail}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <ResolvedIncidentDetailPage />
-            </ProtectedRoute>
-          }
-        />
-
 
       </Route>
 
