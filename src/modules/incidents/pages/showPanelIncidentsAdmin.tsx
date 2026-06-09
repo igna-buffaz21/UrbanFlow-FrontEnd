@@ -72,7 +72,12 @@ export function ShowAdminIncidentsPage() {
 
                 const filters = priority !== "all" ? { priority } : undefined;
                 const response = await incidentsService.getIncidents(filters);
-
+                console.table(
+                    response.map(i => ({
+                        title: i.title,
+                        priority: i.priority,
+                    }))
+                );
                 setIncidents(response);
             } catch (error) {
                 console.error("Error al cargar incidentes:", error);

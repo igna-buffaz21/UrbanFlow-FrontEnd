@@ -280,12 +280,16 @@ export function ShowUsersPage() {
                           {/* Admin: botón directo — superadmin: dropdown original */}
                           {authUser?.role === "admin" ? (
                             <Button
-                              variant="ghost"
                               size="sm"
-                              className={user.status === "active"
-                                ? "text-destructive hover:text-destructive hover:bg-destructive/10"
-                                : "text-green-500 hover:text-green-500 hover:bg-green-500/10"}
-                              onClick={(e) => { e.stopPropagation(); setOperatorToDelete(user); }}
+                              className={
+                                user.status === "active"
+                                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                                  : "bg-green-500/10 text-green-500 hover:bg-green-500/20 border border-green-500/20"
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOperatorToDelete(user);
+                              }}
                             >
                               {user.status === "active" ? "Desactivar" : "Activar"}
                             </Button>
@@ -303,11 +307,20 @@ export function ShowUsersPage() {
                               </DropdownMenuTrigger>
 
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(APP_ROUTES.panel.operatorDetailPath(user.id))}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(APP_ROUTES.panel.operatorDetailPath(user.id))
+                                  }
+                                >
                                   Ver detalle
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Editar</DropdownMenuItem>
+
+                                <DropdownMenuItem>
+                                  Editar
+                                </DropdownMenuItem>
+
                                 <DropdownMenuSeparator />
+
                                 <DropdownMenuItem
                                   variant="destructive"
                                   onClick={() => setOperatorToDelete(user)}
