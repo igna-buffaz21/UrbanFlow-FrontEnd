@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SearchIcon, MoreHorizontalIcon } from "lucide-react";
+import { SearchIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react";
 
 import { userService } from "../user.service";
 
@@ -44,8 +44,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { useAuthUser } from "@/modules/auth/auth.context";
-import type { GetUser } from "../user.types";
+import type { GetUser, OperatorDetail } from "../user.types";
+import { DialogOperatorDetail } from "@/components/dialog-operator-detail";
 
 type UserStatus = "active" | "inactive";
 
@@ -61,22 +63,30 @@ type User = {
 
 export function ShowUsersPage() {
   const { user: authUser } = useAuthUser()
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("active");
   const [users, setUsers] = useState<GetUser[]>([]);
+
+  // --- original ---
   const [operatorToDelete, setOperatorToDelete] = useState<GetUser | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const navigate = useNavigate();
+
+  // --- nuevo para admin ---
+  const [selectedOperator, setSelectedOperator] = useState<OperatorDetail | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createEmail, setCreateEmail] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createSuccess, setCreateSuccess] = useState("");
 
   const filtered = users.filter((user) => {
-    
     const matchSearch =
       (user.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
       (user.municipality?.name?.toLowerCase() ?? "").includes(search.toLowerCase());
-
     const matchStatus = status === "todos" || user.status === status;
-
     return matchSearch && matchStatus;
   });
 
@@ -112,18 +122,69 @@ export function ShowUsersPage() {
 
     try {
       setIsDeleting(true);
-      await userService.updateUserStatus(operatorToDelete.id, "inactive");
+
+      const newStatus =
+        operatorToDelete.status === "active"
+          ? "inactive"
+          : "active";
+
+      await userService.updateUserStatus(
+        operatorToDelete.id,
+        newStatus
+      );
+
       setUsers((prev) =>
         prev.map((user) =>
           user.id === operatorToDelete.id
-            ? { ...user, status: "inactive" }
+            ? { ...user, status: newStatus }
             : user
         )
-      ); setOperatorToDelete(null);
+      );
+
+      setOperatorToDelete(null);
     } catch (error) {
-      console.error("Error al eliminar operador:", error);
+      console.error("Error al actualizar operador:", error);
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  // --- nuevo para admin ---
+  async function handleOpenDetail(userId: string) {
+    try {
+      setIsLoadingDetail(true);
+      setSelectedOperator(await userService.getOperatorById(userId));
+    } catch (error) {
+      console.error("Error al cargar operador:", error);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  }
+
+  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!authUser?.municipalityId) return;
+
+    try {
+      setIsCreating(true);
+      setCreateError("");
+      setCreateSuccess("");
+
+      await userService.inviteUser({
+        email: createEmail,
+        role: "operator",
+        municipalityId: authUser.municipalityId,
+      });
+
+      setCreateSuccess("Operador invitado correctamente.");
+      setCreateEmail("");
+      const response = await userService.getOperators();
+      setUsers(response);
+      setTimeout(() => { setIsCreateOpen(false); setCreateSuccess(""); }, 2000);
+    } catch (error: any) {
+      setCreateError(error?.response?.data?.message ?? "Error al crear el operador.");
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -131,13 +192,23 @@ export function ShowUsersPage() {
     <div className="flex justify-center p-6">
       <div className="w-full max-w-3xl space-y-4">
         <Card>
-          <CardHeader>
-            <CardTitle>{authUser?.role === "admin" ? "Operadores" : "Usuarios"}</CardTitle>
-            <CardDescription>
-              {authUser?.role === "admin"
-                ? "Administrá los operadores de tu municipalidad."
-                : "Administrá los usuarios registrados en el sistema."}
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>{authUser?.role === "admin" ? "Operadores" : "Usuarios"}</CardTitle>
+              <CardDescription>
+                {authUser?.role === "admin"
+                  ? "Administrá los operadores de tu municipalidad."
+                  : "Administrá los usuarios registrados en el sistema."}
+              </CardDescription>
+            </div>
+
+            {/* Botón crear — solo admin */}
+            {authUser?.role === "admin" && (
+              <Button size="sm" onClick={() => setIsCreateOpen(true)}>
+                <PlusIcon className="size-4 mr-1" />
+                Crear operador
+              </Button>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -188,7 +259,11 @@ export function ShowUsersPage() {
                     </TableRow>
                   ) : (
                     filtered.map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow
+                        key={user.id}
+                        onClick={authUser?.role === "admin" ? () => handleOpenDetail(user.id) : undefined}
+                        className={authUser?.role === "admin" ? "cursor-pointer hover:bg-muted/50" : ""}
+                      >
                         <TableCell className="font-medium">
                           {user.name}
                         </TableCell>
@@ -202,34 +277,46 @@ export function ShowUsersPage() {
                         </TableCell>
 
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                              >
-                                <MoreHorizontalIcon />
-                                <span className="sr-only">Abrir menú</span>
-                              </Button>
-                            </DropdownMenuTrigger>
+                          {/* Admin: botón directo — superadmin: dropdown original */}
+                          {authUser?.role === "admin" ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={user.status === "active"
+                                ? "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                : "text-green-500 hover:text-green-500 hover:bg-green-500/10"}
+                              onClick={(e) => { e.stopPropagation(); setOperatorToDelete(user); }}
+                            >
+                              {user.status === "active" ? "Desactivar" : "Activar"}
+                            </Button>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8"
+                                >
+                                  <MoreHorizontalIcon />
+                                  <span className="sr-only">Abrir menú</span>
+                                </Button>
+                              </DropdownMenuTrigger>
 
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(APP_ROUTES.panel.operatorDetailPath(user.id))}>
-                                Ver detalle
-                              </DropdownMenuItem>
-                              {authUser?.role !== "admin" && (
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(APP_ROUTES.panel.operatorDetailPath(user.id))}>
+                                  Ver detalle
+                                </DropdownMenuItem>
                                 <DropdownMenuItem>Editar</DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => setOperatorToDelete(user)}
-                              >
-                                Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => setOperatorToDelete(user)}
+                                >
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -244,12 +331,15 @@ export function ShowUsersPage() {
           </CardContent>
         </Card>
 
+        {/* Dialog original — desactivar operador */}
         <Dialog open={!!operatorToDelete} onOpenChange={() => setOperatorToDelete(null)}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>¿Estás seguro?</DialogTitle>
               <DialogDescription>
-                El operador <strong>{operatorToDelete?.name ?? operatorToDelete?.email}</strong> será desactivado y no podrá acceder al sistema. El operador no será eliminado permanentemente y podrás reactivarlo si es necesario.
+                {operatorToDelete?.status === "active"
+                  ? `El operador ${operatorToDelete?.name} será desactivado y no podrá acceder al sistema.`
+                  : `El operador ${operatorToDelete?.name} volverá a estar habilitado para acceder al sistema.`}
               </DialogDescription>
             </DialogHeader>
 
@@ -271,6 +361,58 @@ export function ShowUsersPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog detalle operador — solo admin */}
+        <DialogOperatorDetail
+          operator={selectedOperator}
+          isLoading={isLoadingDetail}
+          open={!!selectedOperator || isLoadingDetail}
+          onOpenChange={(open) => !open && setSelectedOperator(null)}
+        />
+
+        {/* Dialog crear operador */}
+        {authUser?.role === "admin" && (
+          <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); setCreateError(""); setCreateSuccess(""); setCreateEmail(""); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Crear operador</DialogTitle>
+                <DialogDescription>
+                  Ingresá el email del nuevo operador. Recibirá una invitación para activar su cuenta.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleCreate}>
+                <FieldSet>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="create-email">Email del operador</FieldLabel>
+                      <Input
+                        id="create-email"
+                        type="email"
+                        placeholder="operador@email.com"
+                        required
+                        value={createEmail}
+                        onChange={(e) => setCreateEmail(e.target.value)}
+                      />
+                    </Field>
+                  </FieldGroup>
+                </FieldSet>
+
+                {createError && <p className="text-sm text-destructive mt-2">{createError}</p>}
+                {createSuccess && <p className="text-sm text-green-500 mt-2">{createSuccess}</p>}
+
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" type="button" onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating ? "Creando..." : "Crear operador"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
 
       </div>
     </div>

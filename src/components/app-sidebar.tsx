@@ -69,7 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      title: user?.role === "admin" ? "Operadores" : "Usuarios",
+      title: "Operadores",
       url: APP_ROUTES.panel.users,
       icon: <TerminalSquareIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
@@ -78,10 +78,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Visualizar",
           url: APP_ROUTES.panel.users,
         },
-        {
+        ...(user?.role === USER_ROLES.SUPERADMIN ? [{
           title: "Crear",
           url: APP_ROUTES.panel.createUser,
-        },
+        }] : []),
       ],
     },
     {
@@ -93,6 +93,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Visualizar",
           url: APP_ROUTES.panel.incidents,
+        },
+        {
+          title: "Resueltos",
+          url: APP_ROUTES.panel.incidentResolved,
         },
         {
           title: "Historial",
