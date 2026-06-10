@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse, ReportedIncidentResponse } from "./incidents.type";
+import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse, ReportedIncidentResponse, IncidentDetailResponse } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -13,8 +13,8 @@ export const incidentsService = {
     return response.data;
   },
 
-  async getDetailIncidentById(id: string): Promise<IncidentDetail> {
-    const response = await api.get<IncidentDetail>(API_ROUTES.incidents.getDetailIncidentById(id));
+  async getDetailIncidentById(id: string): Promise<IncidentDetailResponse> {
+    const response = await api.get<IncidentDetailResponse>(API_ROUTES.incidents.getDetailIncidentById(id));
     return response.data;
   },
 

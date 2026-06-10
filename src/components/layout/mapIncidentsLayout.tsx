@@ -54,7 +54,7 @@ function formatDistance(distance: number) {
   return `${Math.round(distance)} m`;
 }
 
-function getPriorityMarkerStyles(priority: IncidentPriority) {
+function getPriorityMarkerStyles(priority?: IncidentPriority) {
   const styles: Record<
     IncidentPriority,
     {
@@ -76,7 +76,7 @@ function getPriorityMarkerStyles(priority: IncidentPriority) {
     },
   };
 
-  return styles[priority];
+  return styles[priority ?? "low"];
 }
 
 function IncidentMarkerIcon({ priority }: { priority: IncidentPriority }) {
