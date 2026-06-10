@@ -35,7 +35,8 @@ export const APP_ROUTES = {
     root: "/app",
     feed: "app/feed",
     report: "/app/report",
-    myReports: "/app/my-reports",
+    myIncidents: "/app/my-incidents",
     profile: "/app/profile",
+    myReports: "/app/my-reports",
   },
 } as const;

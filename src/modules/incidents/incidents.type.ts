@@ -108,3 +108,19 @@ export interface IncidentReportResponse {
   reportedByMe: boolean;
   reportsCount: number;
 }
+
+export interface ReportedIncidentResponse {
+  reportId: string;
+  reportedAt: string;
+  incident: ReportedIncident;
+}
+
+export interface ReportedIncident {
+  id: string;
+  title: string;
+  description: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  photoUrl: string | null;
+  createdAt: string;
+}

@@ -25,13 +25,22 @@ import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncid
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
 import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
+<<<<<<< HEAD
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
+=======
+import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolvedIncidents";
+import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
+>>>>>>> b101984 (feat: se agrego una pantalla para ver mis reportes)
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import SignUpPage from "./modules/auth/pages/signup";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
+<<<<<<< HEAD
 import AdminDashboardPage from "./modules/home/pages/dashboard.page";
+=======
+import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
+>>>>>>> b101984 (feat: se agrego una pantalla para ver mis reportes)
 
 
 function App() {
@@ -176,7 +185,9 @@ function App() {
 
         <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
 
-        <Route path={APP_ROUTES.app.myReports} element={<ShowIncidentsCitizen />} />
+        <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
+
+        <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
 
       </Route>
     </Routes>
