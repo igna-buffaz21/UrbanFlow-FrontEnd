@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { SearchIcon, PlusIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MoreHorizontalIcon, PlusIcon, SearchIcon } from "lucide-react";
 
-import { userService } from "../user.service";
-import { municipalitiesService } from "@/modules/municipalities/municipalities.service";
-
+import { APP_ROUTES } from "@/config/app.routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,13 +35,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { useAuthUser } from "@/modules/auth/auth.context";
-import type { GetUser } from "../user.types";
+import { municipalitiesService } from "@/modules/municipalities/municipalities.service";
 import type { Municipality } from "@/modules/municipalities/municipalities.type";
+import { userService } from "../user.service";
+import type { GetUser } from "../user.types";
 
 export function ShowUsersPage() {
   const { user: authUser } = useAuthUser();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("active");
@@ -71,10 +80,12 @@ export function ShowUsersPage() {
   const userLabel = isSuperAdmin ? "administrador" : "operador";
 
   const filtered = users.filter((user) => {
+    const normalizedSearch = search.toLowerCase();
+
     const matchSearch =
-      (user.name?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
-      (user.email?.toLowerCase() ?? "").includes(search.toLowerCase()) ||
-      (user.municipality?.name?.toLowerCase() ?? "").includes(search.toLowerCase());
+      (user.name?.toLowerCase() ?? "").includes(normalizedSearch) ||
+      (user.email?.toLowerCase() ?? "").includes(normalizedSearch) ||
+      (user.municipality?.name?.toLowerCase() ?? "").includes(normalizedSearch);
 
     const matchStatus = status === "todos" || user.status === status;
 
@@ -270,18 +281,58 @@ export function ShowUsersPage() {
                         </TableCell>
 
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={
-                              user.status === "active"
-                                ? "text-destructive hover:text-destructive hover:bg-destructive/10"
-                                : "text-green-500 hover:text-green-500 hover:bg-green-500/10"
-                            }
-                            onClick={() => setUserToUpdate(user)}
-                          >
-                            {user.status === "active" ? "Desactivar" : "Activar"}
-                          </Button>
+                          {isAdmin ? (
+                            <Button
+                              size="sm"
+                              className={
+                                user.status === "active"
+                                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                                  : "bg-green-500/10 text-green-500 hover:bg-green-500/20 border border-green-500/20"
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUserToUpdate(user);
+                              }}
+                            >
+                              {user.status === "active" ? "Desactivar" : "Activar"}
+                            </Button>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8"
+                                >
+                                  <MoreHorizontalIcon />
+                                  <span className="sr-only">Abrir menú</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(APP_ROUTES.panel.operatorDetailPath(user.id))
+                                  }
+                                >
+                                  Ver detalle
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem disabled>
+                                  Editar
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => setUserToUpdate(user)}
+                                >
+                                  {user.status === "active" ? "Desactivar" : "Activar"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

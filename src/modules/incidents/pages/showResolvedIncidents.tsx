@@ -117,7 +117,7 @@ export function ShowResolvedIncidentsPage() {
 
                                                 <TableCell>
                                                     <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
-                                                        {PRIORITY_LABELS[incident.priority]}
+                                                        {PRIORITY_LABELS[incident.priority] ?? incident.priority}
                                                     </Badge>
                                                 </TableCell>
 

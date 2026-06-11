@@ -40,7 +40,7 @@ const PRIORITY_STYLES: Record<string, string> = {
     high: "bg-red-500 text-white hover:bg-red-600",
 };
 
-export const STATUS_LABELS: Record<IncidentStatus, string> = {
+const STATUS_LABELS: Record<IncidentStatus, string> = {
     open: "Abierto",
     in_review: "En revisión",
     assigned: "Asignado",
@@ -146,9 +146,7 @@ export function ShowAdminIncidentsPage() {
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
                                                 onClick={() =>
-                                                    navigate(
-                                                        APP_ROUTES.panel.incidentDetailPath(incident.id)
-                                                    )
+                                                    navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))
                                                 }
                                             >
                                                 <TableCell className="font-medium">
@@ -156,12 +154,12 @@ export function ShowAdminIncidentsPage() {
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    {STATUS_LABELS[incident.status]}
+                                                    {STATUS_LABELS[incident.status] ?? incident.status}
                                                 </TableCell>
 
                                                 <TableCell>
                                                     <Badge className={PRIORITY_STYLES[incident.priority]}>
-                                                        {PRIORITY_LABELS[incident.priority]}
+                                                        {PRIORITY_LABELS[incident.priority] ?? incident.priority}
                                                     </Badge>
                                                 </TableCell>
 

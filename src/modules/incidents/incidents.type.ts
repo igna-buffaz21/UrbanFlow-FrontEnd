@@ -50,6 +50,7 @@ export interface Incident {
     name: string;
     photoUrl?: string | null;
   } | null;
+  location?: GeoJSONPoint | null; 
 }
 
 export interface AdminIncidentDetail {
@@ -113,4 +114,76 @@ export interface IncidentCommentResponse {
 export interface IncidentReportResponse {
   reportedByMe: boolean;
   reportsCount: number;
+}
+
+export interface ReportedIncidentResponse {
+  reportId: string;
+  reportedAt: string;
+  incident: ReportedIncident;
+}
+
+export interface ReportedIncident {
+  id: string;
+  title: string;
+  description: string;
+  status: IncidentStatus;
+  priority: IncidentPriority;
+  photoUrl: string | null;
+  createdAt: string;
+}
+
+export interface IncidentDetailBaseResponse {
+    id: string;
+
+    title: string;
+    description?: string;
+
+    photoUrl: string | null;
+
+    resolutionPhotoUrl: string | null;
+    resolvedAt: Date | null;
+
+    location: {
+        type: "Point";
+        coordinates: [number, number];
+    } | null;
+
+    category: {
+        id: string;
+        name: string;
+    } | null;
+
+    aiUrgencyScore: number;
+
+    createdAt: string;
+
+    is_owner: boolean;
+
+    createdBy: {
+        id: string;
+        name: string;
+        photoUrl: string | null;
+    } | null;
+}
+
+export interface IncidentDetailResponse extends IncidentDetailBaseResponse {
+    reportsCount: number;
+    priorityScore: number;
+    priority: IncidentPriority;
+}
+
+export interface IncidentLocation {
+  type: "Point";
+  coordinates: [number, number]; // [longitude, latitude]
+}
+
+export interface IncidentCategory {
+  id: string;
+  name: string;
+}
+
+export interface IncidentCreatedBy {
+  id: string;
+  name: string;
+  photoUrl: string | null;
 }

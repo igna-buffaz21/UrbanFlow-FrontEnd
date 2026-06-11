@@ -78,7 +78,7 @@ export function ShowProfile() {
       description: "Incidentes que reportaste",
       roles: ["user", "moderator"],
       onClick: () => {
-        navigate(APP_ROUTES.app.myReports);
+        navigate(APP_ROUTES.app.myIncidents);
       },
     },
     {
@@ -98,7 +98,7 @@ export function ShowProfile() {
       description: "Incidentes que marcaste",
       roles: ["user", "moderator"],
       onClick: () => {
-        // TODO: navegar o abrir sheet de me gusta
+        navigate(APP_ROUTES.app.myReports);
       },
     },
     {

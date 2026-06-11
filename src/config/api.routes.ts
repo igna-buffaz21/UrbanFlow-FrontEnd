@@ -35,6 +35,7 @@ export const API_ROUTES = {
     getReportByIncidentId: (id: string) => `/incident-report/${id}/report`,
     createReport: (id: string) => `/incident-report/${id}/report`,
     deleteReport: (id: string) => `/incident-report/${id}/report`,
+    getMyReports: () => `/incident-report/reports/me`,
   },
 
   incident_comments: {

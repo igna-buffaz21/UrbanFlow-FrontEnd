@@ -40,26 +40,10 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { IncidentCommentResponse, IncidentReportResponse } from "@/modules/incidents/incidents.type";
+import type { IncidentCommentResponse, IncidentDetailResponse, IncidentReportResponse } from "@/modules/incidents/incidents.type";
 import { Textarea } from "@/components/ui/textarea";
 
 type IncidentPriority = "low" | "medium" | "high";
-
-type IncidentDetail = {
-  id: string;
-  title: string;
-  description: string;
-  photoUrl: string | null;
-  category: string | null;
-  priority: IncidentPriority;
-  createdAt: string;
-  is_owner: boolean;
-  createdBy: {
-    id: string;
-    name: string;
-    photoUrl: string | null;
-  };
-};
 
 type IncidentDetailDialogProps = {
   incidentId: string | null;
@@ -110,7 +94,7 @@ export function IncidentDetailDialog({
   open,
   onOpenChange,
 }: IncidentDetailDialogProps) {
-  const [incident, setIncident] = useState<IncidentDetail | null>(null);
+  const [incident, setIncident] = useState<IncidentDetailResponse | null>(null);
   const [report, setReport] = useState<IncidentReportResponse | null>(null);
   const [comments, setComments] = useState<IncidentCommentResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -309,7 +293,7 @@ export function IncidentDetailDialog({
                         Prioridad {getPriorityLabel(incident.priority)}
                       </Badge>
                       {incident.category && (
-                        <Badge variant="secondary">{incident.category}</Badge>
+                        <Badge variant="secondary">{incident.category.name}</Badge>
                       )}
                     </div>
                     <h2 className="text-xl font-semibold text-foreground">
@@ -440,7 +424,7 @@ export function IncidentDetailDialog({
                     {/* Meta: autor y fecha */}
                     <div className="space-y-1 pt-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1.5">
-                        {incident.createdBy.photoUrl ? (
+                        {incident.createdBy?.photoUrl ? (
                           <img
                             src={incident.createdBy.photoUrl}
                             alt={incident.createdBy.name}
@@ -453,7 +437,7 @@ export function IncidentDetailDialog({
                         <span>
                           Creado por:{" "}
                           <span className="font-medium text-foreground">
-                            {incident.createdBy.name}
+                            {incident.createdBy?.name ?? "Usuario desconocido"}
                           </span>
                         </span>
                       </div>
