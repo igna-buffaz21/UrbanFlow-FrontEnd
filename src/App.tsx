@@ -28,9 +28,6 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
 
-//import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolvedIncidents";
-//import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
-
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import SignUpPage from "./modules/auth/pages/signup";
