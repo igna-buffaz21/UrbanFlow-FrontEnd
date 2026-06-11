@@ -27,11 +27,13 @@ import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncident
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
+
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import SignUpPage from "./modules/auth/pages/signup";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import AdminDashboardPage from "./modules/home/pages/dashboard.page";
+import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 
 
 function App() {
@@ -176,7 +178,9 @@ function App() {
 
         <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
 
-        <Route path={APP_ROUTES.app.myReports} element={<ShowIncidentsCitizen />} />
+        <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
+
+        <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
 
       </Route>
     </Routes>

@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse } from "./incidents.type";
+import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse, ReportedIncidentResponse, IncidentDetailResponse } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -13,8 +13,8 @@ export const incidentsService = {
     return response.data;
   },
 
-  async getDetailIncidentById(id: string): Promise<IncidentDetail> {
-    const response = await api.get<IncidentDetail>(API_ROUTES.incidents.getDetailIncidentById(id));
+  async getDetailIncidentById(id: string): Promise<IncidentDetailResponse> {
+    const response = await api.get<IncidentDetailResponse>(API_ROUTES.incidents.getDetailIncidentById(id));
     return response.data;
   },
 
@@ -89,6 +89,11 @@ export const incidentsService = {
 
   async addCommentReport(id: string, comment: string): Promise<IncidentCommentResponse> {
     const response = await api.post(API_ROUTES.incident_comments.createComment(id), { comment });
+    return response.data;
+  },
+
+  async getMyReports(): Promise<ReportedIncidentResponse[]> {
+    const response = await api.get<ReportedIncidentResponse[]>(API_ROUTES.incident_reports.getMyReports());
     return response.data;
   }
 
