@@ -21,18 +21,17 @@ import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { AppLoading } from "./components/app-loading";
-import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidents";
+import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidentsAdmin";
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
 import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
 import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
-import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolvedIncidents";
-import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import SignUpPage from "./modules/auth/pages/signup";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
+import AdminDashboardPage from "./modules/home/pages/dashboard.page";
 
 
 function App() {
@@ -85,7 +84,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<HomePage />} />
+        <Route index element={<AdminDashboardPage />} />
 
         <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
@@ -152,25 +151,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolved}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <ShowResolvedIncidentsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolvedDetail}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <ResolvedIncidentDetailPage />
-            </ProtectedRoute>
-          }
-        />
-
 
       </Route>
 

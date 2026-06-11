@@ -63,6 +63,7 @@ export function ShowAdminIncidentsPage() {
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [priority, setPriority] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
+    const visibleIncidents = incidents.filter(incident => incident.status !== "closed");
 
     useEffect(() => {
         async function getIncidents() {
@@ -71,7 +72,12 @@ export function ShowAdminIncidentsPage() {
 
                 const filters = priority !== "all" ? { priority } : undefined;
                 const response = await incidentsService.getIncidents(filters);
-
+                console.table(
+                    response.map(i => ({
+                        title: i.title,
+                        priority: i.priority,
+                    }))
+                );
                 setIncidents(response);
             } catch (error) {
                 console.error("Error al cargar incidentes:", error);
@@ -145,38 +151,39 @@ export function ShowAdminIncidentsPage() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        incidents.map((incident) => (
-                                            <TableRow
-                                                key={incident.id}
-                                                className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))}
+                                        visibleIncidents
+                                            .map((incident) => (
+                                                <TableRow
+                                                    key={incident.id}
+                                                    className="cursor-pointer hover:bg-muted/50"
+                                                    onClick={() => navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))}
 
-                                            >
-                                                <TableCell className="font-medium">
-                                                    {incident.title}
-                                                </TableCell>
+                                                >
+                                                    <TableCell className="font-medium">
+                                                        {incident.title}
+                                                    </TableCell>
 
-                                                <TableCell className="text-muted-foreground">
-                                                    <span className="text-sm">
-                                                        {STATUS_LABELS[incident.status]}
-                                                    </span>
-                                                </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        <span className="text-sm">
+                                                            {STATUS_LABELS[incident.status]}
+                                                        </span>
+                                                    </TableCell>
 
-                                                <TableCell>
-                                                    <Badge
-                                                        className={PRIORITY_STYLES[incident.priority]}
-                                                    >
-                                                        {PRIORITY_LABELS[incident.priority]}
-                                                    </Badge>
-                                                </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={PRIORITY_STYLES[incident.priority]}
+                                                        >
+                                                            {PRIORITY_LABELS[incident.priority]}
+                                                        </Badge>
+                                                    </TableCell>
 
-                                                <TableCell className="text-muted-foreground">
-                                                    {new Date(incident.createdAt).toLocaleDateString("es-AR")}
-                                                </TableCell>
+                                                    <TableCell className="text-muted-foreground">
+                                                        {new Date(incident.createdAt).toLocaleDateString("es-AR")}
+                                                    </TableCell>
 
-                                                <TableCell />
-                                            </TableRow>
-                                        ))
+                                                    <TableCell />
+                                                </TableRow>
+                                            ))
                                     )}
                                 </TableBody>
                             </Table>
@@ -184,7 +191,7 @@ export function ShowAdminIncidentsPage() {
 
                         <div className="flex items-center justify-between">
                             <p className="text-xs text-muted-foreground">
-                                {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
+                                {visibleIncidents.length} incidente{visibleIncidents.length !== 1 ? "s" : ""}
                             </p>
 
                             <Button

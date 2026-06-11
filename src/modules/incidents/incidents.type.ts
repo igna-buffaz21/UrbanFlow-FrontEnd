@@ -43,6 +43,7 @@ export interface Incident {
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
+  location?: GeoJSONPoint | null; 
 }
 
 export interface AdminIncidentDetail {

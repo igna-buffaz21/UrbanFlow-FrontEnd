@@ -4,60 +4,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { incidentsService } from "../incidents.service";
 import { userService } from "@/modules/users/user.service";
 import type { GetUser } from "@/modules/users/user.types";
-import type { AdminIncidentDetail, IncidentStatus } from "../incidents.type";
+import type { AdminIncidentDetail } from "../incidents.type";
 import { IncidentDetailCard } from "@/components/IncidentDetailCard";
 
 import { APP_ROUTES } from "@/config/app.routes";
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-    Map,
-    MapMarker,
-    MarkerContent,
-    MarkerPopup,
-    MarkerTooltip,
-} from "@/components/ui/map";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const PRIORITY_LABELS: Record<string, string> = {
-    low: "Baja",
-    medium: "Media",
-    high: "Alta",
-};
-
-const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
-};
-
-const STATUS_LABELS: Record<IncidentStatus, string> = {
-    open: "Abierto",
-    in_review: "En revisión",
-    assigned: "Asignado",
-    in_progress: "En progreso",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
-
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    low: "secondary",
-    medium: "outline",
-    high: "default",
-};
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function AssignIncidentPage() {
     const { id } = useParams<{ id: string }>();
@@ -70,23 +25,24 @@ export function AssignIncidentPage() {
     const [isAssigning, setIsAssigning] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const canAssign = incident?.status === "in_review" && !incident?.assignedTo;
-    console.log("Estado incidente:", incident?.status);
-    console.log("Asignado a:", incident?.assignedTo);
-    console.log("canAssign:", canAssign);
+
+    const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
+    const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const [isReassigning, setIsReassigning] = useState(false);
+    const [reassignNote, setReassignNote] = useState("");
+
+    const canAssign = (incident?.status === "in_review" || incident?.status === "open") && !incident?.assignedTo;
 
     useEffect(() => {
         async function loadData() {
             if (!id) return;
-
             try {
                 setIsLoading(true);
-
                 const [incidentData, operatorsData] = await Promise.all([
                     incidentsService.getIncidentById(id),
                     userService.getOperators(),
                 ]);
-
                 setIncident(incidentData);
                 setOperators(operatorsData.filter(op => op.status === "active"));
             } catch (error) {
@@ -95,13 +51,11 @@ export function AssignIncidentPage() {
                 setIsLoading(false);
             }
         }
-
         loadData();
     }, [id]);
 
     async function handleAssign() {
         if (!id || !selectedOperatorId) return;
-
         try {
             setIsAssigning(true);
             setErrorMessage("");
@@ -112,6 +66,38 @@ export function AssignIncidentPage() {
             setErrorMessage(error?.response?.data?.message ?? "Error al asignar el operador.");
         } finally {
             setIsAssigning(false);
+        }
+    }
+
+    async function handleClose() {
+        if (!id) return;
+        try {
+            setIsClosing(true);
+            setErrorMessage("");
+            await incidentsService.updateStatus(id, "closed");
+            setSuccessMessage("Incidente cerrado correctamente.");
+            setIsCloseDialogOpen(false);
+            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
+        } catch (error: any) {
+            setErrorMessage(error?.response?.data?.message ?? "Error al cerrar el incidente.");
+        } finally {
+            setIsClosing(false);
+        }
+    }
+
+    async function handleReassign() {
+        if (!id) return;
+        try {
+            setIsReassigning(true);
+            setErrorMessage("");
+            await incidentsService.updateStatus(id, "assigned");
+            setSuccessMessage("Incidente devuelto al operador correctamente.");
+            setIsReassignDialogOpen(false);
+            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
+        } catch (error: any) {
+            setErrorMessage(error?.response?.data?.message ?? "Error al devolver el incidente.");
+        } finally {
+            setIsReassigning(false);
         }
     }
 
@@ -142,49 +128,55 @@ export function AssignIncidentPage() {
                 <IncidentDetailCard
                     incident={incident}
                     showMap={true}
+                    actions={
+                        incident.status === "resolved" ? (
+                            <div className="flex flex-col gap-2 w-full">
+                                <div className="flex gap-2">
+                                    <Button onClick={() => setIsCloseDialogOpen(true)} disabled={isClosing || isReassigning}>
+                                        Cerrar incidente
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setIsReassignDialogOpen(true)} disabled={isClosing || isReassigning}>
+                                        Devolver al operador
+                                    </Button>
+                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
+                                </div>
+                                {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
+                                {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+                            </div>
+                        ) : !canAssign ? (
+                            <div className="flex flex-col gap-2 w-full">
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
+                                </div>
+                                {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
+                                {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+                            </div>
+                        ) : undefined
+                    }
                 />
 
-                {/* Lista de operadores */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Operadores</CardTitle>
-                        <CardDescription>
-                            Seleccioná un operador para asignarle este incidente.
-                        </CardDescription>
-                    </CardHeader>
+                {canAssign && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Operadores</CardTitle>
+                            <CardDescription>
+                                Seleccioná un operador para asignarle este incidente.
+                            </CardDescription>
+                        </CardHeader>
 
-                    <CardContent className="space-y-2">
-                        {incident.assignedTo && (
-                            <div className="rounded-lg border bg-muted/30 p-3">
-                                <p className="text-sm">
-                                    <span className="font-medium">Asignado a:</span>{" "}
-                                    {incident.assignedTo.name}
-                                </p>
-                            </div>
-                        )}
-
-                        {operators.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                No hay operadores disponibles.
-                            </p>
-                        ) : (
-                            operators.map((operator) => (
+                        <CardContent className="space-y-2">
+                            {operators.map((operator) => (
                                 <div
                                     key={operator.id}
-                                    onClick={() => {
-                                        if (!canAssign) return;
-                                        setSelectedOperatorId(operator.id);
-                                    }} className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${!canAssign
-                                        ? "opacity-60 cursor-not-allowed"
-                                        : selectedOperatorId === operator.id
-                                            ? "border-primary bg-primary/10 cursor-pointer"
-                                            : "hover:bg-muted/50 cursor-pointer"
+                                    onClick={() => setSelectedOperatorId(operator.id)}
+                                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedOperatorId === operator.id
+                                        ? "border-primary bg-primary/10"
+                                        : "hover:bg-muted/50"
                                         }`}
                                 >
                                     <input
                                         type="radio"
                                         readOnly
-                                        disabled={!canAssign}
                                         checked={selectedOperatorId === operator.id}
                                         className="accent-primary"
                                     />
@@ -193,51 +185,82 @@ export function AssignIncidentPage() {
                                             <span className="text-sm font-medium truncate">{operator.name}</span>
                                             <span className="text-xs text-muted-foreground truncate">{operator.email}</span>
                                         </div>
-                                        <Badge
-                                            variant={operator.status === "active" ? "default" : "secondary"}
-                                            className="shrink-0"
-                                        >
-                                            {operator.status === "active" ? "Disponible" : "Inactivo"}
+                                        <Badge variant="default" className="shrink-0">
+                                            Disponible
                                         </Badge>
                                     </div>
                                 </div>
-                            ))
-                        )}
+                            ))}
 
-                        <div className="flex gap-2 pt-4">
-                            {successMessage && (
-                                <p className="text-sm text-green-500">{successMessage}</p>
-                            )}
-                            {errorMessage && (
-                                <p className="text-sm text-destructive">{errorMessage}</p>
-                            )}
-                            <Button
-                                onClick={handleAssign}
-                                disabled={
-                                    !selectedOperatorId ||
-                                    isAssigning ||
-                                    !canAssign
-                                }
-                            >
-                                {isAssigning ? "Asignando..." : "Confirmar asignación"}
-                            </Button>
-                            {(incident.status === "resolved" || incident.status === "closed") && (
-                                <p className="text-sm text-muted-foreground">
-                                    Este incidente ya fue resuelto y no puede recibir nuevas asignaciones.
-                                </p>
-                            )}
+                            <div className="flex flex-col gap-2 pt-4">
+                                <div className="flex gap-2">
+                                    <Button onClick={handleAssign} disabled={!selectedOperatorId || isAssigning}>
+                                        {isAssigning ? "Asignando..." : "Confirmar asignación"}
+                                    </Button>
+                                    <Button variant="outline" onClick={handleCancel}>
+                                        Cancelar
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
-                            <Button variant="outline" onClick={handleCancel}>
+                {/* Dialog — Cerrar incidente */}
+                <Dialog open={isCloseDialogOpen} onOpenChange={setIsCloseDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>¿Cerrar incidente?</DialogTitle>
+                            <DialogDescription>
+                                Confirmá que el incidente fue resuelto correctamente. Esta acción no se puede deshacer.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsCloseDialogOpen(false)}>
                                 Cancelar
                             </Button>
+                            <Button onClick={handleClose} disabled={isClosing}>
+                                {isClosing ? "Cerrando..." : "Confirmar cierre"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Dialog — Devolver al operador */}
+                <Dialog open={isReassignDialogOpen} onOpenChange={setIsReassignDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>¿Devolver al operador?</DialogTitle>
+                            <DialogDescription>
+                                El incidente volverá a estar asignado. Podés dejar un mensaje para el operador.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-2 pt-2">
+                            <label className="text-sm font-medium text-muted-foreground">
+                                Mensaje para el operador (opcional)
+                            </label>
+                            <textarea
+                                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                                placeholder="Ej: Falta revisar la conexión eléctrica..."
+                                value={reassignNote}
+                                onChange={(e) => setReassignNote(e.target.value)}
+                            />
                         </div>
-                        {!canAssign && (
-                            <p className="text-sm text-muted-foreground">
-                                Solo se pueden asignar operadores a incidentes en estado "En revisión".
-                            </p>
-                        )}
-                    </CardContent>
-                </Card>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => { setIsReassignDialogOpen(false); setReassignNote(""); }}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button variant="destructive" onClick={handleReassign} disabled={isReassigning}>
+                                {isReassigning ? "Devolviendo..." : "Confirmar"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
             </div>
         </div>
