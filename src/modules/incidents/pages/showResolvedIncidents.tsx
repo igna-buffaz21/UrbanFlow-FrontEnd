@@ -43,7 +43,11 @@ export function ShowResolvedIncidentsPage() {
         async function getIncidents() {
             try {
                 setIsLoading(true);
-                const response = await incidentsService.getIncidents({ status: "resolved" });
+
+                const response = await incidentsService.getIncidents({
+                    status: "resolved",
+                });
+
                 setIncidents(response);
             } catch (error) {
                 console.error("Error al cargar incidentes resueltos:", error);
@@ -59,7 +63,6 @@ export function ShowResolvedIncidentsPage() {
     return (
         <div className="flex justify-center p-6">
             <div className="w-full max-w-4xl space-y-4">
-
                 <Card>
                     <CardHeader>
                         <CardTitle>Incidentes resueltos</CardTitle>
@@ -76,19 +79,26 @@ export function ShowResolvedIncidentsPage() {
                                         <TableHead>Título</TableHead>
                                         <TableHead>Prioridad</TableHead>
                                         <TableHead>Fecha de resolución</TableHead>
+                                        <TableHead>Operador</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={3} className="text-center text-sm text-muted-foreground py-8">
+                                            <TableCell
+                                                colSpan={4}
+                                                className="text-center text-sm text-muted-foreground py-8"
+                                            >
                                                 Cargando...
                                             </TableCell>
                                         </TableRow>
                                     ) : incidents.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={3} className="text-center text-sm text-muted-foreground py-8">
+                                            <TableCell
+                                                colSpan={4}
+                                                className="text-center text-sm text-muted-foreground py-8"
+                                            >
                                                 Sin incidentes resueltos.
                                             </TableCell>
                                         </TableRow>
@@ -97,7 +107,9 @@ export function ShowResolvedIncidentsPage() {
                                             <TableRow
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => navigate(APP_ROUTES.panel.incidentResolvedDetailPath(incident.id))}
+                                                onClick={() =>
+                                                    navigate(APP_ROUTES.panel.incidentResolvedDetailPath(incident.id))
+                                                }
                                             >
                                                 <TableCell className="font-medium">
                                                     {incident.title}
@@ -110,7 +122,11 @@ export function ShowResolvedIncidentsPage() {
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    {new Date(incident.createdAt).toLocaleDateString("es-AR")}
+                                                    {new Date(incident.resolvedAt ?? incident.createdAt).toLocaleDateString("es-AR")}
+                                                </TableCell>
+
+                                                <TableCell className="text-muted-foreground">
+                                                    {incident.assignedTo?.name ?? "Sin operador"}
                                                 </TableCell>
                                             </TableRow>
                                         ))

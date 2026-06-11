@@ -25,7 +25,6 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
 import type { Incident, IncidentStatus } from "../incidents.type";
 
@@ -51,12 +50,6 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     rejected: "Rechazado",
 };
 
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    low: "secondary",
-    medium: "outline",
-    high: "default",
-};
-
 export function ShowAdminIncidentsPage() {
     const navigate = useNavigate();
 
@@ -72,7 +65,13 @@ export function ShowAdminIncidentsPage() {
                 const filters = priority !== "all" ? { priority } : undefined;
                 const response = await incidentsService.getIncidents(filters);
 
-                setIncidents(response);
+                const activeIncidents = response.filter(
+                    (incident) =>
+                        incident.status !== "resolved" &&
+                        incident.status !== "closed"
+                );
+
+                setIncidents(activeIncidents);
             } catch (error) {
                 console.error("Error al cargar incidentes:", error);
                 setIncidents([]);
@@ -96,7 +95,6 @@ export function ShowAdminIncidentsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                        {/* Filtro por prioridad */}
                         <div className="flex justify-end">
                             <Select value={priority} onValueChange={setPriority}>
                                 <SelectTrigger className="w-48">
@@ -110,10 +108,8 @@ export function ShowAdminIncidentsPage() {
                                     <SelectItem value="high">Alta</SelectItem>
                                 </SelectContent>
                             </Select>
-
                         </div>
 
-                        {/* Tabla */}
                         <div className="rounded-lg border">
                             <Table>
                                 <TableHeader>
@@ -122,14 +118,14 @@ export function ShowAdminIncidentsPage() {
                                         <TableHead>Estado</TableHead>
                                         <TableHead>Prioridad</TableHead>
                                         <TableHead>Fecha</TableHead>
-                                        <TableHead />
                                     </TableRow>
                                 </TableHeader>
+
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={6}
+                                                colSpan={4}
                                                 className="text-center text-sm text-muted-foreground py-8"
                                             >
                                                 Cargando...
@@ -138,7 +134,7 @@ export function ShowAdminIncidentsPage() {
                                     ) : incidents.length === 0 ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={6}
+                                                colSpan={4}
                                                 className="text-center text-sm text-muted-foreground py-8"
                                             >
                                                 Sin incidentes.
@@ -149,23 +145,22 @@ export function ShowAdminIncidentsPage() {
                                             <TableRow
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() => navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))}
-
+                                                onClick={() =>
+                                                    navigate(
+                                                        APP_ROUTES.panel.incidentDetailPath(incident.id)
+                                                    )
+                                                }
                                             >
                                                 <TableCell className="font-medium">
                                                     {incident.title}
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    <span className="text-sm">
-                                                        {STATUS_LABELS[incident.status]}
-                                                    </span>
+                                                    {STATUS_LABELS[incident.status]}
                                                 </TableCell>
 
                                                 <TableCell>
-                                                    <Badge
-                                                        className={PRIORITY_STYLES[incident.priority]}
-                                                    >
+                                                    <Badge className={PRIORITY_STYLES[incident.priority]}>
                                                         {PRIORITY_LABELS[incident.priority]}
                                                     </Badge>
                                                 </TableCell>
@@ -173,8 +168,6 @@ export function ShowAdminIncidentsPage() {
                                                 <TableCell className="text-muted-foreground">
                                                     {new Date(incident.createdAt).toLocaleDateString("es-AR")}
                                                 </TableCell>
-
-                                                <TableCell />
                                             </TableRow>
                                         ))
                                     )}
@@ -182,18 +175,9 @@ export function ShowAdminIncidentsPage() {
                             </Table>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">
-                                {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
-                            </p>
-
-                            <Button
-                                variant="outline"
-                                onClick={() => navigate(APP_ROUTES.panel.incidentHistory)}
-                            >
-                                Historial de incidentes
-                            </Button>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
