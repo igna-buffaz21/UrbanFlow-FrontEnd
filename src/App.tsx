@@ -14,6 +14,7 @@ import { InactiveAccountPage } from "./modules/auth/pages/inactiveAccount.page";
 import PanelLayout from "./components/layout/panelLayout";
 import AppLayout from "./components/layout/appLayout";
 import { AppLoading } from "./components/app-loading";
+import { Toaster } from "sonner";
 
 import { APP_ROUTES } from "./config/app.routes";
 import { USER_ROLES } from "./config/const.globs";
@@ -59,131 +60,138 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
-      <Route path="/sign-up" element={<SignUpPage />} />
-      <Route path={APP_ROUTES.auth.aceptInvitation} element={<AcceptInvitationPage />} />
-      <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
-      <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
-
-      <Route
-        path={APP_ROUTES.panel.root}
-        element={
-          <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SUPERADMIN]}>
-            <PanelLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboardPage />} />
-
-        <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
+    <>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route
+          path={APP_ROUTES.auth.aceptInvitation}
+          element={<AcceptInvitationPage />}
+        />
+        <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
+        <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
 
         <Route
-          path={APP_ROUTES.panel.municipalities}
+          path={APP_ROUTES.panel.root}
           element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-              <ShowMunicipalitiesPage />
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SUPERADMIN]}>
+              <PanelLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboardPage />} />
+
+          <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
+
+          <Route
+            path={APP_ROUTES.panel.municipalities}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                <ShowMunicipalitiesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.createMunicipality}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                <CreateMunicipality />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.createUser}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                <CreateUsersPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidents}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                <ShowAdminIncidentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidentResolved}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <ShowResolvedIncidentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidentResolvedDetail}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <AssignIncidentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidentHistory}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                <ShowIncidentsHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidentDetail}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <AssignIncidentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.operatorDetail}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <OperatorDetailPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        <Route
+          path={APP_ROUTES.operator.root}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.OPERATOR]}>
+              <ShowOperatorIncidents />
             </ProtectedRoute>
           }
         />
 
         <Route
-          path={APP_ROUTES.panel.createMunicipality}
+          path={APP_ROUTES.app.root}
           element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-              <CreateMunicipality />
+            <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
+              <AppLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<ShowIncidents />} />
+          <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
+          <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
+          <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
+        </Route>
+      </Routes>
 
-        <Route
-          path={APP_ROUTES.panel.createUser}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
-              <CreateUsersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidents}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
-              <ShowAdminIncidentsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolved}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <ShowResolvedIncidentsPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentResolvedDetail}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <AssignIncidentPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentHistory}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
-              <ShowIncidentsHistoryPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.incidentDetail}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <AssignIncidentPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.operatorDetail}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <OperatorDetailPage />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-
-      <Route
-        path={APP_ROUTES.operator.root}
-        element={
-          <ProtectedRoute allowedRoles={[USER_ROLES.OPERATOR]}>
-            <ShowOperatorIncidents />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path={APP_ROUTES.app.root}
-        element={
-          <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<ShowIncidents />} />
-        <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
-        <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
-        <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
-      </Route>
-    </Routes>
+      <Toaster theme="dark" position="top-right"/>
+    </>
   );
 }
 

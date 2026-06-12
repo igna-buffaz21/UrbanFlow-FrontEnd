@@ -1,6 +1,17 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail, IncidentDetail, MapIncident, Incident, OperatorIncident, IncidentMe, IncidentCommentResponse, IncidentReportResponse, ReportedIncidentResponse, IncidentDetailResponse } from "./incidents.type";
+import type { AdminIncidentDetail,
+   MapIncident, 
+   Incident, 
+   OperatorIncident, 
+   IncidentMe, 
+   IncidentCommentResponse, 
+   IncidentReportResponse, 
+   ReportedIncidentResponse, 
+   IncidentDetailResponse,
+   ResolvePendingDuplicateResponse,
+   ResolvePendingDuplicateAction
+  } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -94,6 +105,18 @@ export const incidentsService = {
 
   async getMyReports(): Promise<ReportedIncidentResponse[]> {
     const response = await api.get<ReportedIncidentResponse[]>(API_ROUTES.incident_reports.getMyReports());
+    return response.data;
+  },
+
+  async resolvePendingDuplicate(
+    pendingIncidentId: string,
+    action: ResolvePendingDuplicateAction
+  ): Promise<ResolvePendingDuplicateResponse> {
+    const response = await api.post<ResolvePendingDuplicateResponse>(
+      API_ROUTES.incidents.resolveDuplicateIncident(pendingIncidentId),
+      { action }
+    );
+
     return response.data;
   }
 
