@@ -3,38 +3,38 @@ import { Routes, Route } from "react-router-dom";
 import { useAuth } from "@clerk/react";
 
 import { ProtectedRoute } from "./lib/protectedRoute";
+import { setupApiInterceptors } from "./lib/interceptor";
 
 import LoginPage from "./modules/auth/pages/login";
-import { setupApiInterceptors } from "./lib/interceptor";
-import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
-import { APP_ROUTES } from "./config/app.routes";
-import HomePage from "./modules/home/pages/Panelhome.page";
-import PanelLayout from "./components/layout/panelLayout";
+import SignUpPage from "./modules/auth/pages/signup";
+import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
 import { UnauthorizedPage } from "./modules/auth/pages/unauthorized.page";
 import { InactiveAccountPage } from "./modules/auth/pages/inactiveAccount.page";
 
-import { USER_ROLES } from "./config/const.globs";
+import PanelLayout from "./components/layout/panelLayout";
 import AppLayout from "./components/layout/appLayout";
+import { AppLoading } from "./components/app-loading";
+
+import { APP_ROUTES } from "./config/app.routes";
+import { USER_ROLES } from "./config/const.globs";
+
+import AdminDashboardPage from "./modules/home/pages/dashboard.page";
+import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
+import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
+import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
+import { ShowProfile } from "./modules/users/pages/showProfile.page";
+
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
+
 import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
-import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
-import { AcceptInvitationPage } from "./modules/auth/pages/acceptInvitation";
-import { AppLoading } from "./components/app-loading";
 import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidentsAdmin";
 import { AssignIncidentPage } from "./modules/incidents/pages/assignIncident";
 import { ShowIncidentsHistoryPage } from "./modules/incidents/pages/showIncidentHistory";
+import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolvedIncidents";
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
-import { OperatorIncidentDetailPage } from "./modules/incidents/pages/operatorIncidentDetail";
-import { ShowOperatorIncidentsHistory } from "./modules/incidents/pages/showOperatorIncidentHistory";
-
-import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
-import { ShowProfile } from "./modules/users/pages/showProfile.page";
-import SignUpPage from "./modules/auth/pages/signup";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
-import AdminDashboardPage from "./modules/home/pages/dashboard.page";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
-
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -44,7 +44,6 @@ function App() {
     if (!isLoaded) return;
 
     const cleanup = setupApiInterceptors(getToken);
-
     setIsApiReady(true);
 
     return cleanup;
@@ -62,21 +61,11 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-
       <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
       <Route path="/sign-up" element={<SignUpPage />} />
-
       <Route path={APP_ROUTES.auth.aceptInvitation} element={<AcceptInvitationPage />} />
-
-      <Route
-        path={APP_ROUTES.auth.unauthorized}
-        element={<UnauthorizedPage />}
-      />
-
-      <Route
-        path={APP_ROUTES.auth.inactive}
-        element={<InactiveAccountPage />}
-      />
+      <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
+      <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
 
       <Route
         path={APP_ROUTES.panel.root}
@@ -127,7 +116,16 @@ function App() {
         />
 
         <Route
-          path={APP_ROUTES.panel.incidentDetail}
+          path={APP_ROUTES.panel.incidentResolved}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <ShowResolvedIncidentsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={APP_ROUTES.panel.incidentResolvedDetail}
           element={
             <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <AssignIncidentPage />
@@ -142,7 +140,15 @@ function App() {
               <ShowIncidentsHistoryPage />
             </ProtectedRoute>
           }
+        />
 
+        <Route
+          path={APP_ROUTES.panel.incidentDetail}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <AssignIncidentPage />
+            </ProtectedRoute>
+          }
         />
 
         <Route
@@ -153,9 +159,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-
       </Route>
-
 
       <Route
         path={APP_ROUTES.operator.root}
@@ -175,13 +179,9 @@ function App() {
         }
       >
         <Route index element={<ShowIncidents />} />
-
         <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
-
         <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
-
         <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
-
       </Route>
     </Routes>
   );

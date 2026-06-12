@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "@/config/app.routes";
 
 import {
     Card,
@@ -10,13 +8,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
     Table,
     TableBody,
     TableCell,
@@ -25,7 +16,6 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
 import type { Incident, IncidentStatus } from "../incidents.type";
 
@@ -49,23 +39,20 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     resolved: "Resuelto",
     closed: "Cerrado",
     rejected: "Rechazado",
-
 };
 
 export function ShowIncidentsHistoryPage() {
-    const navigate = useNavigate();
-
     const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [status, setStatus] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        async function getIncidents() {
+        async function getClosedIncidents() {
             try {
                 setIsLoading(true);
 
-                const filters = status !== "all" ? { status } : undefined;
-                const response = await incidentsService.getIncidents(filters);
+                const response = await incidentsService.getIncidents({
+                    status: "closed",
+                });
 
                 setIncidents(response);
             } catch (error) {
@@ -76,8 +63,8 @@ export function ShowIncidentsHistoryPage() {
             }
         }
 
-        getIncidents();
-    }, [status]);
+        getClosedIncidents();
+    }, []);
 
     return (
         <div className="flex justify-center p-6">
@@ -86,25 +73,11 @@ export function ShowIncidentsHistoryPage() {
                     <CardHeader>
                         <CardTitle>Historial de incidentes</CardTitle>
                         <CardDescription>
-                            Visualizá todos los incidentes resueltos y cerrados.
+                            Visualizá todos los incidentes cerrados.
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                        <div className="flex justify-end">
-                            <Select value={status} onValueChange={setStatus}>
-                                <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="Estado" />
-                                </SelectTrigger>
-
-                                <SelectContent>
-                                    <SelectItem value="all">Todos</SelectItem>
-                                    <SelectItem value="resolved">Resueltos</SelectItem>
-                                    <SelectItem value="closed">Cerrados</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
                         <div className="rounded-lg border">
                             <Table>
                                 <TableHeader>
@@ -113,6 +86,7 @@ export function ShowIncidentsHistoryPage() {
                                         <TableHead>Estado</TableHead>
                                         <TableHead>Prioridad</TableHead>
                                         <TableHead>Fecha</TableHead>
+                                        <TableHead>Operador</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
@@ -120,7 +94,7 @@ export function ShowIncidentsHistoryPage() {
                                     {isLoading ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={4}
+                                                colSpan={5}
                                                 className="text-center text-sm text-muted-foreground py-8"
                                             >
                                                 Cargando...
@@ -129,10 +103,10 @@ export function ShowIncidentsHistoryPage() {
                                     ) : incidents.length === 0 ? (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={4}
+                                                colSpan={5}
                                                 className="text-center text-sm text-muted-foreground py-8"
                                             >
-                                                Sin incidentes.
+                                                No hay incidentes cerrados.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -147,15 +121,17 @@ export function ShowIncidentsHistoryPage() {
                                                 </TableCell>
 
                                                 <TableCell>
-                                                    <Badge
-                                                        className={PRIORITY_STYLES[incident.priority]}
-                                                    >
+                                                    <Badge className={PRIORITY_STYLES[incident.priority]}>
                                                         {PRIORITY_LABELS[incident.priority]}
                                                     </Badge>
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    {new Date(incident.createdAt).toLocaleDateString("es-AR")}
+                                                    {new Date(incident.closedAt ?? incident.createdAt).toLocaleDateString("es-AR")}
+                                                </TableCell>
+
+                                                <TableCell className="text-muted-foreground">
+                                                    {incident.assignedTo?.name ?? "Sin operador"}
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -164,18 +140,9 @@ export function ShowIncidentsHistoryPage() {
                             </Table>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">
-                                {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
-                            </p>
-
-                            <Button
-                                variant="outline"
-                                onClick={() => navigate(APP_ROUTES.panel.incidents)}
-                            >
-                                Volver a incidentes
-                            </Button>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
+                        </p>
                     </CardContent>
                 </Card>
             </div>

@@ -43,6 +43,13 @@ export interface Incident {
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
+  resolvedAt?: string;
+  closedAt?: string;
+  assignedTo?: {
+    id: string;
+    name: string;
+    photoUrl?: string | null;
+  } | null;
   location?: GeoJSONPoint | null; 
 }
 

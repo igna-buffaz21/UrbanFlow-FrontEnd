@@ -10,13 +10,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
     Table,
     TableBody,
     TableCell,
@@ -26,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { incidentsService } from "../incidents.service";
-import type { Incident, IncidentStatus } from "../incidents.type";
+import type { Incident } from "../incidents.type";
 
 const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
@@ -34,27 +27,16 @@ const PRIORITY_LABELS: Record<string, string> = {
     high: "Alta",
 };
 
-const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
+const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    low: "secondary",
+    medium: "outline",
+    high: "default",
 };
 
-const STATUS_LABELS: Record<IncidentStatus, string> = {
-    open: "Abierto",
-    in_review: "En revisión",
-    assigned: "Asignado",
-    in_progress: "En progreso",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
-
-export function ShowAdminIncidentsPage() {
+export function ShowResolvedIncidentsPage() {
     const navigate = useNavigate();
 
     const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [priority, setPriority] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -62,18 +44,13 @@ export function ShowAdminIncidentsPage() {
             try {
                 setIsLoading(true);
 
-                const filters = priority !== "all" ? { priority } : undefined;
-                const response = await incidentsService.getIncidents(filters);
+                const response = await incidentsService.getIncidents({
+                    status: "resolved",
+                });
 
-                const activeIncidents = response.filter(
-                    (incident) =>
-                        incident.status !== "resolved" &&
-                        incident.status !== "closed"
-                );
-
-                setIncidents(activeIncidents);
+                setIncidents(response);
             } catch (error) {
-                console.error("Error al cargar incidentes:", error);
+                console.error("Error al cargar incidentes resueltos:", error);
                 setIncidents([]);
             } finally {
                 setIsLoading(false);
@@ -81,43 +58,28 @@ export function ShowAdminIncidentsPage() {
         }
 
         getIncidents();
-    }, [priority]);
+    }, []);
 
     return (
         <div className="flex justify-center p-6">
             <div className="w-full max-w-4xl space-y-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Incidentes</CardTitle>
+                        <CardTitle>Incidentes resueltos</CardTitle>
                         <CardDescription>
-                            Visualizá y gestioná los incidentes de tu municipalidad.
+                            Revisá los incidentes resueltos por los operadores y cerrá o reasigná según corresponda.
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                        <div className="flex justify-end">
-                            <Select value={priority} onValueChange={setPriority}>
-                                <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="Prioridad" />
-                                </SelectTrigger>
-
-                                <SelectContent>
-                                    <SelectItem value="all">Todas las prioridades</SelectItem>
-                                    <SelectItem value="low">Baja</SelectItem>
-                                    <SelectItem value="medium">Media</SelectItem>
-                                    <SelectItem value="high">Alta</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
                         <div className="rounded-lg border">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Título</TableHead>
-                                        <TableHead>Estado</TableHead>
                                         <TableHead>Prioridad</TableHead>
-                                        <TableHead>Fecha</TableHead>
+                                        <TableHead>Fecha de resolución</TableHead>
+                                        <TableHead>Operador</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
@@ -137,7 +99,7 @@ export function ShowAdminIncidentsPage() {
                                                 colSpan={4}
                                                 className="text-center text-sm text-muted-foreground py-8"
                                             >
-                                                Sin incidentes.
+                                                Sin incidentes resueltos.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
@@ -146,25 +108,25 @@ export function ShowAdminIncidentsPage() {
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
                                                 onClick={() =>
-                                                    navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))
+                                                    navigate(APP_ROUTES.panel.incidentResolvedDetailPath(incident.id))
                                                 }
                                             >
                                                 <TableCell className="font-medium">
                                                     {incident.title}
                                                 </TableCell>
 
-                                                <TableCell className="text-muted-foreground">
-                                                    {STATUS_LABELS[incident.status] ?? incident.status}
-                                                </TableCell>
-
                                                 <TableCell>
-                                                    <Badge className={PRIORITY_STYLES[incident.priority]}>
+                                                    <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
                                                         {PRIORITY_LABELS[incident.priority] ?? incident.priority}
                                                     </Badge>
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    {new Date(incident.createdAt).toLocaleDateString("es-AR")}
+                                                    {new Date(incident.resolvedAt ?? incident.createdAt).toLocaleDateString("es-AR")}
+                                                </TableCell>
+
+                                                <TableCell className="text-muted-foreground">
+                                                    {incident.assignedTo?.name ?? "Sin operador"}
                                                 </TableCell>
                                             </TableRow>
                                         ))
