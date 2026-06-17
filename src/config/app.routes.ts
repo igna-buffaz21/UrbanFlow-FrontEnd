@@ -33,7 +33,7 @@ export const APP_ROUTES = {
 
   app: {
     root: "/app",
-    feed: "app/feed",
+    feed: "/app/feed",
     report: "/app/report",
     myIncidents: "/app/my-incidents",
     profile: "/app/profile",

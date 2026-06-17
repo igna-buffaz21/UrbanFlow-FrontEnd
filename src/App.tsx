@@ -36,6 +36,7 @@ import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolve
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
+import IncidentFeed from "./modules/incidents/pages/feedIncident";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -187,6 +188,7 @@ function App() {
           <Route path={APP_ROUTES.app.profile} element={<ShowProfile />} />
           <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
           <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
+          <Route path={APP_ROUTES.app.feed} element={<IncidentFeed />} />
         </Route>
       </Routes>
 

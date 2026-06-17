@@ -10,12 +10,21 @@ import type { AdminIncidentDetail,
    ReportedIncidentResponse, 
    IncidentDetailResponse,
    ResolvePendingDuplicateResponse,
-   ResolvePendingDuplicateAction
+   ResolvePendingDuplicateAction,
+   IncidentFeedItem,
+   IncidentFeedResponse
   } from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
   priority?: string;
+}
+
+interface GetIncidentFeedParams {
+    lat: number;
+    lng: number;
+    page?: number;
+    limit?: number;
 }
 
 export const incidentsService = {
@@ -118,7 +127,20 @@ export const incidentsService = {
     );
 
     return response.data;
-  }
+  },
+
+async getFeed(params: GetIncidentFeedParams): Promise<IncidentFeedItem[]> {
+  const response = await api.get<IncidentFeedResponse>(
+    API_ROUTES.incidents.feed(
+      params.lat,
+      params.lng,
+      params.page,
+      params.limit
+    )
+  );
+
+  return response.data.data;
+}
 
 };
 

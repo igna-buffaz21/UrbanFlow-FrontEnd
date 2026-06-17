@@ -48,16 +48,12 @@ export function ShowIncidents() {
   return (
     <div className="relative flex h-full flex-col bg-background">
       <header className="z-10 flex items-center justify-between border-b bg-background/80 px-4 py-3 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="size-5 text-primary" />
-
-          <span className="text-sm font-semibold tracking-tight">
-            Incidentes
-          </span>
-
-          <Badge variant="secondary" className="text-xs">
-            En vivo
-          </Badge>
+        <div className="flex items-center">
+          <img
+            src="/logo3.png"
+            alt="UrbanFlow"
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         <Button
@@ -69,21 +65,20 @@ export function ShowIncidents() {
           <LogOut className="size-4" />
         </Button>
       </header>
-
       <div className="flex-1 overflow-hidden">
         <MapIncidentLayout refreshKey={refreshKey} />
       </div>
 
-      <div className="absolute bottom-6 right-4 z-20">
-        <Button
-          size="lg"
-          onClick={() => setIsCreateIncidentOpen(true)}
-          className="h-14 w-14 rounded-full shadow-xl shadow-primary/30 transition-all duration-200 hover:scale-105 hover:shadow-primary/50"
-        >
-          <Plus className="size-6" />
-          <span className="sr-only">Registrar incidente</span>
-        </Button>
-      </div>
+    <div className="absolute bottom-10 right-2 z-20">
+      <Button
+        size="icon"
+        onClick={() => setIsCreateIncidentOpen(true)}
+        className="h-14 w-14 rounded-2xl shadow-md transition-all duration-200 hover:scale-105"
+      >
+        <Plus className="size-6" />
+        <span className="sr-only">Registrar incidente</span>
+      </Button>
+    </div>
 
       <CreateIncidentDialog
         open={isCreateIncidentOpen}
