@@ -144,7 +144,8 @@ export default function AdminDashboardPage() {
         incidents.filter(i =>
             i.location?.type === "Point" &&
             Array.isArray(i.location.coordinates) &&
-            i.location.coordinates.length === 2
+            i.location.coordinates.length === 2 &&
+            (i.status === "open" || i.status === "in_review")
         ), [incidents]);
 
     const mapCenter = useMemo<MapCenter | null>(() => {
@@ -220,8 +221,7 @@ export default function AdminDashboardPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+            <div className="grid grid-cols-1 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div>

@@ -51,12 +51,6 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     rejected: "Rechazado",
 };
 
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    low: "secondary",
-    medium: "outline",
-    high: "default",
-};
-
 export function ShowAdminIncidentsPage() {
     const navigate = useNavigate();
 
@@ -72,12 +66,6 @@ export function ShowAdminIncidentsPage() {
 
                 const filters = priority !== "all" ? { priority } : undefined;
                 const response = await incidentsService.getIncidents(filters);
-                console.table(
-                    response.map(i => ({
-                        title: i.title,
-                        priority: i.priority,
-                    }))
-                );
                 setIncidents(response);
             } catch (error) {
                 console.error("Error al cargar incidentes:", error);
