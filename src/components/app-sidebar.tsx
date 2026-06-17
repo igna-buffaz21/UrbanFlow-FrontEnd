@@ -69,20 +69,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      title: "Operadores",
+      title: user?.role === USER_ROLES.SUPERADMIN ? "Administradores" : "Operadores",
       url: APP_ROUTES.panel.users,
       icon: <TerminalSquareIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
-      items: [
-        {
-          title: "Visualizar",
-          url: APP_ROUTES.panel.users,
-        },
-        ...(user?.role === USER_ROLES.SUPERADMIN ? [{
-          title: "Crear",
-          url: APP_ROUTES.panel.createUser,
-        }] : []),
-      ],
     },
     {
       title: "Incidentes",
@@ -95,12 +85,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.incidents,
         },
         {
+          title: "Resueltos",
+          url: APP_ROUTES.panel.incidentResolved,
+        },
+        {
           title: "Historial",
           url: APP_ROUTES.panel.incidentHistory,
         },
       ],
     },
-
     {
       title: "Incidentes",
       url: APP_ROUTES.operator.root,
@@ -117,7 +110,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
       ],
     },
-
   ];
 
   const navSecondary = [

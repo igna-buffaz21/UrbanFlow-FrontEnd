@@ -43,6 +43,13 @@ export interface Incident {
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
+  resolvedAt?: string;
+  closedAt?: string;
+  assignedTo?: {
+    id: string;
+    name: string;
+    photoUrl?: string | null;
+  } | null;
   location?: GeoJSONPoint | null; 
 }
 
@@ -179,4 +186,16 @@ export interface IncidentCreatedBy {
   id: string;
   name: string;
   photoUrl: string | null;
+}
+
+export type ResolvePendingDuplicateAction =
+  | "confirm_duplicate"
+  | "create_new";
+
+export interface ResolvePendingDuplicateResponse {
+  status: "reported_existing_incident" | "created_new_incident";
+  message: string;
+  data: {
+    incidentId: string;
+  };
 }

@@ -12,6 +12,7 @@ import { IncidentDetailDialog } from "../dialog-incident";
 import { TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { MapIncident } from "@/modules/incidents/incidents.type";
+import { notify } from "@/lib/notify";
 
 type MapCenter = [number, number];
 
@@ -22,8 +23,8 @@ type MapIncidentLayoutProps = {
 type IncidentPriority = "low" | "medium" | "high";
 type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
 
-const DEFAULT_RADIUS = 5000;
-const MAX_ACCEPTED_ACCURACY = 1500;
+const DEFAULT_RADIUS = 1000;
+const MAX_ACCEPTED_ACCURACY = 100;
 
 function getPriorityLabel(priority: IncidentPriority) {
   const labels: Record<IncidentPriority, string> = {
@@ -184,35 +185,35 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
     getUserLocation();
   }, [refreshKey]);
 
-useEffect(() => {
-  if (!userLocation) return;
+  useEffect(() => {
+    if (!userLocation) return;
 
-  const currentLocation = userLocation;
+    const currentLocation = userLocation;
 
-  async function getIncidents() {
-    try {
-      setIsLoadingIncidents(true);
-      setIncidentsError(null);
+    async function getIncidents() {
+      try {
+        setIsLoadingIncidents(true);
+        setIncidentsError(null);
 
-      const [lng, lat] = currentLocation;
+        const [lng, lat] = currentLocation;
 
-      const response = await incidentsService.getIncidentsMap(
-        lat.toString(),
-        lng.toString(),
-        radius.toString()
-      );
+        const response = await incidentsService.getIncidentsMap(
+          lat.toString(),
+          lng.toString(),
+          radius.toString()
+        );
 
-      setIncidents(response);
-    } catch (error) {
-      console.error(error);
-      setIncidentsError("No se pudieron cargar los incidentes.");
-    } finally {
-      setIsLoadingIncidents(false);
+        setIncidents(response);
+      } catch (error) {
+        console.error(error);
+        setIncidentsError("No se pudieron cargar los incidentes.");
+      } finally {
+        setIsLoadingIncidents(false);
+      }
     }
-  }
 
-  getIncidents();
-}, [userLocation, radius, refreshKey]);
+    getIncidents();
+  }, [userLocation, radius, refreshKey]);
 
   const validIncidents = useMemo(() => {
     return incidents.filter((incident) => {
