@@ -29,7 +29,8 @@ export const API_ROUTES = {
     updateStatus: (id: string) => `/incidents/${id}/status`,
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
     getIncidentsCitizen: () => `/incidents/me`,
-    resolveDuplicateIncident: (idIncidentDuplicate: string) => `/incidents/pending/${idIncidentDuplicate}/resolve-duplicate`
+    resolveDuplicateIncident: (idIncidentDuplicate: string) => `/incidents/pending/${idIncidentDuplicate}/resolve-duplicate`,
+    feed: (lat: number, lng: number, page?: number, limit?: number) => `/incidents/feed?lat=${lat}&lng=${lng}&page=${page}&limit=${limit}`
   },
 
   incident_reports: {

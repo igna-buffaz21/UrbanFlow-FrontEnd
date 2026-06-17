@@ -277,8 +277,6 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
     <div className="h-full">
       <div className="relative w-full h-full overflow-hidden">
         <Map center={center} zoom={zoom}>
-          <MapControls />
-
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
             <MarkerContent>
               <div className="relative flex items-center justify-center">

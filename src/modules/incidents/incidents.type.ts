@@ -199,3 +199,62 @@ export interface ResolvePendingDuplicateResponse {
     incidentId: string;
   };
 }
+
+export interface IncidentFeedResponse {
+    message: string;
+    data: IncidentFeedItem[];
+    pagination: IncidentFeedPagination;
+}
+
+export interface IncidentFeedItem {
+    id: string;
+
+    title: string;
+    description: string;
+
+    status: IncidentFeedStatus;
+
+    photoUrl: string;
+
+    createdAt: string;
+
+    createdBy: IncidentFeedCreatedBy;
+
+    category: IncidentFeedCategory;
+
+    reportsCount: number;
+    commentsCount: number;
+
+    aiUrgencyScore: number;
+    relevanceScore: number;
+}
+
+export interface IncidentFeedCreatedBy {
+    id: string;
+    name: string;
+    photoUrl: string | undefined;
+}
+
+export interface IncidentFeedCategory {
+    id: string;
+    name: string;
+}
+
+export interface IncidentFeedPagination {
+    page: number;
+    limit: number;
+}
+
+export type IncidentFeedStatus =
+    | "open"
+    | "in_review"
+    | "in_progress"
+    | "resolved"
+    | "rejected";
+
+export interface GetIncidentFeedParams {
+    lat: number;
+    lng: number;
+    page?: number;
+    limit?: number;
+}
