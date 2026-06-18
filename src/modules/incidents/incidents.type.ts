@@ -153,6 +153,8 @@ export interface IncidentDetailBaseResponse {
         name: string;
     } | null;
 
+    status: string 
+
     aiUrgencyScore: number;
 
     createdAt: string;

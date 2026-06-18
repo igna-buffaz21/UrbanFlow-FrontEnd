@@ -34,10 +34,6 @@ const USER_ROLES = {
 
 type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
-type RoleProtectedItem = {
-  allowedRoles: UserRole[];
-};
-
 function canShowItem(
   allowedRoles: UserRole[],
   userRole: string | undefined
