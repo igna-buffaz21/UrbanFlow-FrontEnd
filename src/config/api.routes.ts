@@ -23,6 +23,7 @@ export const API_ROUTES = {
     getIncidentsMap: (lng: string, lat: string, radius: string) => `/incidents/map?lng=${lng}&lat=${lat}&radius=${radius}`,
     getDetailIncidentById: (id: string) => `/incidents/${id}`,
     createIncidents: "/incidents",
+    history: "/incidents/history",
     getAll: "/incidents",
     getAssigned: "/incidents/assigned",
     getById: (id: string) => `/incidents/${id}`,
@@ -30,8 +31,9 @@ export const API_ROUTES = {
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
     getIncidentsCitizen: () => `/incidents/me`,
     resolveDuplicateIncident: (idIncidentDuplicate: string) => `/incidents/pending/${idIncidentDuplicate}/resolve-duplicate`,
-    feed: (lat: number, lng: number, page?: number, limit?: number) => `/incidents/feed?lat=${lat}&lng=${lng}&page=${page}&limit=${limit}`
+    feed: (lat: number, lng: number, page?: number, limit?: number) => `/incidents/feed?lat=${lat}&lng=${lng}&page=${page}&limit=${limit}`,
   },
+
 
   incident_reports: {
     getReportByIncidentId: (id: string) => `/incident-report/${id}/report`,

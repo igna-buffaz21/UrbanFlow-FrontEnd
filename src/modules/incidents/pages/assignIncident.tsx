@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { notify } from "@/lib/notify";
 
 export function AssignIncidentPage() {
     const { id } = useParams<{ id: string }>();
@@ -23,8 +24,6 @@ export function AssignIncidentPage() {
     const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
     const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
@@ -56,14 +55,21 @@ export function AssignIncidentPage() {
 
     async function handleAssign() {
         if (!id || !selectedOperatorId) return;
+
         try {
             setIsAssigning(true);
-            setErrorMessage("");
-            await incidentsService.assignOperator(id, selectedOperatorId);
-            setSuccessMessage("Operador asignado correctamente.");
+
+            await notify.promise(
+                incidentsService.assignOperator(id, selectedOperatorId),
+                {
+                    loading: "Asignando operador...",
+                    success: "Operador asignado correctamente.",
+                    error: "Error al asignar el operador.",
+                }
+            );
+
             setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
-        } catch (error: any) {
-            setErrorMessage(error?.response?.data?.message ?? "Error al asignar el operador.");
+
         } finally {
             setIsAssigning(false);
         }
@@ -71,15 +77,18 @@ export function AssignIncidentPage() {
 
     async function handleClose() {
         if (!id) return;
+
         try {
             setIsClosing(true);
-            setErrorMessage("");
             await incidentsService.updateStatus(id, "closed");
-            setSuccessMessage("Incidente cerrado correctamente.");
+            notify.success("Incidente cerrado correctamente.");
             setIsCloseDialogOpen(false);
             setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
         } catch (error: any) {
-            setErrorMessage(error?.response?.data?.message ?? "Error al cerrar el incidente.");
+            notify.error(
+                error?.response?.data?.message ??
+                "Error al cerrar el incidente."
+            );
         } finally {
             setIsClosing(false);
         }
@@ -89,13 +98,20 @@ export function AssignIncidentPage() {
         if (!id) return;
         try {
             setIsReassigning(true);
-            setErrorMessage("");
             await incidentsService.updateStatus(id, "assigned");
-            setSuccessMessage("Incidente devuelto al operador correctamente.");
+            notify.success(
+                "Incidente devuelto al operador correctamente."
+            );
             setIsReassignDialogOpen(false);
-            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
+            setTimeout(
+                () => navigate(APP_ROUTES.panel.incidents),
+                1500
+            );
         } catch (error: any) {
-            setErrorMessage(error?.response?.data?.message ?? "Error al devolver el incidente.");
+            notify.error(
+                error?.response?.data?.message ??
+                "Error al devolver el incidente."
+            );
         } finally {
             setIsReassigning(false);
         }
@@ -140,16 +156,12 @@ export function AssignIncidentPage() {
                                     </Button>
                                     <Button variant="outline" onClick={handleCancel}>Volver</Button>
                                 </div>
-                                {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
-                                {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
                             </div>
                         ) : !canAssign ? (
                             <div className="flex flex-col gap-2 w-full">
                                 <div className="flex gap-2">
                                     <Button variant="outline" onClick={handleCancel}>Volver</Button>
                                 </div>
-                                {successMessage && <p className="text-sm text-green-500">{successMessage}</p>}
-                                {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
                             </div>
                         ) : undefined
                     }

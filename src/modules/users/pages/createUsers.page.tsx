@@ -32,6 +32,7 @@ import type { Municipality } from "@/modules/municipalities/municipalities.type"
 import { userService } from "../user.service"
 import { USER_ROLES } from "@/config/const.globs"
 import { useAuthUser } from "@/modules/auth/auth.context"
+import { notify } from "@/lib/notify";
 
 interface CreateUserForm {
   email: string
@@ -50,8 +51,6 @@ export function CreateUsersPage() {
   const [form, setForm] = useState<CreateUserForm>(initialForm)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState("");
-
   const isSuperAdmin = user?.role === USER_ROLES.SUPERADMIN
   const isAdmin = user?.role === USER_ROLES.ADMIN
 
@@ -89,34 +88,39 @@ export function CreateUsersPage() {
   }, [isSuperAdmin])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!config) return
+    if (!config) return;
 
     try {
-      setIsLoading(true)
-      setErrorMessage("")
+      setIsLoading(true);
 
       const municipalityId = isSuperAdmin
         ? form.municipalityId
-        : user?.municipalityId
+        : user?.municipalityId;
 
       if (!municipalityId) {
-        throw new Error("No se pudo resolver la municipalidad")
+        throw new Error("No se pudo resolver la municipalidad");
       }
 
-      await userService.inviteUser({
-        email: form.email,
-        role: config.roleToCreate,
-        municipalityId,
-      })
+      await notify.promise(
+        userService.inviteUser({
+          email: form.email,
+          role: config.roleToCreate,
+          municipalityId,
+        }),
+        {
+          loading: "Creando usuario...",
+          success: "Usuario creado correctamente.",
+          error: "Error al crear el usuario.",
+        }
+      );
 
-      setForm(initialForm)
-      navigate(APP_ROUTES.panel.users)
-    } catch (error: any) {
-      setErrorMessage(error?.response?.data?.message ?? "Error al crear el usuario")
+      setForm(initialForm);
+      navigate(APP_ROUTES.panel.users);
+
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -208,9 +212,6 @@ export function CreateUsersPage() {
                 )}
               </FieldGroup>
             </FieldSet>
-            {errorMessage && (
-              <p className="text-sm text-destructive mt-2">{errorMessage}</p>
-            )}
           </CardContent>
 
           <CardFooter className="flex gap-2 pt-2">

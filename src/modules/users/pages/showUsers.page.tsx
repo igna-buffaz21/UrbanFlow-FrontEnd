@@ -46,6 +46,7 @@ import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { useAuthUser } from "@/modules/auth/auth.context";
 import { municipalitiesService } from "@/modules/municipalities/municipalities.service";
 import type { Municipality } from "@/modules/municipalities/municipalities.type";
+import { notify } from "@/lib/notify";
 import { userService } from "../user.service";
 import type { GetUser } from "../user.types";
 
@@ -65,8 +66,6 @@ export function ShowUsersPage() {
   const [createEmail, setCreateEmail] = useState("");
   const [createMunicipalityId, setCreateMunicipalityId] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState("");
-  const [createSuccess, setCreateSuccess] = useState("");
 
   const isSuperAdmin = authUser?.role === "superadmin";
   const isAdmin = authUser?.role === "admin";
@@ -139,20 +138,34 @@ export function ShowUsersPage() {
 
     try {
       setIsUpdating(true);
-
-      const newStatus = userToUpdate.status === "active" ? "inactive" : "active";
-
-      await userService.updateUserStatus(userToUpdate.id, newStatus);
-
+      const newStatus =
+        userToUpdate.status === "active"
+          ? "inactive"
+          : "active";
+      await userService.updateUserStatus(
+        userToUpdate.id,
+        newStatus
+      );
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userToUpdate.id ? { ...user, status: newStatus } : user
+          user.id === userToUpdate.id
+            ? { ...user, status: newStatus }
+            : user
         )
+      );
+      notify.success(
+        newStatus === "active"
+          ? `${userLabel} activado correctamente.`
+          : `${userLabel} desactivado correctamente.`
       );
 
       setUserToUpdate(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al actualizar usuario:", error);
+      notify.error(
+        error?.response?.data?.message ??
+        `Error al actualizar el ${userLabel}.`
+      );
     } finally {
       setIsUpdating(false);
     }
@@ -163,36 +176,30 @@ export function ShowUsersPage() {
 
     try {
       setIsCreating(true);
-      setCreateError("");
-      setCreateSuccess("");
-
       const municipalityId = isSuperAdmin
         ? createMunicipalityId
         : authUser?.municipalityId;
 
       if (!municipalityId) {
-        setCreateError("Tenés que seleccionar un municipio.");
+        notify.error("Tenés que seleccionar un municipio.");
         return;
       }
-
       await userService.inviteUser({
         email: createEmail,
         role: isSuperAdmin ? "admin" : "operator",
         municipalityId,
       });
-
-      setCreateSuccess(`${isSuperAdmin ? "Administrador" : "Operador"} invitado correctamente.`);
+      notify.success(
+        `${isSuperAdmin ? "Administrador" : "Operador"} invitado correctamente.`
+      );
       setCreateEmail("");
       setCreateMunicipalityId("");
-
       await loadUsers();
-
       setTimeout(() => {
         setIsCreateOpen(false);
-        setCreateSuccess("");
       }, 1500);
     } catch (error: any) {
-      setCreateError(
+      notify.error(
         error?.response?.data?.message ??
         `Error al crear el ${userLabel}.`
       );
@@ -383,8 +390,6 @@ export function ShowUsersPage() {
           open={isCreateOpen}
           onOpenChange={(open) => {
             setIsCreateOpen(open);
-            setCreateError("");
-            setCreateSuccess("");
             setCreateEmail("");
             setCreateMunicipalityId("");
           }}
@@ -438,14 +443,6 @@ export function ShowUsersPage() {
                   )}
                 </FieldGroup>
               </FieldSet>
-
-              {createError && (
-                <p className="text-sm text-destructive mt-2">{createError}</p>
-              )}
-
-              {createSuccess && (
-                <p className="text-sm text-green-500 mt-2">{createSuccess}</p>
-              )}
 
               <DialogFooter className="mt-4">
                 <Button

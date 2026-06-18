@@ -16,6 +16,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
 import type { Incident, IncidentStatus } from "../incidents.type";
 
@@ -41,30 +42,44 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     rejected: "Rechazado",
 };
 
+const LIMIT = 10;
+
 export function ShowIncidentsHistoryPage() {
     const [incidents, setIncidents] = useState<Incident[]>([]);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    async function fetchIncidents(pageToLoad: number, isLoadMore = false) {
+        try {
+            isLoadMore ? setIsLoadingMore(true) : setIsLoading(true);
+
+            const response = await incidentsService.getClosedIncidentsHistory(pageToLoad, LIMIT);
+
+            setTotal(response.total);
+            setIncidents((prev) =>
+                isLoadMore ? [...prev, ...response.data] : response.data
+            );
+        } catch (error) {
+            console.error("Error loading history:", error);
+            if (!isLoadMore) setIncidents([]);
+        } finally {
+            isLoadMore ? setIsLoadingMore(false) : setIsLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function getClosedIncidents() {
-            try {
-                setIsLoading(true);
-
-                const response = await incidentsService.getIncidents({
-                    status: "closed",
-                });
-
-                setIncidents(response);
-            } catch (error) {
-                console.error("Error al cargar historial:", error);
-                setIncidents([]);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        getClosedIncidents();
+        fetchIncidents(1);
     }, []);
+
+    function handleLoadMore() {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchIncidents(nextPage, true);
+    }
+
+    const hasMore = incidents.length < total;
 
     return (
         <div className="flex justify-center p-6">
@@ -127,7 +142,9 @@ export function ShowIncidentsHistoryPage() {
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
-                                                    {new Date(incident.closedAt ?? incident.createdAt).toLocaleDateString("es-AR")}
+                                                    {new Date(
+                                                        incident.closedAt ?? incident.createdAt
+                                                    ).toLocaleDateString("es-AR")}
                                                 </TableCell>
 
                                                 <TableCell className="text-muted-foreground">
@@ -140,9 +157,22 @@ export function ShowIncidentsHistoryPage() {
                             </Table>
                         </div>
 
-                        <p className="text-xs text-muted-foreground">
-                            {incidents.length} incidente{incidents.length !== 1 ? "s" : ""}
-                        </p>
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground">
+                                Mostrando {incidents.length} de {total} incidente{total !== 1 ? "s" : ""}
+                            </p>
+
+                            {hasMore && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleLoadMore}
+                                    disabled={isLoadingMore}
+                                >
+                                    {isLoadingMore ? "Cargando..." : "Ver más incidentes"}
+                                </Button>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>

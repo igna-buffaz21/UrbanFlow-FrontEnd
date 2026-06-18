@@ -258,3 +258,10 @@ export interface GetIncidentFeedParams {
     page?: number;
     limit?: number;
 }
+
+export interface PaginatedIncidentsResponse {
+    data: Incident[];
+    total: number;
+    page: number;
+    limit: number;
+}

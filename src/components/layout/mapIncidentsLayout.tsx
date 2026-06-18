@@ -24,7 +24,7 @@ type IncidentPriority = "low" | "medium" | "high";
 type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
 
 const DEFAULT_RADIUS = 1000;
-const MAX_ACCEPTED_ACCURACY = 100;
+const MAX_ACCEPTED_ACCURACY = 400;
 
 function getPriorityLabel(priority: IncidentPriority) {
   const labels: Record<IncidentPriority, string> = {
