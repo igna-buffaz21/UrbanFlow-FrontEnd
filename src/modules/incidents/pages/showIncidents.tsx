@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { MapIncidentLayout } from "@/components/layout/mapIncidentsLayout";
 import { CreateIncidentDialog } from "@/components/register-incident-dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "@/config/app.routes";
-import { AlertTriangle, LogOut, Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 
 type MapCenter = [number, number]; // [lng, lat]
 

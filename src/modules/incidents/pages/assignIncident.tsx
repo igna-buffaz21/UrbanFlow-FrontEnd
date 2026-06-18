@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -84,11 +86,16 @@ export function AssignIncidentPage() {
             notify.success("Incidente cerrado correctamente.");
             setIsCloseDialogOpen(false);
             setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
-        } catch (error: any) {
-            notify.error(
-                error?.response?.data?.message ??
-                "Error al cerrar el incidente."
-            );
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setErrorMessage(
+                    error.response?.data?.message ?? "Error al cerrar el incidente."
+                );
+                return;
+            }
+            
+            setErrorMessage("Error al cerrar el incidente.");
+            
         } finally {
             setIsClosing(false);
         }
@@ -277,4 +284,8 @@ export function AssignIncidentPage() {
             </div>
         </div>
     );
+}
+
+function setErrorMessage(arg0: string) {
+    throw new Error(arg0);
 }

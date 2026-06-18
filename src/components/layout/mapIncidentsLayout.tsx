@@ -12,7 +12,6 @@ import { IncidentDetailDialog } from "../dialog-incident";
 import { TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { MapIncident } from "@/modules/incidents/incidents.type";
-import { notify } from "@/lib/notify";
 
 type MapCenter = [number, number];
 
@@ -21,7 +20,7 @@ type MapIncidentLayoutProps = {
 };
 
 type IncidentPriority = "low" | "medium" | "high";
-type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
+//type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
 
 const DEFAULT_RADIUS = 1000;
 const MAX_ACCEPTED_ACCURACY = 400;
@@ -36,7 +35,7 @@ function getPriorityLabel(priority: IncidentPriority) {
   return labels[priority];
 }
 
-function getStatusLabel(status: IncidentStatus) {
+/*function getStatusLabel(status: IncidentStatus) {
   const labels: Record<IncidentStatus, string> = {
     pending: "Pendiente",
     in_review: "En revisión",
@@ -45,7 +44,7 @@ function getStatusLabel(status: IncidentStatus) {
   };
 
   return labels[status];
-}
+}*/
 
 function formatDistance(distance: number) {
   if (distance >= 1000) {
@@ -140,6 +139,8 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log("UBICACION OBTENIDA: ", position.toJSON())
+
         const { latitude, longitude, accuracy } = position.coords;
 
         console.log("Ubicación obtenida:", {
@@ -233,7 +234,7 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
   if (isGettingLocation) {
     return (
       <div className="flex h-full items-center justify-center bg-background px-6">
-        <div className="text-center space-y-2">
+        <div className="space-y-2 text-center">
           <p className="text-sm font-medium text-foreground">
             Obteniendo tu ubicación...
           </p>
@@ -249,7 +250,7 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
   if (!center || !userLocation) {
     return (
       <div className="flex h-full items-center justify-center bg-background px-6">
-        <div className="max-w-xs text-center space-y-4">
+        <div className="max-w-xs space-y-4 text-center">
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">
               No pudimos obtener tu ubicación
@@ -275,13 +276,20 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
 
   return (
     <div className="h-full">
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative h-full w-full overflow-hidden">
         <Map center={center} zoom={zoom}>
+          <MapControls
+            position="top-right"
+            showZoom
+            showCompass
+            showLocate
+          />
+
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
             <MarkerContent>
               <div className="relative flex items-center justify-center">
-                <div className="absolute size-8 rounded-full bg-primary opacity-30 animate-ping" />
-                <div className="bg-primary size-4 rounded-full border-2 border-white shadow-lg" />
+                <div className="absolute size-8 animate-ping rounded-full bg-primary opacity-30" />
+                <div className="size-4 rounded-full border-2 border-white bg-primary shadow-lg" />
               </div>
             </MarkerContent>
 
@@ -289,7 +297,7 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
 
             <MarkerPopup>
               <div className="space-y-1">
-                <p className="text-foreground font-medium">
+                <p className="font-medium text-foreground">
                   Tu ubicación actual
                 </p>
               </div>
@@ -308,9 +316,9 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
                 <MarkerTooltip>{incident.title}</MarkerTooltip>
 
                 <MarkerPopup>
-                  <div className="max-w-[260px] box-border space-y-3 overflow-hidden">
+                  <div className="box-border max-w-[260px] space-y-3 overflow-hidden">
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground break-words">
+                      <p className="break-words text-sm font-semibold text-foreground">
                         {incident.title}
                       </p>
 
@@ -329,19 +337,17 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
 
                       <p>
                         Estado:{" Abierto "}
-                        <span className="font-medium text-foreground">
-                          
-                        </span>
+                        <span className="font-medium text-foreground"></span>
                       </p>
                     </div>
 
                     <Button
                       type="button"
                       size="sm"
-                      className="w-full max-w-full box-border"
+                      className="box-border w-full max-w-full"
                       onClick={() => handleOpenIncidentDetail(incident.id)}
                     >
-                      Ver mas
+                      Ver más
                     </Button>
                   </div>
                 </MarkerPopup>
@@ -351,25 +357,25 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
         </Map>
 
         {isLoadingIncidents && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-background/90 text-foreground text-xs px-3 py-1.5 rounded-full shadow border">
+          <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border bg-background/90 px-3 py-1.5 text-xs text-foreground shadow">
             Cargando incidentes...
           </div>
         )}
 
         {!isLoadingIncidents && (
-          <div className="absolute top-3 right-3 z-10 bg-background/90 text-foreground text-xs px-3 py-1.5 rounded-full shadow border">
+          <div className="absolute left-3 top-3 z-10 rounded-full border bg-background/90 px-3 py-1.5 text-xs text-foreground shadow">
             {validIncidents.length} incidentes
           </div>
         )}
 
         {locationError && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full shadow">
+          <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-destructive/90 px-3 py-1.5 text-xs text-destructive-foreground shadow">
             {locationError}
           </div>
         )}
 
         {incidentsError && (
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full shadow">
+          <div className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2 rounded-full bg-destructive/90 px-3 py-1.5 text-xs text-destructive-foreground shadow">
             {incidentsError}
           </div>
         )}
