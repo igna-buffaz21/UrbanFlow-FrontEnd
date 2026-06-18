@@ -1,19 +1,21 @@
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
-import type { AdminIncidentDetail,
-   MapIncident, 
-   Incident, 
-   OperatorIncident, 
-   IncidentMe, 
-   IncidentCommentResponse, 
-   IncidentReportResponse, 
-   ReportedIncidentResponse, 
-   IncidentDetailResponse,
-   ResolvePendingDuplicateResponse,
-   ResolvePendingDuplicateAction,
-   IncidentFeedItem,
-   IncidentFeedResponse
-  } from "./incidents.type";
+import type {
+  AdminIncidentDetail,
+  MapIncident,
+  Incident,
+  OperatorIncident,
+  IncidentMe,
+  IncidentCommentResponse,
+  IncidentReportResponse,
+  ReportedIncidentResponse,
+  IncidentDetailResponse,
+  ResolvePendingDuplicateResponse,
+  ResolvePendingDuplicateAction,
+  IncidentFeedItem,
+  IncidentFeedResponse,
+  PaginatedIncidentsResponse
+} from "./incidents.type";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -21,10 +23,10 @@ interface GetIncidentsFilters {
 }
 
 interface GetIncidentFeedParams {
-    lat: number;
-    lng: number;
-    page?: number;
-    limit?: number;
+  lat: number;
+  lng: number;
+  page?: number;
+  limit?: number;
 }
 
 export const incidentsService = {
@@ -80,7 +82,7 @@ export const incidentsService = {
 
   async updateStatus(incidentId: string, status: string): Promise<void> {
     await api.patch(API_ROUTES.incidents.updateStatus(incidentId), { status });
-},
+  },
 
   async getIncidentsCitizen(): Promise<IncidentMe[]> {
     const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
@@ -129,18 +131,29 @@ export const incidentsService = {
     return response.data;
   },
 
-async getFeed(params: GetIncidentFeedParams): Promise<IncidentFeedItem[]> {
-  const response = await api.get<IncidentFeedResponse>(
-    API_ROUTES.incidents.feed(
-      params.lat,
-      params.lng,
-      params.page,
-      params.limit
-    )
-  );
+  async getFeed(params: GetIncidentFeedParams): Promise<IncidentFeedItem[]> {
+    const response = await api.get<IncidentFeedResponse>(
+      API_ROUTES.incidents.feed(
+        params.lat,
+        params.lng,
+        params.page,
+        params.limit
+      )
+    );
 
-  return response.data.data;
-}
+    return response.data.data;
+
+  },
+
+  async getClosedIncidentsHistory(page: number, limit: number): Promise<PaginatedIncidentsResponse> {
+    const response = await api.get<PaginatedIncidentsResponse>(
+      API_ROUTES.incidents.history,
+      { params: { page, limit } }
+    );
+    return response.data;
+  },
+
+
 
 };
 
