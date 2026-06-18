@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
 import type { Incident, IncidentStatus } from "../incidents.type";
+import { IncidentDetailDialog } from "@/components/dialog-incident"; // ← agregado
 
 const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
@@ -51,12 +52,14 @@ export function ShowIncidentsHistoryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+    // ← agregado
+    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+
     async function fetchIncidents(pageToLoad: number, isLoadMore = false) {
         try {
             isLoadMore ? setIsLoadingMore(true) : setIsLoading(true);
-
             const response = await incidentsService.getClosedIncidentsHistory(pageToLoad, LIMIT);
-
             setTotal(response.total);
             setIncidents((prev) =>
                 isLoadMore ? [...prev, ...response.data] : response.data
@@ -77,6 +80,12 @@ export function ShowIncidentsHistoryPage() {
         const nextPage = page + 1;
         setPage(nextPage);
         fetchIncidents(nextPage, true);
+    }
+
+    // ← agregado
+    function handleOpenDetail(id: string) {
+        setSelectedIncidentId(id);
+        setIsDetailOpen(true);
     }
 
     const hasMore = incidents.length < total;
@@ -108,45 +117,39 @@ export function ShowIncidentsHistoryPage() {
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
-                                            <TableCell
-                                                colSpan={5}
-                                                className="text-center text-sm text-muted-foreground py-8"
-                                            >
+                                            <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
                                                 Cargando...
                                             </TableCell>
                                         </TableRow>
                                     ) : incidents.length === 0 ? (
                                         <TableRow>
-                                            <TableCell
-                                                colSpan={5}
-                                                className="text-center text-sm text-muted-foreground py-8"
-                                            >
+                                            <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
                                                 No hay incidentes cerrados.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
                                         incidents.map((incident) => (
-                                            <TableRow key={incident.id}>
+                                            <TableRow
+                                                key={incident.id}
+                                                className="cursor-pointer hover:bg-muted/50" // ← agregado
+                                                onClick={() => handleOpenDetail(incident.id)} // ← agregado
+                                            >
                                                 <TableCell className="font-medium">
                                                     {incident.title}
                                                 </TableCell>
-
                                                 <TableCell className="text-muted-foreground">
                                                     {STATUS_LABELS[incident.status] ?? incident.status}
                                                 </TableCell>
-
                                                 <TableCell>
                                                     <Badge className={PRIORITY_STYLES[incident.priority]}>
                                                         {PRIORITY_LABELS[incident.priority]}
                                                     </Badge>
                                                 </TableCell>
-
                                                 <TableCell className="text-muted-foreground">
                                                     {new Date(
                                                         incident.closedAt ?? incident.createdAt
                                                     ).toLocaleDateString("es-AR")}
                                                 </TableCell>
-
                                                 <TableCell className="text-muted-foreground">
                                                     {incident.assignedTo?.name ?? "Sin operador"}
                                                 </TableCell>
@@ -161,7 +164,6 @@ export function ShowIncidentsHistoryPage() {
                             <p className="text-xs text-muted-foreground">
                                 Mostrando {incidents.length} de {total} incidente{total !== 1 ? "s" : ""}
                             </p>
-
                             {hasMore && (
                                 <Button
                                     variant="outline"
@@ -176,6 +178,13 @@ export function ShowIncidentsHistoryPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* ← agregado */}
+            <IncidentDetailDialog
+                incidentId={selectedIncidentId}
+                open={isDetailOpen}
+                onOpenChange={setIsDetailOpen}
+            />
         </div>
     );
 }

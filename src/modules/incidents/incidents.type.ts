@@ -50,7 +50,7 @@ export interface Incident {
     name: string;
     photoUrl?: string | null;
   } | null;
-  location?: GeoJSONPoint | null; 
+  location?: GeoJSONPoint | null;
 }
 
 export interface AdminIncidentDetail {
@@ -133,45 +133,48 @@ export interface ReportedIncident {
 }
 
 export interface IncidentDetailBaseResponse {
+  id: string;
+
+  title: string;
+  description?: string;
+
+  photoUrl: string | null;
+
+  resolutionPhotoUrl: string | null;
+  resolvedAt: Date | null;
+
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  } | null;
+
+  category: {
     id: string;
+    name: string;
+  } | null;
 
-    title: string;
-    description?: string;
+  aiUrgencyScore: number;
 
+  createdAt: string;
+
+  is_owner: boolean;
+
+  createdBy: {
+    id: string;
+    name: string;
     photoUrl: string | null;
-
-    resolutionPhotoUrl: string | null;
-    resolvedAt: Date | null;
-
-    location: {
-        type: "Point";
-        coordinates: [number, number];
-    } | null;
-
-    category: {
-        id: string;
-        name: string;
-    } | null;
-
-    status: string 
-
-    aiUrgencyScore: number;
-
-    createdAt: string;
-
-    is_owner: boolean;
-
-    createdBy: {
-        id: string;
-        name: string;
-        photoUrl: string | null;
-    } | null;
+  } | null;
 }
 
 export interface IncidentDetailResponse extends IncidentDetailBaseResponse {
-    reportsCount: number;
-    priorityScore: number;
-    priority: IncidentPriority;
+  reportsCount: number;
+  priorityScore: number;
+  priority: IncidentPriority;
+  closedBy?: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
 }
 
 export interface IncidentLocation {
@@ -203,67 +206,102 @@ export interface ResolvePendingDuplicateResponse {
 }
 
 export interface IncidentFeedResponse {
-    message: string;
-    data: IncidentFeedItem[];
-    pagination: IncidentFeedPagination;
+  message: string;
+  data: IncidentFeedItem[];
+  pagination: IncidentFeedPagination;
 }
 
 export interface IncidentFeedItem {
-    id: string;
+  id: string;
 
-    title: string;
-    description: string;
+  title: string;
+  description: string;
 
-    status: IncidentFeedStatus;
+  status: IncidentFeedStatus;
 
-    photoUrl: string;
+  photoUrl: string;
 
-    createdAt: string;
+  createdAt: string;
 
-    createdBy: IncidentFeedCreatedBy;
+  createdBy: IncidentFeedCreatedBy;
 
-    category: IncidentFeedCategory;
+  category: IncidentFeedCategory;
 
-    reportsCount: number;
-    commentsCount: number;
+  reportsCount: number;
+  commentsCount: number;
 
-    aiUrgencyScore: number;
-    relevanceScore: number;
+  aiUrgencyScore: number;
+  relevanceScore: number;
 }
 
 export interface IncidentFeedCreatedBy {
-    id: string;
-    name: string;
-    photoUrl: string | undefined;
+  id: string;
+  name: string;
+  photoUrl: string | undefined;
 }
 
 export interface IncidentFeedCategory {
-    id: string;
-    name: string;
+  id: string;
+  name: string;
 }
 
 export interface IncidentFeedPagination {
-    page: number;
-    limit: number;
+  page: number;
+  limit: number;
 }
 
 export type IncidentFeedStatus =
-    | "open"
-    | "in_review"
-    | "in_progress"
-    | "resolved"
-    | "rejected";
+  | "open"
+  | "in_review"
+  | "in_progress"
+  | "resolved"
+  | "rejected";
 
 export interface GetIncidentFeedParams {
-    lat: number;
-    lng: number;
-    page?: number;
-    limit?: number;
+  lat: number;
+  lng: number;
+  page?: number;
+  limit?: number;
 }
 
 export interface PaginatedIncidentsResponse {
-    data: Incident[];
-    total: number;
-    page: number;
-    limit: number;
+  data: Incident[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface FrequencyByCategoryResult {
+  categoryId: string;
+  categoryName: string;
+  categoryLabel: string;
+  total: number;
+  open: number;
+  assigned: number;
+  resolved: number;
+  closed: number;
+}
+
+export interface ResolutionByCategoryResult {
+  categoryId: string;
+  categoryName: string;
+  categoryLabel: string;
+  total: number;
+  closed: number;
+  closureRate: number;
+  avgResolutionHours: number | null;
+}
+
+export interface ResolutionOverallResult {
+  totalIncidents: number;
+  closedIncidents: number;
+  resolvedIncidents: number;
+  criticalIncidents: number;
+  closureRate: number;
+  avgResolutionHours: number | null;
+}
+
+export interface ResolutionMetricsResult {
+  overall: ResolutionOverallResult;
+  byCategory: ResolutionByCategoryResult[];
 }
