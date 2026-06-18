@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { incidentsService } from "../incidents.service";
-import type { IncidentPriority, OperatorIncident } from "../incidents.type";
+import type { OperatorIncident } from "../incidents.type";
 
 import { IncidentDetailDialog } from "@/components/dialog-incident";
 
