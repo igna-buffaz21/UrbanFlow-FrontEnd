@@ -59,7 +59,7 @@ interface ActionButtonsProps {
   onCommentsCountChange: (count: number) => void;
 }
 
-function ActionButtons({ incident, onCommentsOpen, onCommentsCountChange }: ActionButtonsProps) {
+function ActionButtons({ incident, onCommentsOpen}: ActionButtonsProps) {
   const [reported, setReported] = useState(false);
   const [reportsCount, setReportsCount] = useState(incident.reportsCount ?? 0);
   const [commentsCount, setCommentsCount] = useState(incident.commentsCount ?? 0);
@@ -293,22 +293,52 @@ function IncidentCard({ incident, isActive }: IncidentCardProps) {
   );
 }
 
-function CardSkeleton() {
+function FeedInitialSkeleton() {
   return (
-    <div className="relative flex h-full w-full shrink-0 snap-start snap-always flex-col overflow-hidden bg-muted">
-      <div className="flex flex-row items-center gap-2.5 px-4 pt-4">
-        <Skeleton className="h-9 w-9 rounded-full" />
+    <div className="relative flex h-full w-full shrink-0 snap-start snap-always flex-col overflow-hidden bg-black">
+      <div className="absolute inset-0 animate-pulse bg-gradient-to-b from-zinc-900 via-zinc-950 to-black" />
+
+      <div className="relative z-10 flex flex-row items-center gap-2.5 px-4 pt-4">
+        <Skeleton className="h-9 w-9 rounded-full bg-white/15" />
+
         <div className="space-y-1.5">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-2.5 w-10" />
+          <Skeleton className="h-3 w-24 bg-white/15" />
+          <Skeleton className="h-2.5 w-12 bg-white/10" />
+        </div>
+
+        <Skeleton className="ml-auto h-5 w-20 rounded-full bg-white/15" />
+      </div>
+
+      <div className="flex-1" />
+
+      <div className="relative z-10 flex flex-row items-end gap-3 px-4 pb-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+          <Skeleton className="h-5 w-2/3 bg-white/15" />
+          <Skeleton className="h-3.5 w-full bg-white/10" />
+          <Skeleton className="h-3.5 w-3/4 bg-white/10" />
+          <Skeleton className="h-5 w-24 rounded-full bg-white/15" />
+        </div>
+
+        <div className="flex shrink-0 flex-col items-center gap-5 pb-1">
+          <div className="flex flex-col items-center gap-1.5">
+            <Skeleton className="h-12 w-12 rounded-full bg-white/15" />
+            <Skeleton className="h-3 w-5 bg-white/10" />
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <Skeleton className="h-12 w-12 rounded-full bg-white/15" />
+            <Skeleton className="h-3 w-5 bg-white/10" />
+          </div>
         </div>
       </div>
-      <div className="flex-1" />
-      <div className="flex flex-col gap-2.5 px-4 pb-5">
-        <Skeleton className="h-5 w-2/3" />
-        <Skeleton className="h-3.5 w-full" />
-        <Skeleton className="h-3.5 w-1/3" />
-      </div>
+    </div>
+  );
+}
+
+function LoadingMoreSkeleton() {
+  return (
+    <div className="flex h-24 w-full items-center justify-center bg-black">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white" />
     </div>
   );
 }
@@ -332,7 +362,10 @@ export default function IncidentFeed({
   const [incidents, setIncidents] = useState<IncidentFeedItem[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -380,7 +413,13 @@ export default function IncidentFeed({
       if (!coords || loadingRef.current) return;
 
       loadingRef.current = true;
-      setLoading(true);
+
+      if (pageToLoad === 1) {
+        setInitialLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       setError(null);
 
       try {
@@ -393,18 +432,21 @@ export default function IncidentFeed({
 
         const newItems = await incidentsService.getFeed(params);
 
-        console.log("ITEMS: ", newItems, "PAGE LOAD: ", pageToLoad)
-
         setIncidents((prev) => {
           const seen = new Set(prev.map((i) => i.id));
-          return [...prev, ...newItems.filter((item) => !seen.has(item.id))];
+
+          return [
+            ...prev,
+            ...newItems.filter((item) => !seen.has(item.id)),
+          ];
         });
 
         setHasMore(newItems.length === limit);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error desconocido");
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
+        setLoadingMore(false);
         loadingRef.current = false;
       }
     },
@@ -490,7 +532,11 @@ export default function IncidentFeed({
     );
   }
 
-  if (!loading && !error && incidents.length === 0) {
+  if (initialLoading && incidents.length === 0) {
+    return <FeedInitialSkeleton />;
+  }
+
+  if (!initialLoading && !error && incidents.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-background px-4">
         <p className="text-sm text-muted-foreground">
@@ -511,11 +557,7 @@ export default function IncidentFeed({
         </div>
       ))}
 
-      {loading && (
-        <div className="h-full w-full">
-          <CardSkeleton />
-        </div>
-      )}
+      {loadingMore && <LoadingMoreSkeleton />}
 
       {error && (
         <div className="flex h-full w-full items-center justify-center bg-background px-4">
@@ -532,9 +574,11 @@ export default function IncidentFeed({
         </div>
       )}
 
-      {!hasMore && !loading && incidents.length > 0 && (
+      {!hasMore && !loadingMore && incidents.length > 0 && (
         <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-background px-4 text-center">
-          <p className="text-sm text-muted-foreground">Ya viste todos los incidentes</p>
+          <p className="text-sm text-muted-foreground">
+            Ya viste todos los incidentes
+          </p>
         </div>
       )}
 

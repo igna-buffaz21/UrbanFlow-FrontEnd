@@ -2,7 +2,6 @@ import { useUser, useAuth, UserProfile } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "@/config/app.routes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
@@ -12,13 +11,10 @@ import {
   AlertTriangle,
   MessageSquare,
   Heart,
-  Bookmark,
-  Bell,
   UserRound,
   Shield,
   ChevronRight,
   LogOut,
-  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
