@@ -187,32 +187,32 @@ export function IncidentDetailDialog({
   }
 
   async function handleCreateComment(event: React.FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+    event.preventDefault();
 
-  if (!incidentId) return;
+    if (!incidentId) return;
 
-  const trimmedComment = commentValue.trim();
+    const trimmedComment = commentValue.trim();
 
-  if (!trimmedComment) {
-    setCommentError("El comentario no puede estar vacío.");
-    return;
+    if (!trimmedComment) {
+      setCommentError("El comentario no puede estar vacío.");
+      return;
+    }
+
+    try {
+      setIsCommenting(true);
+      setCommentError(null);
+
+      const response = await incidentsService.addCommentReport(incidentId, trimmedComment);
+
+      setComments((prevComments) => [response, ...prevComments]);
+      setCommentValue("");
+    } catch (error) {
+      console.error(error);
+      setCommentError("No se pudo publicar el comentario.");
+    } finally {
+      setIsCommenting(false);
+    }
   }
-
-  try {
-    setIsCommenting(true);
-    setCommentError(null);
-
-    const response = await incidentsService.addCommentReport(incidentId, trimmedComment);
-
-    setComments((prevComments) => [response, ...prevComments]);
-    setCommentValue("");
-  } catch (error) {
-    console.error(error);
-    setCommentError("No se pudo publicar el comentario.");
-  } finally {
-    setIsCommenting(false);
-  }
-}
 
   return (
     <>
@@ -332,7 +332,7 @@ export function IncidentDetailDialog({
                         className={cn(
                           "shrink-0 gap-2",
                           report.reportedByMe &&
-                            "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                          "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                         )}
                       >
                         <Flag className="size-3.5" />
@@ -421,38 +421,70 @@ export function IncidentDetailDialog({
 
                   {/* Meta: autor y fecha — discreta, al pie */}
                   {/* Meta: autor y fecha — centradas */}
-                    {/* Meta: autor y fecha */}
-                    <div className="space-y-1 pt-1 text-xs text-muted-foreground">
+                  {/* Meta: autor y fecha */}
+                  <div className="space-y-1 pt-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      {incident.createdBy?.photoUrl ? (
+                        <img
+                          src={incident.createdBy.photoUrl}
+                          alt={incident.createdBy.name}
+                          className="size-4 rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="size-3.5" />
+                      )}
+
+                      <span>
+                        Creado por:{" "}
+                        <span className="font-medium text-foreground">
+                          {incident.createdBy?.name ?? "Usuario desconocido"}
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <CalendarDays className="size-3.5" />
+
+                      <span>
+                        Creado hace:{" "}
+                        <span className="font-medium text-foreground">
+                          {formatRelativeDate(incident.createdAt)}
+                        </span>
+                      </span>
+                    </div>
+
+                    {incident.resolvedAt && (
                       <div className="flex items-center gap-1.5">
-                        {incident.createdBy?.photoUrl ? (
+                        <CalendarDays className="size-3.5" />
+                        <span>
+                          Resuelto:{" "}
+                          <span className="font-medium text-foreground">
+                            {formatRelativeDate(incident.resolvedAt.toString())}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+
+                    {incident.closedBy && (
+                      <div className="flex items-center gap-1.5">
+                        {incident.closedBy.photoUrl ? (
                           <img
-                            src={incident.createdBy.photoUrl}
-                            alt={incident.createdBy.name}
+                            src={incident.closedBy.photoUrl}
+                            alt={incident.closedBy.name}
                             className="size-4 rounded-full object-cover"
                           />
                         ) : (
                           <User className="size-3.5" />
                         )}
-
                         <span>
-                          Creado por:{" "}
+                          Cerrado por:{" "}
                           <span className="font-medium text-foreground">
-                            {incident.createdBy?.name ?? "Usuario desconocido"}
+                            {incident.closedBy.name}
                           </span>
                         </span>
                       </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <CalendarDays className="size-3.5" />
-
-                        <span>
-                          Creado hace:{" "}
-                          <span className="font-medium text-foreground">
-                            {formatRelativeDate(incident.createdAt)}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

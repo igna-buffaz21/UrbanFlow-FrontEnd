@@ -45,5 +45,10 @@ export const API_ROUTES = {
   incident_comments: {
     getCommentsByIncidentId: (id: string) => `/incident-comments/${id}/comments`,
     createComment: (id: string) => `/incident-comments/${id}/comments`,
+  },
+
+  incident_stats: {
+    frequency: "/incidents/stats/frequency",
+    resolution: "/incidents/stats/resolution",
   }
 } as const;
