@@ -365,11 +365,8 @@ export function CreateIncidentDialog({
       clearAiMessages();
       await submitCreate();
     } catch (error) {
-        console.error(error);
-  alert(`ERROR REAL: ${error}`); // temporal, para debug
-  setErrorMessage("No se pudo reportar el incidente.");
-  notify.error("No se pudo reportar el incidente.");
       console.error(error);
+      alert(`ERROR REAL: ${error}`); // temporal, para debug — sacar después
       setErrorMessage("No se pudo reportar el incidente.");
       notify.error("No se pudo reportar el incidente.");
     } finally {
