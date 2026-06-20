@@ -215,7 +215,7 @@ export function CreateIncidentDialog({
   }, [imagePreviewUrl]);
 
   const step1Valid = Boolean(selectedLocation);
-  
+
   const isValid = Boolean(
     title.trim() &&
     description.trim() &&
@@ -365,6 +365,10 @@ export function CreateIncidentDialog({
       clearAiMessages();
       await submitCreate();
     } catch (error) {
+        console.error(error);
+  alert(`ERROR REAL: ${error}`); // temporal, para debug
+  setErrorMessage("No se pudo reportar el incidente.");
+  notify.error("No se pudo reportar el incidente.");
       console.error(error);
       setErrorMessage("No se pudo reportar el incidente.");
       notify.error("No se pudo reportar el incidente.");
