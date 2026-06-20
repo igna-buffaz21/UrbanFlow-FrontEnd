@@ -215,8 +215,13 @@ export function CreateIncidentDialog({
   }, [imagePreviewUrl]);
 
   const step1Valid = Boolean(selectedLocation);
+  
   const isValid = Boolean(
-    title.trim() && description.trim() && selectedLocation && image && ACCEPTED_IMAGE_TYPES.includes(image.type)
+    title.trim() &&
+    description.trim() &&
+    selectedLocation &&
+    image &&
+    isAcceptedImage(image)
   );
 
   function clearAiMessages() {
@@ -574,7 +579,7 @@ export function CreateIncidentDialog({
                         id="image"
                         type="file"
                         className="sr-only"
-                        accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                        accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"                        
                         onChange={handleImageChange}
                       />
                     </label>
