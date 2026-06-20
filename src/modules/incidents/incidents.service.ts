@@ -84,6 +84,10 @@ export const incidentsService = {
     await api.patch(API_ROUTES.incidents.updateStatus(incidentId), { status });
   },
 
+  async rejectIncident(incidentId: string, rejectionReason: string): Promise<void> {
+    await api.patch(API_ROUTES.incidents.updateStatus(incidentId), { status: "rejected", rejectionReason });
+  },
+
   async getIncidentsCitizen(): Promise<IncidentMe[]> {
     const response = await api.get<IncidentMe[]>(API_ROUTES.incidents.getIncidentsCitizen(), {});
     return response.data;
