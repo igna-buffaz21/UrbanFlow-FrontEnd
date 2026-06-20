@@ -231,8 +231,18 @@ export function CreateIncidentDialog({
     setDuplicateDialogOpen(false);
   }
 
-  function buildFormData(params?: { ignoreDuplicateCheck?: boolean }) {
+  async function buildFormData(params?: { ignoreDuplicateCheck?: boolean }) {
     if (!selectedLocation || !image) return null;
+
+    // 👇 debug temporal: probar si el File sigue siendo legible
+    try {
+      const buf = await image.slice(0, 1).arrayBuffer();
+      console.log("imagen legible, bytes leídos:", buf.byteLength, "size total:", image.size);
+    } catch (e) {
+      console.error("⚠️ el File ya no es legible:", e);
+      alert("EL ARCHIVO SE INVALIDÓ: " + e);
+    }
+
     const location: CreateIncidentLocation = { type: "Point", coordinates: selectedLocation };
     const formData = new FormData();
     formData.append("title", title.trim());
@@ -345,7 +355,7 @@ export function CreateIncidentDialog({
   }
 
   async function submitCreate(params?: { ignoreDuplicateCheck?: boolean }) {
-    const formData = buildFormData(params);
+    const formData = await buildFormData(params);
     if (!formData) return;
     const response = (await incidentsService.createIncident(formData)) as CreateIncidentResponse;
     if (response.status === "created") { handleCreated(response.message); return; }
