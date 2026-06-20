@@ -255,23 +255,36 @@ export function CreateIncidentDialog({
     const file = event.target.files?.[0];
 
     if (!file) {
+      alert("No se seleccionó ningún archivo");
       setImage(null);
       return;
     }
 
-    console.log("Archivo seleccionado:", {
-      name: file.name,
-      type: file.type || "sin type",
-      sizeMb: (file.size / 1024 / 1024).toFixed(2),
-    });
+    alert(`
+  Archivo seleccionado:
+
+  Nombre: ${file.name}
+  Tipo: ${file.type || "SIN TYPE"}
+  Peso: ${(file.size / 1024 / 1024).toFixed(2)} MB
+  Última modificación: ${new Date(file.lastModified).toLocaleString()}
+  `);
 
     if (!isAcceptedImage(file)) {
+      alert(`
+  Imagen rechazada por validación del frontend.
+
+  Nombre: ${file.name}
+  Tipo: ${file.type || "SIN TYPE"}
+  Peso: ${(file.size / 1024 / 1024).toFixed(2)} MB
+  `);
+
       setImage(null);
       setErrorMessage("La imagen debe ser JPG, PNG, WEBP, HEIC o HEIF.");
-      notify.error("La imagen tiene un tipo no valido")
       clearAiMessages();
       return;
     }
+
+    alert("Imagen aceptada por el frontend");
 
     setErrorMessage(null);
     clearAiMessages();
