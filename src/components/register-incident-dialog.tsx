@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { incidentsService } from "@/modules/incidents/incidents.service";
 import { notify } from "@/lib/notify";
 import type { AdminIncidentDetail } from "@/modules/incidents/incidents.type";
+import imageCompression from "browser-image-compression";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -266,44 +267,43 @@ export function CreateIncidentDialog({
     return hasValidMimeType || hasValidExtension;
   }
 
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) {
-      alert("No se seleccionó ningún archivo");
       setImage(null);
       return;
     }
 
-    alert(`
-  Archivo seleccionado:
-
-  Nombre: ${file.name}
-  Tipo: ${file.type || "SIN TYPE"}
-  Peso: ${(file.size / 1024 / 1024).toFixed(2)} MB
-  Última modificación: ${new Date(file.lastModified).toLocaleString()}
-  `);
-
     if (!isAcceptedImage(file)) {
-      alert(`
-  Imagen rechazada por validación del frontend.
-
-  Nombre: ${file.name}
-  Tipo: ${file.type || "SIN TYPE"}
-  Peso: ${(file.size / 1024 / 1024).toFixed(2)} MB
-  `);
-
       setImage(null);
       setErrorMessage("La imagen debe ser JPG, PNG, WEBP, HEIC o HEIF.");
       clearAiMessages();
       return;
     }
 
-    alert("Imagen aceptada por el frontend");
-
     setErrorMessage(null);
     clearAiMessages();
-    setImage(file);
+
+    try {
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.8,           // objetivo: bajo el umbral que dispara el bug de iOS
+        maxWidthOrHeight: 1600,   // de sobra para mostrar el incidente
+        useWebWorker: true,
+        fileType: "image/jpeg",  // normaliza HEIC -> JPEG también, bonus
+      });
+
+      // browser-image-compression devuelve un Blob; lo envolvemos en File para mantener el nombre
+      const renamedFile = new File(
+        [compressedFile],
+        file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+        { type: compressedFile.type }
+      );
+
+      setImage(renamedFile);
+    } catch (err) {
+      console.error("Error comprimiendo imagen:", err);
+      setErrorMessage("No se pudo procesar la imagen. Probá con otra foto.");
+    }
   }
 
   function resetForm() {
