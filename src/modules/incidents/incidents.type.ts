@@ -50,6 +50,11 @@ export interface Incident {
     name: string;
     photoUrl?: string | null;
   } | null;
+  category?: {
+    id: string;
+    name: string;
+    label: string;
+  } | null;
   location?: GeoJSONPoint | null;
 }
 
@@ -75,6 +80,12 @@ export interface AdminIncidentDetail {
     name: string;
     photoUrl: string | null;
   } | null;
+  rejectedBy?: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
+  rejectionReason?: string | null;
 }
 
 export interface OperatorIncident {
@@ -164,6 +175,14 @@ export interface IncidentDetailBaseResponse {
     name: string;
     photoUrl: string | null;
   } | null;
+
+  status: string;
+  assignedAt?: string;
+  assignedTo?: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
 }
 
 export interface IncidentDetailResponse extends IncidentDetailBaseResponse {
@@ -175,6 +194,12 @@ export interface IncidentDetailResponse extends IncidentDetailBaseResponse {
     name: string;
     photoUrl: string | null;
   } | null;
+  rejectedBy?: {
+    id: string;
+    name: string;
+    photoUrl: string | null;
+  } | null;
+  rejectionReason?: string | null;
 }
 
 export interface IncidentLocation {
