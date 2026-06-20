@@ -103,6 +103,16 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/webp",
   "image/heic",
   "image/heif",
+  "application/octet-stream",
+];
+
+const ACCEPTED_IMAGE_EXTENSIONS = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".heic",
+  ".heif",
 ];
 
 // ─── Map click + locate handler ───────────────────────────────────────────────
@@ -228,15 +238,41 @@ export function CreateIncidentDialog({
     return formData;
   }
 
+  function isAcceptedImage(file: File): boolean {
+    const fileName = file.name.toLowerCase();
+
+    const hasValidMimeType =
+      file.type === "" || ACCEPTED_IMAGE_TYPES.includes(file.type);
+
+    const hasValidExtension = ACCEPTED_IMAGE_EXTENSIONS.some((extension) =>
+      fileName.endsWith(extension)
+    );
+
+    return hasValidMimeType || hasValidExtension;
+  }
+
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file) { setImage(null); return; }
-    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+
+    if (!file) {
+      setImage(null);
+      return;
+    }
+
+    console.log("Archivo seleccionado:", {
+      name: file.name,
+      type: file.type || "sin type",
+      sizeMb: (file.size / 1024 / 1024).toFixed(2),
+    });
+
+    if (!isAcceptedImage(file)) {
       setImage(null);
       setErrorMessage("La imagen debe ser JPG, PNG, WEBP, HEIC o HEIF.");
+      notify.error("La imagen tiene un tipo no valido")
       clearAiMessages();
       return;
     }
+
     setErrorMessage(null);
     clearAiMessages();
     setImage(file);
@@ -506,7 +542,7 @@ export function CreateIncidentDialog({
                           id="image-replace"
                           type="file"
                           className="sr-only"
-                          accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                          accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
                           onChange={handleImageChange}
                         />
                       </label>
