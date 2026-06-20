@@ -374,9 +374,15 @@ export function CreateIncidentDialog({
       setErrorMessage(null);
       clearAiMessages();
       await submitCreate();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert(`ERROR REAL: ${error}`); // temporal, para debug — sacar después
+      alert(`
+  CODE: ${error?.code}
+  MESSAGE: ${error?.message}
+  STATUS: ${error?.response?.status}
+  TIMEOUT CONFIG: ${error?.config?.timeout}
+  ONLINE: ${navigator.onLine}
+      `);
       setErrorMessage("No se pudo reportar el incidente.");
       notify.error("No se pudo reportar el incidente.");
     } finally {
