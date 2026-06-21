@@ -68,8 +68,8 @@ export function ShowAdminIncidentsPage() {
                 const activeIncidents = response.filter(
                     (incident) =>
                         incident.status !== "resolved" &&
-                        incident.status !== "closed"
-                );
+                        incident.status !== "closed" &&
+                        incident.status !== "rejected");
 
                 setIncidents(activeIncidents);
             } catch (error) {

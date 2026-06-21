@@ -32,6 +32,9 @@ export function AssignIncidentPage() {
     const [isClosing, setIsClosing] = useState(false);
     const [isReassigning, setIsReassigning] = useState(false);
     const [reassignNote, setReassignNote] = useState("");
+    const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [isRejecting, setIsRejecting] = useState(false);
 
     const canAssign = (incident?.status === "in_review" || incident?.status === "open") && !incident?.assignedTo;
 
@@ -93,9 +96,9 @@ export function AssignIncidentPage() {
                 );
                 return;
             }
-            
+
             setErrorMessage("Error al cerrar el incidente.");
-            
+
         } finally {
             setIsClosing(false);
         }
@@ -121,6 +124,22 @@ export function AssignIncidentPage() {
             );
         } finally {
             setIsReassigning(false);
+        }
+    }
+
+    async function handleReject() {
+        if (!id || !rejectionReason.trim()) return;
+        try {
+            setIsRejecting(true);
+            await incidentsService.rejectIncident(id, rejectionReason);
+            notify.success("Incidente rechazado.");
+            setIsRejectDialogOpen(false);
+            setRejectionReason("");
+            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
+        } catch {
+            notify.error("Error al rechazar el incidente.");
+        } finally {
+            setIsRejecting(false);
         }
     }
 
@@ -170,7 +189,16 @@ export function AssignIncidentPage() {
                                     <Button variant="outline" onClick={handleCancel}>Volver</Button>
                                 </div>
                             </div>
-                        ) : undefined
+                        ) : (
+                            <div className="flex flex-col gap-2 w-full">
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
+                                    <Button variant="outline" onClick={() => setIsRejectDialogOpen(true)}>
+                                        Rechazar incidente
+                                    </Button>
+                                </div>
+                            </div>
+                        )
                     }
                 />
 
@@ -276,6 +304,37 @@ export function AssignIncidentPage() {
                             </Button>
                             <Button variant="destructive" onClick={handleReassign} disabled={isReassigning}>
                                 {isReassigning ? "Devolviendo..." : "Confirmar"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Dialog — Rechazar incidente */}
+                <Dialog open={isRejectDialogOpen} onOpenChange={(open) => { setIsRejectDialogOpen(open); if (!open) setRejectionReason(""); }}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>¿Rechazar incidente?</DialogTitle>
+                            <DialogDescription>
+                                Explicá el motivo del rechazo. El ciudadano podrá verlo.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-2 pt-2">
+                            <label className="text-sm font-medium text-muted-foreground">
+                                Motivo de rechazo
+                            </label>
+                            <textarea
+                                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+                                placeholder="Ej: El incidente no corresponde a la vía pública..."
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => { setIsRejectDialogOpen(false); setRejectionReason(""); }}>
+                                Cancelar
+                            </Button>
+                            <Button variant="outline" onClick={handleReject} disabled={isRejecting || !rejectionReason.trim()}>
+                                {isRejecting ? "Rechazando..." : "Confirmar rechazo"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
