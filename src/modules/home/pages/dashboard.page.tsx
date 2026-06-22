@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuthUser } from "@/modules/auth/auth.context";
 import { incidentsService } from "@/modules/incidents/incidents.service";
-import { IncidentDetailDialog } from "@/components/dialog-incident";
+import { IncidentDetailCard } from "@/components/IncidentDetailCard";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
 
-import type { Incident } from "@/modules/incidents/incidents.type";
+import type { Incident, AdminIncidentDetail } from "@/modules/incidents/incidents.type";
 import type {
     FrequencyByCategoryResult,
     ResolutionMetricsResult,
@@ -52,6 +53,12 @@ import {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 type MapCenter = [number, number];
+
+let dashboardCache: {
+    incidents: Incident[];
+    frequency: FrequencyByCategoryResult[];
+    resolution: ResolutionMetricsResult | null;
+} | null = null;
 
 const PRIORITY_STYLES: Record<string, { bg: string; pulse: string }> = {
     low: { bg: "bg-blue-400", pulse: "bg-blue-300/20" },
@@ -192,19 +199,22 @@ export default function AdminDashboardPage() {
     const { user } = useAuthUser();
 
     // Datos
-    const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [frequency, setFrequency] = useState<FrequencyByCategoryResult[]>([]);
-    const [resolution, setResolution] = useState<ResolutionMetricsResult | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    // Datos
+    const [incidents, setIncidents] = useState<Incident[]>(dashboardCache?.incidents ?? []);
+    const [frequency, setFrequency] = useState<FrequencyByCategoryResult[]>(dashboardCache?.frequency ?? []);
+    const [resolution, setResolution] = useState<ResolutionMetricsResult | null>(dashboardCache?.resolution ?? null);
+    const [isLoading, setIsLoading] = useState(!dashboardCache);
 
     // UI
-    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+    const [selectedIncident, setSelectedIncident] = useState<AdminIncidentDetail | null>(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
     useEffect(() => {
         async function loadAll() {
             try {
-                setIsLoading(true);
+                if (!dashboardCache) setIsLoading(true);
+
                 const [incidentsData, freqData, resData] = await Promise.all([
                     incidentsService.getIncidents(),
                     api
@@ -217,6 +227,8 @@ export default function AdminDashboardPage() {
                 setIncidents(incidentsData);
                 setFrequency(freqData);
                 setResolution(resData);
+
+                dashboardCache = { incidents: incidentsData, frequency: freqData, resolution: resData };
             } catch (err) {
                 console.error("Error al cargar dashboard:", err);
             } finally {
@@ -298,6 +310,19 @@ export default function AdminDashboardPage() {
 
     // ── Métricas principales (vienen del endpoint /stats/resolution)
     const overall = resolution?.overall;
+
+    async function openIncidentDetail(id: string) {
+        setIsDetailDialogOpen(true);
+        setIsLoadingDetail(true);
+        try {
+            const data = await incidentsService.getIncidentById(id);
+            setSelectedIncident(data);
+        } catch (err) {
+            console.error("Error al cargar incidente:", err);
+        } finally {
+            setIsLoadingDetail(false);
+        }
+    }
 
     return (
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -409,32 +434,32 @@ export default function AdminDashboardPage() {
                                     <Bar dataKey="Abierto" stackId="a" fill={BAR_COLORS.Abierto} />
                                     <Bar dataKey="Asignado" stackId="a" fill={BAR_COLORS.Asignado} />
                                     <Bar dataKey="Resuelto" stackId="a" fill={BAR_COLORS.Resuelto} />
-                                    <Bar dataKey="Cerrado" stackId="a" fill={BAR_COLORS.Cerrado} radius={[0, 4, 4, 0]}> 
-                                            <LabelList
-                                                dataKey="Cerrado"
-                                                position="right"
-                                                content={(props) => {
-                                                    const { x, y, width, height, index } = props as {
-                                                        x: number; y: number; width: number; height: number; index: number;
-                                                    };
-                                                    const row = barData[index];
-                                                    if (!row) return null;
-                                                    const total = row.Abierto + row.Asignado + row.Resuelto + row.Cerrado;
-                                                    if (total === 0) return null;
-                                                    return (
-                                                        <text
-                                                            x={(x as number) + (width as number) + 6}
-                                                            y={(y as number) + (height as number) / 2}
-                                                            dy="0.35em"
-                                                            fontSize={11}
-                                                            fill="hsl(var(--muted-foreground))"
-                                                        >
-                                                            {total}
-                                                        </text>
-                                                    );
-                                                }}
-                                            />
-                                        </Bar>
+                                    <Bar dataKey="Cerrado" stackId="a" fill={BAR_COLORS.Cerrado} radius={[0, 4, 4, 0]}>
+                                        <LabelList
+                                            dataKey="Cerrado"
+                                            position="right"
+                                            content={(props) => {
+                                                const { x, y, width, height, index } = props as {
+                                                    x: number; y: number; width: number; height: number; index: number;
+                                                };
+                                                const row = barData[index];
+                                                if (!row) return null;
+                                                const total = row.Abierto + row.Asignado + row.Resuelto + row.Cerrado;
+                                                if (total === 0) return null;
+                                                return (
+                                                    <text
+                                                        x={(x as number) + (width as number) + 6}
+                                                        y={(y as number) + (height as number) / 2}
+                                                        dy="0.35em"
+                                                        fontSize={11}
+                                                        fill="hsl(var(--muted-foreground))"
+                                                    >
+                                                        {total}
+                                                    </text>
+                                                );
+                                            }}
+                                        />
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -555,10 +580,7 @@ export default function AdminDashboardPage() {
                                                             type="button"
                                                             size="sm"
                                                             className="w-full max-w-full box-border"
-                                                            onClick={() => {
-                                                                setSelectedIncidentId(incident.id);
-                                                                setIsDetailDialogOpen(true);
-                                                            }}
+                                                            onClick={() => openIncidentDetail(incident.id)}
                                                         >
                                                             Ver detalle
                                                         </Button>
@@ -600,11 +622,28 @@ export default function AdminDashboardPage() {
 
             </div>
 
-            <IncidentDetailDialog
-                incidentId={selectedIncidentId}
+            <Dialog
                 open={isDetailDialogOpen}
-                onOpenChange={setIsDetailDialogOpen}
-            />
+                onOpenChange={(open) => {
+                    setIsDetailDialogOpen(open);
+                    if (!open) setSelectedIncident(null);
+                }}
+            >
+                <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+                    {isLoadingDetail || !selectedIncident ? (
+                        <div className="h-40 flex items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Cargando...</p>
+                        </div>
+                    ) : (
+                        <IncidentDetailCard
+                            incident={selectedIncident}
+                            showMap
+                            showResolutionPhoto
+                            showAssignmentData
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
