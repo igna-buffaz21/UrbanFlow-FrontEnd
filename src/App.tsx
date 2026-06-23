@@ -25,6 +25,7 @@ import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
+import { CompleteProfilePage } from "./modules/users/pages/completeProfile.page";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
@@ -38,6 +39,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
+import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -74,6 +76,14 @@ function App() {
         />
         <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
         <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
+        <Route
+          path={APP_ROUTES.app.completeProfile}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
+              <CompleteProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path={APP_ROUTES.panel.root}
@@ -191,6 +201,7 @@ function App() {
           <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
           <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
           <Route path={APP_ROUTES.app.feed} element={<IncidentFeed />} />
+          <Route path={APP_ROUTES.app.myComments} element={<ShowCommentsCitizen />} />
         </Route>
       </Routes>
 

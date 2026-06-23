@@ -26,6 +26,16 @@ export interface GetUser {
   municipality: UserMunicipality | null;
 }
 
+export interface UpdateMyProfileData {
+  dni: string;
+  phone: string;
+  address: string;
+  province: string;
+  city: string;
+  subDistrict: string;
+  postalCode: string;
+}
+
 export interface UserMunicipality {
   id: string;
   name: string;

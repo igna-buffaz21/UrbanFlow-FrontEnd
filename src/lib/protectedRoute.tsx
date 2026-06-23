@@ -52,5 +52,24 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to={APP_ROUTES.auth.unauthorized} replace />;
   }
 
+  const isCompleteProfileRoute =
+    location.pathname === APP_ROUTES.app.completeProfile;
+
+  if (
+    user.role === "citizen" &&
+    !user.isProfileCompleted &&
+    !isCompleteProfileRoute
+  ) {
+    return <Navigate to={APP_ROUTES.app.completeProfile} replace />;
+  }
+
+  if (
+    user.role === "citizen" &&
+    user.isProfileCompleted &&
+    isCompleteProfileRoute
+  ) {
+    return <Navigate to={APP_ROUTES.app.root} replace />;
+  }
+
   return <>{children}</>;
 }

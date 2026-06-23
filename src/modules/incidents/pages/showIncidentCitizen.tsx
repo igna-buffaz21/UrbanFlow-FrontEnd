@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
-import { IncidentDetailDialog } from "@/components/dialog-incident";
 import {
   AlertTriangle,
   Clock,
@@ -16,15 +15,19 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { IncidentMe } from "../incidents.type";
+import { IncidentDetailCitizenDialog } from "@/components/dialog-incident-citizen";
 
 type IncidentStatus =
   | "open"
   | "in_review"
   | "in_progress"
   | "resolved"
-  | "rejected";
+  | "rejected"
+  | "closed";
 
 type IncidentPriority = "low" | "medium" | "high" | "critical";
+
+type StatusFilter = IncidentStatus | "all";
 
 type StatusConfig = {
   label: string;
@@ -57,7 +60,33 @@ const STATUS_CONFIG = {
     label: "Rechazado",
     icon: <AlertTriangle className="h-3 w-3" />,
   },
+  closed: {
+    label: "Rechazado",
+    icon: <AlertTriangle className="h-3 w-3" />,
+  }
 } satisfies Record<IncidentStatus, StatusConfig>;
+
+const STATUS_FILTER_OPTIONS = [
+  {
+    value: "all",
+    label: "Todos",
+  },
+  {
+    value: "open",
+    label: "Abiertos",
+  },
+  {
+    value: "closed",
+    label: "Resueltos",
+  },
+  {
+    value: "rejected",
+    label: "Rechazados",
+  },
+] satisfies Array<{
+  value: StatusFilter;
+  label: string;
+}>;
 
 const PRIORITY_CONFIG = {
   low: {
@@ -82,6 +111,7 @@ function getStatusConfig(status: IncidentMe["status"]): StatusConfig {
   if (status in STATUS_CONFIG) {
     return STATUS_CONFIG[status as IncidentStatus];
   }
+
   return STATUS_CONFIG.in_review;
 }
 
@@ -89,6 +119,7 @@ function getPriorityConfig(priority: IncidentMe["priority"]): PriorityConfig {
   if (priority in PRIORITY_CONFIG) {
     return PRIORITY_CONFIG[priority as IncidentPriority];
   }
+
   return PRIORITY_CONFIG.low;
 }
 
@@ -176,8 +207,19 @@ export function ShowIncidentsCitizen() {
   const [incidents, setIncidents] = useState<IncidentMe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(
+    null
+  );
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  const filteredIncidents = useMemo(() => {
+    if (statusFilter === "all") {
+      return incidents;
+    }
+
+    return incidents.filter((incident) => incident.status === statusFilter);
+  }, [incidents, statusFilter]);
 
   useEffect(() => {
     async function fetchIncidents() {
@@ -227,6 +269,27 @@ export function ShowIncidentsCitizen() {
         </p>
       </div>
 
+      {!loading && !error && incidents.length > 0 && (
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          {STATUS_FILTER_OPTIONS.map((option) => {
+            const isActive = statusFilter === option.value;
+
+            return (
+              <Button
+                key={option.value}
+                type="button"
+                size="sm"
+                variant={isActive ? "default" : "outline"}
+                className="h-8 whitespace-nowrap rounded-full px-3 text-xs"
+                onClick={() => setStatusFilter(option.value)}
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="rounded-xl border bg-card overflow-hidden">
         {loading && (
           <div className="divide-y divide-border px-2">
@@ -258,9 +321,26 @@ export function ShowIncidentsCitizen() {
           </div>
         )}
 
-        {!loading && !error && incidents.length > 0 && (
+        {!loading &&
+          !error &&
+          incidents.length > 0 &&
+          filteredIncidents.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center gap-3">
+              <FileX className="h-8 w-8 text-muted-foreground/40" />
+              <div>
+                <p className="text-sm font-medium">
+                  No hay incidentes con este estado
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Probá seleccionando otro filtro.
+                </p>
+              </div>
+            </div>
+          )}
+
+        {!loading && !error && filteredIncidents.length > 0 && (
           <div className="px-2 divide-y divide-border">
-            {incidents.map((incident) => (
+            {filteredIncidents.map((incident) => (
               <IncidentCard
                 key={incident.id}
                 incident={incident}
@@ -273,12 +353,12 @@ export function ShowIncidentsCitizen() {
 
       {!loading && !error && incidents.length > 0 && (
         <p className="text-xs text-muted-foreground text-center mt-4">
-          {incidents.length}{" "}
-          {incidents.length === 1 ? "incidente" : "incidentes"} en total
+          Mostrando {filteredIncidents.length} de {incidents.length}{" "}
+          {incidents.length === 1 ? "incidente" : "incidentes"}
         </p>
       )}
 
-      <IncidentDetailDialog
+      <IncidentDetailCitizenDialog
         incidentId={selectedIncidentId}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
