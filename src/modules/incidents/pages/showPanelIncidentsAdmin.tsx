@@ -26,29 +26,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { incidentsService } from "../incidents.service";
-import type { Incident, IncidentStatus } from "../incidents.type";
-
-const PRIORITY_LABELS: Record<string, string> = {
-    low: "Baja",
-    medium: "Media",
-    high: "Alta",
-};
-
-const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
-};
-
-const STATUS_LABELS: Record<IncidentStatus, string> = {
-    open: "Abierto",
-    in_review: "En revisión",
-    assigned: "Asignado",
-    in_progress: "En progreso",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
+import type { Incident } from "../incidents.type";
+import { PRIORITY_LABELS, PRIORITY_STYLES, STATUS_LABELS } from "../incidents.constants";
 
 export function ShowAdminIncidentsPage() {
     const navigate = useNavigate();

@@ -29,9 +29,9 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
+    low: "bg-green-600/10 text-green-600 border border-green-600/30 hover:bg-green-600/10",
+    medium: "bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/10",
+    high: "bg-red-600/10 text-red-600 border border-red-600/30 hover:bg-red-600/10",
 };
 
 export const STATUS_LABELS: Record<IncidentStatus, string> = {

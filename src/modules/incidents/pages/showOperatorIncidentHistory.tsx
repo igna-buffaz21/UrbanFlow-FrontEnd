@@ -24,21 +24,8 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PRIORITY_LABELS, PRIORITY_STYLES } from "../incidents.constants";
 
-const PRIORITY_LABELS: Record<string, string> = {
-  low: "Baja",
-  medium: "Media",
-  high: "Alta",
-};
-
-const PRIORITY_VARIANTS: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  low: "secondary",
-  medium: "outline",
-  high: "destructive",
-};
 
 export function ShowOperatorIncidentsHistory() {
   const [incidents, setIncidents] = useState<OperatorIncident[]>([]);
@@ -115,7 +102,7 @@ export function ShowOperatorIncidentsHistory() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
+                        <Badge className={PRIORITY_STYLES[incident.priority]}>
                           {PRIORITY_LABELS[incident.priority]}
                         </Badge>
                       </TableCell>

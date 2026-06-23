@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { UserPlus } from "lucide-react"
 
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom";
@@ -216,6 +217,7 @@ export function CreateUsersPage() {
 
           <CardFooter className="flex gap-2 pt-2">
             <Button type="submit" disabled={isLoading}>
+              <UserPlus className="size-4" />
               {isLoading ? "Creando..." : config.buttonText}
             </Button>
 
