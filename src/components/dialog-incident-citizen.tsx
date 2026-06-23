@@ -50,15 +50,6 @@ type IncidentDetailDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-type IncidentStatus =
-  | "in_review"
-  | "open"
-  | "in_progress"
-  | "resolved"
-  | "assigned"
-  | "closed"
-  | "rejected";
-
 // ─── Helpers de prioridad ────────────────────────────────────────────────────
 
 function getPriorityLabel(priority: IncidentPriority) {
@@ -89,17 +80,6 @@ function getPriorityDotClass(priority: IncidentPriority) {
 }
 
 // ─── Formato de fecha ────────────────────────────────────────────────────────
-
-function formatRelativeDate(date: string) {
-  const now = new Date();
-  const then = new Date(date);
-  const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
-
-  if (diff < 60) return "hace un momento";
-  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-  return `hace ${Math.floor(diff / 86400)} días`;
-}
 
 function formatAbsoluteDate(date: string) {
   return new Date(date).toLocaleDateString("es-AR", {
