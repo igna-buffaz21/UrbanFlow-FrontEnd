@@ -127,12 +127,12 @@ export function IncidentDetailDialogOperador({
         setIsLoading(true);
         setErrorMessage(null);
 
-        const response = await incidentsService.getDetailIncidentById(incidentId!!);
+        //const response = await incidentsService.getDetailIncidentById(incidentId!!);
 
-        const incidentData = response as IncidentDetailOperador;
+        //const incidentData = response as IncidentDetailOperador;
 
-        setIncident(incidentData);
-        setSelectedStatus(incidentData.status);
+        //setIncident(incidentData);
+        //setSelectedStatus(incidentData.status);
         setResolvedImage(null);
       } catch (error) {
         console.error(error);

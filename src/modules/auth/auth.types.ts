@@ -1,4 +1,3 @@
-
 export interface AuthUserResponse {
   id: string;
   clerkId: string;
@@ -8,4 +7,6 @@ export interface AuthUserResponse {
   role: "superadmin" | "admin" | "operator" | "citizen";
   status: "active" | "inactive";
   municipalityId?: string;
+
+  isProfileCompleted: boolean;
 }
