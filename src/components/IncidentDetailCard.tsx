@@ -30,29 +30,7 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import type { IncidentDetailResponse, AdminIncidentDetail } from "../modules/incidents/incidents.type"
-
-const PRIORITY_LABELS: Record<string, string> = {
-    low: "Baja",
-    medium: "Media",
-    high: "Alta",
-    critical: "Crítica",
-};
-
-const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
-    critical: "bg-purple-600 text-white hover:bg-purple-700",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-    in_review: "En revisión",
-    open: "Abierto",
-    assigned: "Asignado",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
+import { PRIORITY_LABELS, PRIORITY_STYLES, STATUS_LABELS } from "../modules/incidents/incidents.constants";
 
 interface IncidentDetailCardProps {
     incident: AdminIncidentDetail | IncidentDetailResponse;

@@ -20,19 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { incidentsService } from "../incidents.service";
 import type { Incident } from "../incidents.type";
-
-const PRIORITY_LABELS: Record<string, string> = {
-    low: "Baja",
-    medium: "Media",
-    high: "Alta",
-};
-
-const PRIORITY_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-    low: "secondary",
-    medium: "outline",
-    high: "default",
-};
-
+import { PRIORITY_LABELS, PRIORITY_STYLES } from "../incidents.constants";
 export function ShowResolvedIncidentsPage() {
     const navigate = useNavigate();
 
@@ -116,7 +104,7 @@ export function ShowResolvedIncidentsPage() {
                                                 </TableCell>
 
                                                 <TableCell>
-                                                    <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
+                                                    <Badge className={PRIORITY_STYLES[incident.priority]}>
                                                         {PRIORITY_LABELS[incident.priority] ?? incident.priority}
                                                     </Badge>
                                                 </TableCell>

@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trash2, UserCheck } from "lucide-react";
 import { notify } from "@/lib/notify";
 
 export function AssignIncidentPage() {
@@ -35,8 +36,12 @@ export function AssignIncidentPage() {
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [isRejecting, setIsRejecting] = useState(false);
+    const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+
 
     const canAssign = (incident?.status === "in_review" || incident?.status === "open") && !incident?.assignedTo;
+    const selectedOperator = operators.find((op) => op.id === selectedOperatorId);
+
 
     useEffect(() => {
         async function loadData() {
@@ -193,7 +198,12 @@ export function AssignIncidentPage() {
                             <div className="flex flex-col gap-2 w-full">
                                 <div className="flex gap-2">
                                     <Button variant="outline" onClick={handleCancel}>Volver</Button>
-                                    <Button variant="outline" onClick={() => setIsRejectDialogOpen(true)}>
+                                    <Button
+                                        variant="outline"
+                                        className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                                        onClick={() => setIsRejectDialogOpen(true)}
+                                    >
+                                        <Trash2 className="size-4" />
                                         Rechazar incidente
                                     </Button>
                                 </div>
@@ -241,7 +251,12 @@ export function AssignIncidentPage() {
 
                             <div className="flex flex-col gap-2 pt-4">
                                 <div className="flex gap-2">
-                                    <Button onClick={handleAssign} disabled={!selectedOperatorId || isAssigning}>
+                                    <Button
+                                        className="bg-green-600/10 text-green-600 border border-green-600/30 hover:bg-green-600/20 hover:text-green-600"
+                                        onClick={() => setIsAssignDialogOpen(true)}
+                                        disabled={!selectedOperatorId || isAssigning}
+                                    >
+                                        <UserCheck className="size-4" />
                                         {isAssigning ? "Asignando..." : "Confirmar asignación"}
                                     </Button>
                                     <Button variant="outline" onClick={handleCancel}>
@@ -302,7 +317,7 @@ export function AssignIncidentPage() {
                             >
                                 Cancelar
                             </Button>
-                            <Button variant="destructive" onClick={handleReassign} disabled={isReassigning}>
+                            <Button onClick={handleReassign} disabled={isReassigning}>
                                 {isReassigning ? "Devolviendo..." : "Confirmar"}
                             </Button>
                         </DialogFooter>
@@ -320,7 +335,7 @@ export function AssignIncidentPage() {
                         </DialogHeader>
                         <div className="space-y-2 pt-2">
                             <label className="text-sm font-medium text-muted-foreground">
-                                Motivo de rechazo
+                                Motivo de rechazo (obligatorio)
                             </label>
                             <textarea
                                 className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
@@ -333,8 +348,37 @@ export function AssignIncidentPage() {
                             <Button variant="outline" onClick={() => { setIsRejectDialogOpen(false); setRejectionReason(""); }}>
                                 Cancelar
                             </Button>
-                            <Button variant="outline" onClick={handleReject} disabled={isRejecting || !rejectionReason.trim()}>
+                            <Button
+                                variant="outline"
+                                className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                                onClick={handleReject}
+                                disabled={isRejecting || !rejectionReason.trim()}
+                            >
                                 {isRejecting ? "Rechazando..." : "Confirmar rechazo"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Dialog — Confirmar asignación */}
+                <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>¿Asignar operador?</DialogTitle>
+                            <DialogDescription>
+                                ¿Estás seguro que querés asignar a {selectedOperator?.name ?? "este operador"} a este incidente?
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                className="bg-green-600/10 text-green-600 border border-green-600/30 hover:bg-green-600/20 hover:text-green-600"
+                                onClick={() => { setIsAssignDialogOpen(false); handleAssign(); }}
+                                disabled={isAssigning}
+                            >
+                                {isAssigning ? "Asignando..." : "Confirmar"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
