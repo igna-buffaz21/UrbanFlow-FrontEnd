@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "@clerk/react";
+import { AppVersionProvider } from "../src/hooks/version";
 
 import { ProtectedRoute } from "./lib/protectedRoute";
 import { setupApiInterceptors } from "./lib/interceptor";
@@ -63,6 +64,7 @@ function App() {
 
   return (
     <>
+    <AppVersionProvider>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
@@ -201,7 +203,8 @@ function App() {
         </Route>
       </Routes>
 
-      <Toaster theme="dark" position="top-right" />
+      <Toaster theme="dark" position="top-right"/>
+    </AppVersionProvider>
     </>
   );
 }
