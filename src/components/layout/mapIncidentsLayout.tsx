@@ -12,6 +12,7 @@ import { IncidentDetailDialog } from "../dialog-incident";
 import { TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { MapIncident } from "@/modules/incidents/incidents.type";
+import { MapPinOff, RefreshCw } from "lucide-react";
 
 type MapCenter = [number, number];
 
@@ -24,7 +25,6 @@ type IncidentPriority = "low" | "medium" | "high";
 
 const DEFAULT_RADIUS = 1000;
 const MAX_ACCEPTED_ACCURACY = 4000;
-
 function getPriorityLabel(priority: IncidentPriority) {
   const labels: Record<IncidentPriority, string> = {
     low: "Baja",
@@ -54,6 +54,7 @@ function formatDistance(distance: number) {
   return `${Math.round(distance)} m`;
 }
 
+
 function getPriorityMarkerStyles(priority?: IncidentPriority) {
   const styles: Record<
     IncidentPriority,
@@ -63,16 +64,16 @@ function getPriorityMarkerStyles(priority?: IncidentPriority) {
     }
   > = {
     low: {
-      bg: "bg-red-500",
-      pulse: "bg-red-400/20",
+      bg: "bg-green-500",
+      pulse: "bg-green-400/20",
     },
     medium: {
-      bg: "bg-red-600",
-      pulse: "bg-red-500/25",
+      bg: "bg-yellow-500",
+      pulse: "bg-yellow-400/25",
     },
     high: {
-      bg: "bg-red-700",
-      pulse: "bg-red-600/30",
+      bg: "bg-red-600",
+      pulse: "bg-red-500/30",
     },
   };
 
@@ -250,25 +251,42 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
   if (!center || !userLocation) {
     return (
       <div className="flex h-full items-center justify-center bg-background px-6">
-        <div className="max-w-xs space-y-4 text-center">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">
-              No pudimos obtener tu ubicación
-            </p>
+        <div className="w-full max-w-sm rounded-2xl border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-destructive/10">
+            <MapPinOff className="size-7 text-destructive" />
+          </div>
 
-            <p className="text-xs text-muted-foreground">
-              Para ver los incidentes cercanos, necesitás permitir el acceso a
-              tu ubicación actual.
+          <div className="space-y-2">
+            <h2 className="text-base font-semibold text-foreground">
+              No pudimos obtener tu ubicación
+            </h2>
+
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Para ver los incidentes cercanos, necesitás permitir el acceso a tu
+              ubicación actual desde el navegador.
             </p>
 
             {locationError && (
-              <p className="text-xs text-destructive">{locationError}</p>
+              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2">
+                <p className="text-xs leading-relaxed text-destructive">
+                  {locationError}
+                </p>
+              </div>
             )}
           </div>
 
-          <Button type="button" onClick={getUserLocation}>
-            Reintentar
+          <Button
+            type="button"
+            onClick={getUserLocation}
+            className="mt-5 w-full gap-2"
+          >
+            <RefreshCw className="size-4" />
+            Reintentar ubicación
           </Button>
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            Si el problema sigue, revisá los permisos de ubicación del navegador.
+          </p>
         </div>
       </div>
     );

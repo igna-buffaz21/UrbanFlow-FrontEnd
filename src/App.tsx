@@ -39,6 +39,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
+import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -200,6 +201,7 @@ function App() {
           <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
           <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
           <Route path={APP_ROUTES.app.feed} element={<IncidentFeed />} />
+          <Route path={APP_ROUTES.app.myComments} element={<ShowCommentsCitizen />} />
         </Route>
       </Routes>
 

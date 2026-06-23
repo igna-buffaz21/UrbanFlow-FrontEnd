@@ -39,5 +39,6 @@ export const APP_ROUTES = {
     profile: "/app/profile",
     myReports: "/app/my-reports",
     completeProfile: "/complete-profile",
+    myComments: "/app/my-comments"
   },
 } as const;

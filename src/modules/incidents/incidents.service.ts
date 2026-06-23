@@ -16,6 +16,7 @@ import type {
   IncidentFeedResponse,
   PaginatedIncidentsResponse
 } from "./incidents.type";
+import type { MyIncidentCommentResponse } from "./pages/showMyComments";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -115,6 +116,16 @@ export const incidentsService = {
 
   async addCommentReport(id: string, comment: string): Promise<IncidentCommentResponse> {
     const response = await api.post(API_ROUTES.incident_comments.createComment(id), { comment });
+    return response.data;
+  },
+
+  async deleteCommentReport(id: string): Promise<IncidentCommentResponse> {
+    const response = await api.patch(API_ROUTES.incident_comments.deleteComment(id));
+    return response.data;
+  },
+
+  async getMyComments(): Promise<MyIncidentCommentResponse[]> {
+    const response = await api.get<MyIncidentCommentResponse[]>(API_ROUTES.incident_comments.getMyComments);
     return response.data;
   },
 

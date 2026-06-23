@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { incidentsService } from "@/modules/incidents/incidents.service";
 import {
   CalendarDays,
@@ -40,7 +41,11 @@ import {
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { IncidentCommentResponse, IncidentDetailResponse, IncidentReportResponse } from "@/modules/incidents/incidents.type";
+import type {
+  IncidentCommentResponse,
+  IncidentDetailResponse,
+  IncidentReportResponse,
+} from "@/modules/incidents/incidents.type";
 import { Textarea } from "@/components/ui/textarea";
 
 type IncidentPriority = "low" | "medium" | "high";
@@ -57,6 +62,7 @@ function getPriorityLabel(priority: IncidentPriority) {
     medium: "Media",
     high: "Alta",
   };
+
   return labels[priority];
 }
 
@@ -66,7 +72,19 @@ function getPriorityBadgeClass(priority: IncidentPriority) {
     medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
     high: "bg-red-100 text-red-700 border-red-200",
   };
+
   return classes[priority];
+}
+
+function getCategoryLabel(
+  category?: {
+    name?: string;
+    label?: string;
+  } | null
+) {
+  if (!category) return "Sin categoría";
+
+  return category.name || "Sin categoría";
 }
 
 function formatRelativeDate(date: string) {
@@ -77,6 +95,7 @@ function formatRelativeDate(date: string) {
   if (diff < 60) return "hace un momento";
   if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
   if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+
   return `hace ${Math.floor(diff / 86400)} días`;
 }
 
@@ -87,6 +106,79 @@ function getInitials(name: string) {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+}
+
+function IncidentDetailSkeleton() {
+  return (
+    <div className="space-y-5">
+      <Skeleton className="h-64 w-full rounded-xl" />
+
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-6 w-32 rounded-full" />
+        </div>
+
+        <Skeleton className="h-7 w-3/4" />
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-11/12" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-4 rounded-full" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+
+        <Skeleton className="h-9 w-24 rounded-md" />
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-4 rounded-full" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="flex gap-3">
+              <Skeleton className="size-8 shrink-0 rounded-full" />
+
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2 border-t pt-4">
+          <Skeleton className="h-20 w-full rounded-md" />
+
+          <div className="flex justify-end">
+            <Skeleton className="h-9 w-24 rounded-md" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2 pt-1">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+    </div>
+  );
 }
 
 export function IncidentDetailDialog({
@@ -109,15 +201,17 @@ export function IncidentDetailDialog({
   useEffect(() => {
     if (!open || !incidentId) return;
 
+    const id = incidentId;
+
     async function getIncidentDetail() {
       try {
         setIsLoading(true);
         setErrorMessage(null);
 
         const [incidentData, reportData, commentsData] = await Promise.all([
-          incidentsService.getDetailIncidentById(incidentId!!),
-          incidentsService.getIncidentReport(incidentId!!),
-          incidentsService.getIncidentComments(incidentId!!),
+          incidentsService.getDetailIncidentById(id),
+          incidentsService.getIncidentReport(id),
+          incidentsService.getIncidentComments(id),
         ]);
 
         setIncident(incidentData);
@@ -149,9 +243,12 @@ export function IncidentDetailDialog({
 
   async function handleDelete() {
     if (!incidentId) return;
+
     try {
       setIsDeleting(true);
+
       // await incidentsService.changeStatusIncident(incidentId);
+
       setIsConfirmOpen(false);
       onOpenChange(false);
     } catch (error) {
@@ -164,16 +261,20 @@ export function IncidentDetailDialog({
 
   async function handleToggleReport() {
     if (!incidentId || !report) return;
+
     try {
       setIsReporting(true);
+
       if (report.reportedByMe) {
         await incidentsService.deleteIncidentReport(incidentId);
+
         setReport({
           reportedByMe: false,
           reportsCount: Math.max(0, report.reportsCount - 1),
         });
       } else {
         await incidentsService.addIncidentReport(incidentId);
+
         setReport({
           reportedByMe: true,
           reportsCount: report.reportsCount + 1,
@@ -202,7 +303,10 @@ export function IncidentDetailDialog({
       setIsCommenting(true);
       setCommentError(null);
 
-      const response = await incidentsService.addCommentReport(incidentId, trimmedComment);
+      const response = await incidentsService.addCommentReport(
+        incidentId,
+        trimmedComment
+      );
 
       setComments((prevComments) => [response, ...prevComments]);
       setCommentValue("");
@@ -217,19 +321,27 @@ export function IncidentDetailDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0" showCloseButton={false}>
-          {/* Header — fijo */}
+        <DialogContent
+          className="flex max-h-[90vh] max-w-2xl flex-col p-0"
+          showCloseButton={false}
+        >
           <DialogHeader className="flex-row items-center justify-between px-6 pt-6 pb-4">
             <DialogTitle>Detalle del incidente</DialogTitle>
+
             <div className="flex items-center gap-1">
               {incident?.is_owner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Más opciones</span>
                     </Button>
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive gap-2"
@@ -241,8 +353,13 @@ export function IncidentDetailDialog({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+
               <DialogClose asChild>
-                <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground"
+                >
                   <XIcon className="h-4 w-4" />
                   <span className="sr-only">Cerrar</span>
                 </Button>
@@ -250,14 +367,9 @@ export function IncidentDetailDialog({
             </div>
           </DialogHeader>
 
-          {/* Contenido scrolleable */}
           <ScrollArea className="flex-1 overflow-auto">
             <div className="px-6 pb-6">
-              {isLoading && (
-                <div className="py-10 text-center text-sm text-muted-foreground">
-                  Cargando detalle...
-                </div>
-              )}
+              {isLoading && <IncidentDetailSkeleton />}
 
               {errorMessage && !isLoading && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -267,7 +379,6 @@ export function IncidentDetailDialog({
 
               {incident && !isLoading && (
                 <div className="space-y-5">
-                  {/* Imagen */}
                   <div className="overflow-hidden rounded-xl border bg-muted/30">
                     {incident.photoUrl ? (
                       <img
@@ -278,12 +389,13 @@ export function IncidentDetailDialog({
                     ) : (
                       <div className="flex h-48 w-full flex-col items-center justify-center gap-2 text-muted-foreground">
                         <ImageOff className="size-8" />
-                        <p className="text-sm">Este incidente no tiene imagen</p>
+                        <p className="text-sm">
+                          Este incidente no tiene imagen
+                        </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Título y descripción */}
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
@@ -292,13 +404,16 @@ export function IncidentDetailDialog({
                       >
                         Prioridad {getPriorityLabel(incident.priority)}
                       </Badge>
-                      {incident.category && (
-                        <Badge variant="secondary">{incident.category.name}</Badge>
-                      )}
+
+                      <Badge variant="secondary">
+                        {getCategoryLabel(incident.category)}
+                      </Badge>
                     </div>
+
                     <h2 className="text-xl font-semibold text-foreground">
                       {incident.title}
                     </h2>
+
                     <p className="text-sm leading-relaxed text-muted-foreground">
                       {incident.description}
                     </p>
@@ -306,11 +421,11 @@ export function IncidentDetailDialog({
 
                   <Separator />
 
-                  {/* Sección reportes */}
                   {report && (
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Users className="size-4 shrink-0" />
+
                         {report.reportsCount > 0 ? (
                           <span>
                             <span className="font-medium text-foreground">
@@ -324,6 +439,7 @@ export function IncidentDetailDialog({
                           <span>Sé el primero en reportar este incidente</span>
                         )}
                       </div>
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -332,7 +448,7 @@ export function IncidentDetailDialog({
                         className={cn(
                           "shrink-0 gap-2",
                           report.reportedByMe &&
-                          "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                            "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                         )}
                       >
                         <Flag className="size-3.5" />
@@ -343,7 +459,6 @@ export function IncidentDetailDialog({
 
                   <Separator />
 
-                  {/* Sección comentarios */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                       <MessageSquare className="size-4 text-muted-foreground" />
@@ -368,6 +483,7 @@ export function IncidentDetailDialog({
                                 src={c.createdBy.photoUrl ?? undefined}
                                 alt={c.createdBy.name}
                               />
+
                               <AvatarFallback className="text-xs">
                                 {getInitials(c.createdBy.name)}
                               </AvatarFallback>
@@ -393,18 +509,24 @@ export function IncidentDetailDialog({
                       </div>
                     )}
 
-                    {/* Crear comentario */}
-                    <form onSubmit={handleCreateComment} className="space-y-2 border-t pt-4">
+                    <form
+                      onSubmit={handleCreateComment}
+                      className="space-y-2 border-t pt-4"
+                    >
                       <Textarea
                         value={commentValue}
-                        onChange={(event) => setCommentValue(event.target.value)}
+                        onChange={(event) =>
+                          setCommentValue(event.target.value)
+                        }
                         placeholder="Escribí un comentario..."
                         disabled={isCommenting}
                         className="min-h-20 resize-none text-sm"
                       />
 
                       {commentError && (
-                        <p className="text-xs text-destructive">{commentError}</p>
+                        <p className="text-xs text-destructive">
+                          {commentError}
+                        </p>
                       )}
 
                       <div className="flex justify-end">
@@ -419,9 +541,6 @@ export function IncidentDetailDialog({
                     </form>
                   </div>
 
-                  {/* Meta: autor y fecha — discreta, al pie */}
-                  {/* Meta: autor y fecha — centradas */}
-                  {/* Meta: autor y fecha */}
                   <div className="space-y-1 pt-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       {incident.createdBy?.photoUrl ? (
@@ -456,10 +575,13 @@ export function IncidentDetailDialog({
                     {incident.resolvedAt && (
                       <div className="flex items-center gap-1.5">
                         <CalendarDays className="size-3.5" />
+
                         <span>
                           Resuelto:{" "}
                           <span className="font-medium text-foreground">
-                            {formatRelativeDate(incident.resolvedAt.toString())}
+                            {formatRelativeDate(
+                              incident.resolvedAt.toString()
+                            )}
                           </span>
                         </span>
                       </div>
@@ -476,6 +598,7 @@ export function IncidentDetailDialog({
                         ) : (
                           <User className="size-3.5" />
                         )}
+
                         <span>
                           Cerrado por:{" "}
                           <span className="font-medium text-foreground">
@@ -496,13 +619,18 @@ export function IncidentDetailDialog({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Dar de baja este incidente?</AlertDialogTitle>
+
             <AlertDialogDescription>
               Esta acción no se puede deshacer. El incidente será dado de baja y
               dejará de estar visible.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
