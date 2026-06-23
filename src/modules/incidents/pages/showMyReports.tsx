@@ -7,14 +7,8 @@ import {
   FlagOff,
   Users,
   FileX,
-  Clock,
-  Loader2,
-  CheckCircle2,
 } from "lucide-react";
 
-import type { ReactNode } from "react";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,47 +18,7 @@ import { IncidentDetailDialog } from "@/components/dialog-incident";
 import { incidentsService } from "../incidents.service";
 import type { ReportedIncidentResponse } from "../incidents.type";
 
-type IncidentStatus =
-  | "open"
-  | "in_review"
-  | "in_progress"
-  | "resolved"
-  | "rejected";
-
 type IncidentPriority = "low" | "medium" | "high" | "critical";
-
-type StatusConfig = {
-  label: string;
-  icon: ReactNode;
-};
-
-type PriorityConfig = {
-  label: string;
-  dotClass: string;
-};
-
-const STATUS_CONFIG = {
-  open: {
-    label: "Abierto",
-    icon: <AlertTriangle className="h-3 w-3" />,
-  },
-  in_review: {
-    label: "En revisión",
-    icon: <Clock className="h-3 w-3" />,
-  },
-  in_progress: {
-    label: "En progreso",
-    icon: <Loader2 className="h-3 w-3 animate-spin" />,
-  },
-  resolved: {
-    label: "Resuelto",
-    icon: <CheckCircle2 className="h-3 w-3" />,
-  },
-  rejected: {
-    label: "Rechazado",
-    icon: <AlertTriangle className="h-3 w-3" />,
-  },
-} satisfies Record<IncidentStatus, StatusConfig>;
 
 const PRIORITY_CONFIG = {
   low: {
@@ -83,7 +37,7 @@ const PRIORITY_CONFIG = {
     label: "Crítica",
     dotClass: "bg-red-500",
   },
-} satisfies Record<IncidentPriority, PriorityConfig>;
+} satisfies Record<IncidentPriority, { label: string; dotClass: string }>;
 
 function formatRelativeDate(date: string) {
   const now = new Date();
@@ -107,10 +61,6 @@ function formatRelativeDate(date: string) {
   });
 }
 
-function isValidStatus(status: string): status is IncidentStatus {
-  return status in STATUS_CONFIG;
-}
-
 function isValidPriority(priority: string): priority is IncidentPriority {
   return priority in PRIORITY_CONFIG;
 }
@@ -119,13 +69,17 @@ function ReportCardSkeleton() {
   return (
     <div className="flex items-start gap-3 py-4 px-2">
       <Skeleton className="h-2 w-2 rounded-full mt-1.5 flex-shrink-0" />
+
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-3/4" />
+
         <div className="flex gap-2">
-          <Skeleton className="h-5 w-20 rounded-full" />
-          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-20" />
         </div>
+
         <Skeleton className="h-px w-full" />
+
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-7 w-28 rounded-md" />
@@ -146,28 +100,35 @@ function ReportCard({
   onRemove: () => void;
   isRemoving: boolean;
 }) {
-  const status = isValidStatus(report.incident.status)
-    ? STATUS_CONFIG[report.incident.status]
-    : STATUS_CONFIG.open;
-
   const priority = isValidPriority(report.incident.priority)
     ? PRIORITY_CONFIG[report.incident.priority]
     : PRIORITY_CONFIG.low;
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (isRemoving) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onViewDetail();
+    }
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onViewDetail}
-      disabled={isRemoving}
+    <div
+      role="button"
+      tabIndex={isRemoving ? -1 : 0}
+      onClick={isRemoving ? undefined : onViewDetail}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "w-full text-left group transition-opacity",
+        "w-full text-left group rounded-lg transition-colors outline-none",
+        "hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isRemoving && "opacity-40 pointer-events-none"
       )}
     >
-      <div className="flex items-start gap-3 py-4 px-2 transition-colors hover:bg-muted/40 rounded-lg">
+      <div className="flex items-start gap-3 py-4 px-2">
         <div className="mt-1.5 flex-shrink-0">
           <span
-            className={`block h-2 w-2 rounded-full ${priority.dotClass}`}
+            className={cn("block h-2 w-2 rounded-full", priority.dotClass)}
             title={`Prioridad: ${priority.label}`}
           />
         </div>
@@ -177,26 +138,15 @@ function ReportCard({
             {report.incident.title}
           </p>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge
-              variant="secondary"
-              className="text-xs gap-1 py-0 h-5 font-normal"
-            >
-              {status.icon}
-              {status.label}
-            </Badge>
-
-            <Badge
-              variant="secondary"
-              className="text-xs gap-1 py-0 h-5 font-normal border-red-200 bg-red-50 text-red-600"
-            >
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 text-red-600">
               <Flag className="size-3" />
-              Reportado
-            </Badge>
+              <span>Reporte enviado</span>
+            </div>
 
-            <span className="text-xs text-muted-foreground">
-              {formatRelativeDate(report.reportedAt)}
-            </span>
+            <span>•</span>
+
+            <span>{formatRelativeDate(report.reportedAt)}</span>
           </div>
 
           <Separator />
@@ -204,7 +154,7 @@ function ReportCard({
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Users className="size-4 shrink-0" />
-              <span>Reportado por vos</span>
+              <span>Apoyaste este incidente</span>
             </div>
 
             <Button
@@ -212,8 +162,8 @@ function ReportCard({
               variant="outline"
               size="sm"
               disabled={isRemoving}
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={(event) => {
+                event.stopPropagation();
                 onRemove();
               }}
               className="shrink-0 gap-2 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
@@ -240,7 +190,7 @@ function ReportCard({
           </svg>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -264,6 +214,7 @@ export function ShowReportsCitizen() {
         setError(null);
 
         const response = await incidentsService.getMyReports();
+
         setReports(response);
       } catch (err) {
         setError(
@@ -292,14 +243,15 @@ export function ShowReportsCitizen() {
     });
 
     try {
-      //await incidentsService.removeReport(reportId);
+      // Descomentá esto cuando tengas el endpoint conectado:
+      // await incidentsService.removeReport(reportId);
 
-      setReports((prev) => prev.filter((report) => report.reportId !== reportId));
+      setReports((prev) =>
+        prev.filter((report) => report.reportId !== reportId)
+      );
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "No se pudo quitar el reporte"
+        err instanceof Error ? err.message : "No se pudo quitar el reporte"
       );
     } finally {
       setRemovingIds((prev) => {
@@ -314,6 +266,7 @@ export function ShowReportsCitizen() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="mb-6">
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           className="mb-4 -ml-2 text-muted-foreground"
@@ -326,7 +279,7 @@ export function ShowReportsCitizen() {
         <h1 className="text-xl font-semibold tracking-tight">Mis reportes</h1>
 
         <p className="text-sm text-muted-foreground mt-0.5">
-          Incidentes que reportaste de otros usuarios
+          Incidentes de otros usuarios que marcaste como reportados
         </p>
       </div>
 
