@@ -37,6 +37,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
+import { AdminHomePage } from "@/modules/home/pages/adminHome.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -81,7 +82,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboardPage />} />
+          <Route index element={<AdminHomePage />} />
 
           <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
