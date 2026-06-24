@@ -507,7 +507,7 @@ export function IncidentStatsPage() {
                                 <MapPin className="size-4 text-muted-foreground" />
                                 <div>
                                     <CardTitle className="text-base">Incidentes por barrio</CardTitle>
-                                    <CardDescription>Distribución geográfica por subdistritos</CardDescription>
+                                    <CardDescription>Distribución geográfica por barrios</CardDescription>
                                 </div>
                             </div>
                             {(geographic?.withoutSubDistrict ?? 0) > 0 && (

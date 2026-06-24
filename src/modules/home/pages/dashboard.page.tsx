@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useAuthUser } from "@/modules/auth/auth.context";
 import { incidentsService } from "@/modules/incidents/incidents.service";
 import { IncidentDetailCard } from "@/components/IncidentDetailCard";
@@ -9,30 +9,14 @@ import { API_ROUTES } from "@/config/api.routes";
 
 import type { Incident, AdminIncidentDetail } from "@/modules/incidents/incidents.type";
 import type {
-    FrequencyByCategoryResult,
     ResolutionMetricsResult,
 } from "@/modules/incidents/incidents.type";
 
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription,
 } from "@/components/ui/card";
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Legend,
-    LabelList,
-} from "recharts";
+
 import {
     CheckCircle2,
     Clock4,
@@ -43,38 +27,8 @@ import {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 let dashboardCache: {
     incidents: Incident[];
-    frequency: FrequencyByCategoryResult[];
     resolution: ResolutionMetricsResult | null;
 } | null = null;
-
-const STATUS_LABELS: Record<string, string> = {
-    in_review: "En revisión",
-    open: "Abierto",
-    assigned: "Asignado",
-    in_progress: "En progreso",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
-
-// Colores para el pie chart de estados
-const STATUS_COLORS: Record<string, string> = {
-    open: "#3b82f6",   // azul
-    in_review: "#f59e0b",   // ámbar
-    assigned: "#a855f7",   // violeta
-    in_progress: "#f97316",   // naranja
-    resolved: "#22c55e",   // verde
-    closed: "#94a3b8",   // gris azulado (más claro que antes)
-    rejected: "#ef4444",   // rojo
-};
-
-const BAR_COLORS = {
-    Abierto: "#3b82f6",
-    Asignado: "#a855f7",
-    Resuelto: "#22c55e",
-    Cerrado: "#94a3b8",   // más claro que #6b7280
-};
-
 
 // ─── Subcomponentes ───────────────────────────────────────────────────────────
 
@@ -107,41 +61,6 @@ function MetricCard({ title, value, subtitle, icon, iconColor }: MetricCardProps
     );
 }
 
-// Tooltip custom para el bar chart
-function CustomBarTooltip({ active, payload, label }: any) {
-    if (!active || !payload?.length) return null;
-    return (
-        <div className="bg-popover border rounded-lg shadow-lg p-3 text-xs space-y-1.5">
-            <p className="font-semibold text-foreground mb-2">{label}</p>
-            {payload.map((entry: any) => (
-                <div key={entry.dataKey} className="flex items-center gap-2">
-                    <span
-                        className="inline-block size-2 rounded-full"
-                        style={{ backgroundColor: entry.fill }}
-                    />
-                    <span className="text-muted-foreground">{entry.name}:</span>
-                    <span className="font-medium text-foreground">{entry.value}</span>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-// Tooltip custom para el pie chart
-function CustomPieTooltip({ active, payload }: any) {
-    if (!active || !payload?.length) return null;
-    const { name, value, payload: p } = payload[0];
-    const pct = p.percent ? `${(p.percent * 100).toFixed(1)}%` : "";
-    return (
-        <div className="bg-popover border rounded-lg shadow-lg p-3 text-xs">
-            <p className="font-semibold text-foreground">{name}</p>
-            <p className="text-muted-foreground">
-                {value} incidentes · {pct}
-            </p>
-        </div>
-    );
-}
-
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function AdminDashboardPage() {
@@ -149,7 +68,6 @@ export default function AdminDashboardPage() {
 
     // Datos
     const [incidents, setIncidents] = useState<Incident[]>(dashboardCache?.incidents ?? []);
-    const [frequency, setFrequency] = useState<FrequencyByCategoryResult[]>(dashboardCache?.frequency ?? []);
     const [resolution, setResolution] = useState<ResolutionMetricsResult | null>(dashboardCache?.resolution ?? null);
     const [isLoading, setIsLoading] = useState(!dashboardCache);
 
@@ -163,21 +81,17 @@ export default function AdminDashboardPage() {
             try {
                 if (!dashboardCache) setIsLoading(true);
 
-                const [incidentsData, freqData, resData] = await Promise.all([
+                const [incidentsData, resData] = await Promise.all([
                     incidentsService.getIncidents(),
-                    api
-                        .get<FrequencyByCategoryResult[]>(API_ROUTES.incident_stats.frequency)
-                        .then((r) => r.data),
                     api
                         .get<ResolutionMetricsResult>(API_ROUTES.incident_stats.resolution)
                         .then((r) => r.data),
                 ]);
 
                 setIncidents(incidentsData);
-                setFrequency(freqData);
                 setResolution(resData);
 
-                dashboardCache = { incidents: incidentsData, frequency: freqData, resolution: resData };
+                dashboardCache = { incidents: incidentsData, resolution: resData };
             } catch (err) {
                 console.error("Error al cargar dashboard:", err);
             } finally {
@@ -186,41 +100,6 @@ export default function AdminDashboardPage() {
         }
         loadAll();
     }, []);
-
-    const barData = useMemo(
-        () =>
-            frequency
-                .slice(0, 6)
-                .map((f) => ({
-                    name: f.categoryName || f.categoryLabel || f.categoryId || "Sin categoría",
-                    Abierto: f.open ?? 0,
-                    Asignado: f.assigned ?? 0,
-                    Resuelto: f.resolved ?? 0,
-                    Cerrado: f.closed ?? 0,
-                }))
-
-                .sort((a, b) =>
-                    (b.Abierto + b.Asignado + b.Resuelto + b.Cerrado) -
-                    (a.Abierto + a.Asignado + a.Resuelto + a.Cerrado)
-                ),
-        [frequency],
-    );
-
-    // ── Datos para pie chart (distribución por estado)
-    const pieData = useMemo(() => {
-        const counts: Record<string, number> = {};
-        for (const inc of incidents) {
-            counts[inc.status] = (counts[inc.status] ?? 0) + 1;
-        }
-        return Object.entries(counts)
-            .map(([status, value]) => ({
-                name: STATUS_LABELS[status] ?? status,
-                value,
-                status,
-                fill: STATUS_COLORS[status] ?? "#94a3b8",  // ← acá
-            }))
-            .sort((a, b) => b.value - a.value);
-    }, [incidents]);
 
     // ── Métricas principales (vienen del endpoint /stats/resolution)
     const overall = resolution?.overall;
