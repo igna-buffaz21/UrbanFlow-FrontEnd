@@ -45,12 +45,20 @@ import { useEffect, useState } from "react";
 type IncidentPriority = "low" | "medium" | "high";
 type IncidentStatus = "assigned" | "in_progress" | "resolved";
 
+type IncidentCategory =
+  | string
+  | {
+      id: string;
+      name: string;
+    }
+  | null;
+
 type IncidentDetailOperador = {
   id: string;
   title: string;
   description: string;
   photoUrl: string | null;
-  category: string | null;
+  category: IncidentCategory;
   status: IncidentStatus;
   priority: IncidentPriority;
   createdAt: string;
@@ -59,7 +67,7 @@ type IncidentDetailOperador = {
     id: string;
     name: string;
     photoUrl: string | null;
-  };
+  } | null;
 };
 
 type IncidentDetailDialogOperadorProps = {
@@ -86,6 +94,45 @@ function getPriorityBadgeClass(priority: IncidentPriority) {
   };
 
   return classes[priority];
+}
+
+function getCategoryLabel(category: IncidentCategory) {
+  if (!category) return null;
+
+  if (typeof category === "string") {
+    return category;
+  }
+
+  return category.name;
+}
+
+function getErrorMessage(error: unknown) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const axiosError = error as {
+      response?: {
+        data?: {
+          message?: string;
+        };
+      };
+      message?: string;
+    };
+
+    return (
+      axiosError.response?.data?.message ||
+      axiosError.message ||
+      "No se pudo actualizar el estado."
+    );
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "No se pudo actualizar el estado.";
 }
 
 function formatDate(date: string) {
@@ -123,11 +170,15 @@ export function IncidentDetailDialogOperador({
     if (!open || !incidentId) return;
 
     async function getIncidentDetailOperador() {
+      if (!incidentId) return;
+
       try {
         setIsLoading(true);
         setErrorMessage(null);
 
-        const response = await incidentsService.getDetailIncidentById(incidentId!!);
+        const response = await incidentsService.getDetailIncidentById(
+          incidentId
+        );
 
         const incidentData = response as IncidentDetailOperador;
 
@@ -177,16 +228,9 @@ export function IncidentDetailDialogOperador({
       await incidentsService.updateIncidentStatus(incidentId, formData);
 
       onOpenChange(false);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "No se pudo actualizar el estado.";
-
-      console.log("Mensaje backend:", error?.response?.data?.message);
-      console.log("Respuesta completa:", error?.response?.data);
-
-      alert(message);
+    } catch (error) {
+      console.error(error);
+      alert(getErrorMessage(error));
     } finally {
       setIsSavingStatus(false);
     }
@@ -197,6 +241,15 @@ export function IncidentDetailDialogOperador({
 
     try {
       setIsDeleting(true);
+
+      /*
+        Acá todavía falta llamar al servicio real de baja/cancelación.
+        Ejemplo:
+        await incidentsService.deleteIncident(incidentId);
+        o
+        await incidentsService.cancelIncident(incidentId);
+      */
+
       setIsConfirmOpen(false);
       onOpenChange(false);
     } catch (error) {
@@ -206,6 +259,8 @@ export function IncidentDetailDialogOperador({
       setIsDeleting(false);
     }
   }
+
+  const categoryLabel = getCategoryLabel(incident?.category ?? null);
 
   return (
     <>
@@ -233,7 +288,7 @@ export function IncidentDetailDialogOperador({
 
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive gap-2"
+                      className="gap-2 text-destructive focus:text-destructive"
                       onClick={() => setIsConfirmOpen(true)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -294,8 +349,8 @@ export function IncidentDetailDialogOperador({
                     Prioridad {getPriorityLabel(incident.priority)}
                   </Badge>
 
-                  {incident.category && (
-                    <Badge variant="secondary">{incident.category}</Badge>
+                  {categoryLabel && (
+                    <Badge variant="secondary">{categoryLabel}</Badge>
                   )}
                 </div>
 
@@ -310,7 +365,7 @@ export function IncidentDetailDialogOperador({
 
               <div className="grid gap-3 rounded-xl border bg-background p-4 sm:grid-cols-2">
                 <div className="flex items-center gap-3">
-                  {incident.createdBy.photoUrl ? (
+                  {incident.createdBy?.photoUrl ? (
                     <img
                       src={incident.createdBy.photoUrl}
                       alt={incident.createdBy.name}
@@ -327,7 +382,7 @@ export function IncidentDetailDialogOperador({
                       Reportado por
                     </p>
                     <p className="text-sm font-medium text-foreground">
-                      {incident.createdBy.name}
+                      {incident.createdBy?.name ?? "Usuario desconocido"}
                     </p>
                   </div>
                 </div>

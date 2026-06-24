@@ -19,8 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { incidentsService } from "../incidents.service";
 import type { Incident, IncidentStatus } from "../incidents.type";
-import { IncidentDetailDialog } from "@/components/dialog-incident"; // ← agregado
-
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { IncidentDetailCard } from "@/components/IncidentDetailCard";
+import type { AdminIncidentDetail } from "../incidents.type";
 const PRIORITY_LABELS: Record<string, string> = {
     low: "Baja",
     medium: "Media",
@@ -28,9 +29,9 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
+    low: "bg-green-600/10 text-green-600 border border-green-600/30 hover:bg-green-600/10",
+    medium: "bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/10",
+    high: "bg-red-600/10 text-red-600 border border-red-600/30 hover:bg-red-600/10",
 };
 
 export const STATUS_LABELS: Record<IncidentStatus, string> = {
@@ -52,9 +53,9 @@ export function ShowIncidentsHistoryPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    // ← agregado
-    const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+    const [selectedIncident, setSelectedIncident] = useState<AdminIncidentDetail | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
     async function fetchIncidents(pageToLoad: number, isLoadMore = false) {
         try {
@@ -82,10 +83,17 @@ export function ShowIncidentsHistoryPage() {
         fetchIncidents(nextPage, true);
     }
 
-    // ← agregado
-    function handleOpenDetail(id: string) {
-        setSelectedIncidentId(id);
-        setIsDetailOpen(true);
+    async function handleOpenDetail(id: string) {
+        try {
+            setIsLoadingDetail(true);
+            setIsDetailOpen(true);
+            const data = await incidentsService.getIncidentById(id);
+            setSelectedIncident(data);
+        } catch (error) {
+            console.error("Error al cargar detalle:", error);
+        } finally {
+            setIsLoadingDetail(false);
+        }
     }
 
     const hasMore = incidents.length < total;
@@ -97,7 +105,7 @@ export function ShowIncidentsHistoryPage() {
                     <CardHeader>
                         <CardTitle>Historial de incidentes</CardTitle>
                         <CardDescription>
-                            Visualizá todos los incidentes cerrados.
+                            Visualizá todos los incidentes cerrados y rechazados.
                         </CardDescription>
                     </CardHeader>
 
@@ -179,12 +187,24 @@ export function ShowIncidentsHistoryPage() {
                 </Card>
             </div>
 
-            {/* ← agregado */}
-            <IncidentDetailDialog
-                incidentId={selectedIncidentId}
-                open={isDetailOpen}
-                onOpenChange={setIsDetailOpen}
-            />
+            <Dialog open={isDetailOpen} onOpenChange={(open) => { setIsDetailOpen(open); if (!open) setSelectedIncident(null); }}>
+                <DialogContent className="!max-w-[800px] w-full max-h-[90vh] overflow-y-auto">
+                    {isLoadingDetail ? (
+                        <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
+                    ) : selectedIncident ? (
+                        <IncidentDetailCard
+                            incident={selectedIncident}
+                            showMap={true}
+                            actions={
+                                <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                                    Cerrar
+                                </Button>
+                            }
+                        />
+                    ) : null}
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { CreateUserDto, GetUser, User, OperatorDetail } from "./user.types";
+import type { CreateUserDto, GetUser, User, OperatorDetail, UpdateMyProfileData } from "./user.types";
 import { API_ROUTES } from "@/config/api.routes";
 
 export const userService = {
@@ -7,6 +7,11 @@ export const userService = {
     const response = await api.get<User[]>(API_ROUTES.users.getUsers);
     return response.data;
   },
+
+  async updateMyProfile(data: UpdateMyProfileData) {
+  const response = await api.patch(API_ROUTES.users.updateMyProfile, data);
+  return response.data;
+},
 
   async getUserById(id: string) {
     const response = await api.get<User>(API_ROUTES.users.getUserById(id));

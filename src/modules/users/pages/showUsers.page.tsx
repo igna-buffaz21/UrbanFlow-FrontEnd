@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontalIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { MoreHorizontalIcon, PlusIcon, SearchIcon, UserCheck, UserX, UserPlus } from "lucide-react";
 
 import { APP_ROUTES } from "@/config/app.routes";
 import { Button } from "@/components/ui/button";
@@ -301,6 +301,11 @@ export function ShowUsersPage() {
                                 setUserToUpdate(user);
                               }}
                             >
+                              {user.status === "active" ? (
+                                <UserX className="size-4" />
+                              ) : (
+                                <UserCheck className="size-4" />
+                              )}
                               {user.status === "active" ? "Desactivar" : "Activar"}
                             </Button>
                           ) : (
@@ -332,9 +337,19 @@ export function ShowUsersPage() {
                                 <DropdownMenuSeparator />
 
                                 <DropdownMenuItem
-                                  variant="destructive"
+                                  variant={user.status === "active" ? "destructive" : "default"}
+                                  className={
+                                    user.status === "active"
+                                      ? undefined
+                                      : "text-green-600 focus:text-green-600 focus:bg-green-600/10"
+                                  }
                                   onClick={() => setUserToUpdate(user)}
                                 >
+                                  {user.status === "active" ? (
+                                    <UserX className="size-4" />
+                                  ) : (
+                                    <UserCheck className="size-4" />
+                                  )}
                                   {user.status === "active" ? "Desactivar" : "Activar"}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -376,7 +391,11 @@ export function ShowUsersPage() {
               </Button>
 
               <Button
-                variant="destructive"
+                className={
+                  userToUpdate?.status === "active"
+                    ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                    : "bg-green-500/10 text-green-500 hover:bg-green-500/20 border border-green-500/20"
+                }
                 onClick={handleUpdateStatus}
                 disabled={isUpdating}
               >
@@ -455,6 +474,7 @@ export function ShowUsersPage() {
                 </Button>
 
                 <Button type="submit" disabled={isCreating}>
+                  <UserPlus className="size-4" />
                   {isCreating ? "Creando..." : createButtonText}
                 </Button>
               </DialogFooter>

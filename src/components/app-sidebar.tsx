@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 
 import { NavMain } from "@/components/nav-main";
 //import { NavProjects } from "@/components/nav-projects";
@@ -148,7 +149,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href={user?.role === USER_ROLES.OPERATOR ? "/operator" : "/panel"}>
+              <Link to={user?.role === USER_ROLES.OPERATOR ? "/operator" : "/panel"}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white overflow-hidden">
                   <img
                     src={logo}
@@ -164,7 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       : "Panel municipal"}
                   </span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

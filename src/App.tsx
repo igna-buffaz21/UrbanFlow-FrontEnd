@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "@clerk/react";
+import { AppVersionProvider } from "../src/hooks/version";
 
 import { ProtectedRoute } from "./lib/protectedRoute";
 import { setupApiInterceptors } from "./lib/interceptor";
@@ -24,6 +25,7 @@ import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
+import { CompleteProfilePage } from "./modules/users/pages/completeProfile.page";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
@@ -38,6 +40,7 @@ import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCiti
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
 import { AdminHomePage } from "@/modules/home/pages/adminHome.page";
+import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -63,6 +66,7 @@ function App() {
 
   return (
     <>
+    <AppVersionProvider>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
@@ -73,6 +77,14 @@ function App() {
         />
         <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
         <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
+        <Route
+          path={APP_ROUTES.app.completeProfile}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
+              <CompleteProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path={APP_ROUTES.panel.root}
@@ -190,10 +202,12 @@ function App() {
           <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
           <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
           <Route path={APP_ROUTES.app.feed} element={<IncidentFeed />} />
+          <Route path={APP_ROUTES.app.myComments} element={<ShowCommentsCitizen />} />
         </Route>
       </Routes>
 
       <Toaster theme="dark" position="top-right"/>
+    </AppVersionProvider>
     </>
   );
 }

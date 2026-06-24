@@ -19,37 +19,47 @@ import {
     MarkerTooltip,
     MarkerPopup,
 } from "@/components/ui/map";
-import type { AdminIncidentDetail } from "../modules/incidents/incidents.type"
-
-const PRIORITY_LABELS: Record<string, string> = {
-    low: "Baja",
-    medium: "Media",
-    high: "Alta",
-    critical: "Crítica",
-};
-
-const PRIORITY_STYLES: Record<string, string> = {
-    low: "bg-green-500 text-white hover:bg-green-600",
-    medium: "bg-yellow-500 text-black hover:bg-yellow-600",
-    high: "bg-red-500 text-white hover:bg-red-600",
-    critical: "bg-purple-600 text-white hover:bg-purple-700",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-    in_review: "En revisión",
-    open: "Abierto",
-    assigned: "Asignado",
-    resolved: "Resuelto",
-    closed: "Cerrado",
-    rejected: "Rechazado",
-};
+import {
+    Tag,
+    User,
+    UserCheck,
+    Calendar,
+    Clock,
+    CheckCircle2,
+    XCircle,
+    type LucideIcon,
+} from "lucide-react";
+import type { IncidentDetailResponse, AdminIncidentDetail } from "../modules/incidents/incidents.type"
+import { PRIORITY_LABELS, PRIORITY_STYLES, STATUS_LABELS } from "../modules/incidents/incidents.constants";
 
 interface IncidentDetailCardProps {
-    incident: AdminIncidentDetail;
+    incident: AdminIncidentDetail | IncidentDetailResponse;
     showMap?: boolean;
     showResolutionPhoto?: boolean;
     showAssignmentData?: boolean;
     actions?: React.ReactNode;
+}
+
+function DetailItem({
+    icon: Icon,
+    label,
+    value,
+}: {
+    icon: LucideIcon;
+    label: string;
+    value: React.ReactNode;
+}) {
+    return (
+        <div className="flex items-start gap-2.5 rounded-lg border bg-muted/30 p-3">
+            <Icon className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {label}
+                </p>
+                <p className="text-sm font-medium truncate">{value}</p>
+            </div>
+        </div>
+    );
 }
 
 export function IncidentDetailCard({
@@ -62,15 +72,30 @@ export function IncidentDetailCard({
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{incident.title}</CardTitle>
-                <CardDescription>{incident.description ?? "Sin descripción"}</CardDescription>
+                <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                        <CardTitle className="text-xl">{incident.title}</CardTitle>
+                        <CardDescription>{incident.description ?? "Sin descripción"}</CardDescription>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <Badge variant="outline">
+                            {STATUS_LABELS[incident.status] ?? incident.status}
+                        </Badge>
+                        <Badge className={PRIORITY_STYLES[incident.priority]}>
+                            {PRIORITY_LABELS[incident.priority]}
+                        </Badge>
+                    </div>
+                </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
 
                 {incident.photoUrl && (
                     <div className="space-y-2">
-                        <span className="text-sm font-medium">Foto del incidente</span>
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            Foto del incidente
+                        </span>
                         <Dialog>
                             <DialogTrigger asChild>
                                 <img
@@ -88,7 +113,9 @@ export function IncidentDetailCard({
 
                 {showMap && incident.location && (
                     <div className="space-y-2">
-                        <span className="text-sm font-medium">Ubicación del incidente</span>
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            Ubicación del incidente
+                        </span>
                         <div className="h-80 overflow-hidden rounded-lg border">
                             <Map center={incident.location.coordinates} zoom={16}>
                                 <MapMarker
@@ -109,84 +136,87 @@ export function IncidentDetailCard({
                 )}
 
                 {showResolutionPhoto &&
-                    incident.resolutionPhotoUrl && (<div className="space-y-2">
-                        <span className="text-sm font-medium">Foto de resolución del operador</span>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <img
-                                    src={incident.resolutionPhotoUrl}
-                                    alt="Resolución"
-                                    className="w-full max-h-80 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
-                                />
-                            </DialogTrigger>
-                            <DialogContent className="max-w-5xl p-2">
-                                <img src={incident.resolutionPhotoUrl} alt="Resolución" className="w-full h-auto rounded-lg" />
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                    )}
-
-                <div className="grid gap-3 md:grid-cols-2">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Estado:</span>
-                        <span className="text-sm">{STATUS_LABELS[incident.status] ?? incident.status}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Prioridad:</span>
-                        <Badge className={PRIORITY_STYLES[incident.priority]}>
-                            {PRIORITY_LABELS[incident.priority]}
-                        </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Categoría:</span>
-                        <span className="text-sm">{incident.category?.name ?? "Sin categoría"}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Creado por:</span>
-                        <span className="text-sm">{incident.createdBy?.name ?? "Sin datos"}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Fecha de creación:</span>
-                        <span className="text-sm">{new Date(incident.createdAt).toLocaleString("es-AR")}</span>
-                    </div>
-
-                    {showAssignmentData &&
-                        incident.assignedTo && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">
-                                    Asignado a:
-                                </span>
-                                <span className="text-sm">
-                                    {incident.assignedTo.name ?? "Sin datos"}
-                                </span>
-                            </div>
-                        )}
-
-                    {showAssignmentData &&
-                        incident.assignedAt && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">
-                                    Fecha de asignación:
-                                </span>
-                                <span className="text-sm">
-                                    {new Date(
-                                        incident.assignedAt
-                                    ).toLocaleString("es-AR")}
-                                </span>
-                            </div>
-                        )}
-
-                    {incident.resolvedAt && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Fecha de resolución:</span>
-                            <span className="text-sm">{new Date(incident.resolvedAt).toLocaleString("es-AR")}</span>
+                    incident.resolutionPhotoUrl && (
+                        <div className="space-y-2">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Foto de resolución del operador
+                            </span>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <img
+                                        src={incident.resolutionPhotoUrl}
+                                        alt="Resolución"
+                                        className="w-full max-h-80 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition"
+                                    />
+                                </DialogTrigger>
+                                <DialogContent className="max-w-5xl p-2">
+                                    <img src={incident.resolutionPhotoUrl} alt="Resolución" className="w-full h-auto rounded-lg" />
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     )}
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <DetailItem
+                        icon={Tag}
+                        label="Categoría"
+                        value={incident.category?.name ?? "Sin categoría"}
+                    />
+
+                    <DetailItem
+                        icon={User}
+                        label="Creado por"
+                        value={incident.createdBy?.name ?? "Sin datos"}
+                    />
+
+                    <DetailItem
+                        icon={Calendar}
+                        label="Fecha de creación"
+                        value={new Date(incident.createdAt).toLocaleString("es-AR")}
+                    />
+
+                    {showAssignmentData && incident.assignedTo && (
+                        <DetailItem
+                            icon={UserCheck}
+                            label="Asignado a"
+                            value={incident.assignedTo.name ?? "Sin datos"}
+                        />
+                    )}
+
+                    {showAssignmentData && incident.assignedAt && (
+                        <DetailItem
+                            icon={Clock}
+                            label="Fecha de asignación"
+                            value={new Date(incident.assignedAt).toLocaleString("es-AR")}
+                        />
+                    )}
+
+                    {incident.resolvedAt && (
+                        <DetailItem
+                            icon={CheckCircle2}
+                            label="Fecha de resolución"
+                            value={new Date(incident.resolvedAt).toLocaleString("es-AR")}
+                        />
+                    )}
                 </div>
+
+                {incident.status === "rejected" && incident.rejectionReason && (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                        <div className="flex items-center gap-2 text-destructive">
+                            <XCircle className="size-4" />
+                            <span className="text-[11px] font-medium uppercase tracking-wide">
+                                Motivo de rechazo
+                            </span>
+                        </div>
+                        <p className="text-sm">{incident.rejectionReason}</p>
+                        {incident.rejectedBy && (
+                            <p className="text-xs text-muted-foreground">
+                                Rechazado por {incident.rejectedBy.name}
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 {actions && (
                     <div className="flex gap-2 pt-2">
                         {actions}
