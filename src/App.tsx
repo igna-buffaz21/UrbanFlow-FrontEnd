@@ -41,7 +41,6 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
-import { AdminHomePage } from "@/modules/home/pages/adminHome.page";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
@@ -68,47 +67,11 @@ function App() {
 
   return (
     <>
-    <AppVersionProvider>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
-        <Route
-          path={APP_ROUTES.auth.aceptInvitation}
-          element={<AcceptInvitationPage />}
-        />
-        <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
-        <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
-        <Route
-          path={APP_ROUTES.app.completeProfile}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
-              <CompleteProfilePage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path={APP_ROUTES.panel.root}
-          element={
-            <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SUPERADMIN]}>
-              <PanelLayout />
-            </ProtectedRoute>
-          }
-        />
-          <Route index element={<AdminHomePage />} />
-
-          <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
-
-          <Route
-            path={APP_ROUTES.panel.municipalities}
-            element={
-              <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
-                <ShowMunicipalitiesPage />
-              </ProtectedRoute>
-            }
-          />
-
+      <AppVersionProvider>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
           <Route
             path={APP_ROUTES.auth.aceptInvitation}
             element={<AcceptInvitationPage />}

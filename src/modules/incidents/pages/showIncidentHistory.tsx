@@ -42,6 +42,7 @@ export const STATUS_LABELS: Record<IncidentStatus, string> = {
     resolved: "Resuelto",
     closed: "Cerrado",
     rejected: "Rechazado",
+    canceled: "Cancelado",
 };
 
 const LIMIT = 10;
