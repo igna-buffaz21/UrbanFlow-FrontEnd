@@ -21,6 +21,7 @@ export const APP_ROUTES = {
     incidentResolved: "/panel/incidents/resolved",
     incidentResolvedDetail: "/panel/incidents/resolved/:id",
     incidentResolvedDetailPath: (id: string) => `/panel/incidents/resolved/${id}`,
+    incidentStats: "/panel/incidents/stats",
   },
 
   operator: {

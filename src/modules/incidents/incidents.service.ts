@@ -14,7 +14,8 @@ import type {
   ResolvePendingDuplicateAction,
   IncidentFeedItem,
   IncidentFeedResponse,
-  PaginatedIncidentsResponse
+  PaginatedIncidentsResponse,
+  GeographicStatsResult
 } from "./incidents.type";
 import type { MyIncidentCommentResponse } from "./pages/showMyComments";
 
@@ -62,6 +63,10 @@ export const incidentsService = {
     await api.patch(API_ROUTES.incidents.assignOperator(incidentId), {
       operatorId,
     });
+  },
+
+  async unassignOperator(incidentId: string): Promise<void> {
+    await api.patch(API_ROUTES.incidents.unassignOperator(incidentId));
   },
 
   async getAssignedIncidents(filters?: GetIncidentsFilters): Promise<OperatorIncident[]> {
@@ -164,6 +169,13 @@ export const incidentsService = {
     const response = await api.get<PaginatedIncidentsResponse>(
       API_ROUTES.incidents.history,
       { params: { page, limit } }
+    );
+    return response.data;
+  },
+
+  async getGeographicStats(): Promise<GeographicStatsResult> {
+    const response = await api.get<GeographicStatsResult>(
+      API_ROUTES.incident_stats.geographic
     );
     return response.data;
   },
