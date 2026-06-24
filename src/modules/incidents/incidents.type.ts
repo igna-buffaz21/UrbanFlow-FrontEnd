@@ -145,7 +145,7 @@ export interface ReportedIncident {
 
 export interface IncidentDetailBaseResponse {
   id: string;
-
+  publicCode: string;
   title: string;
   description?: string;
 
@@ -183,6 +183,14 @@ export interface IncidentDetailBaseResponse {
     name: string;
     photoUrl: string | null;
   } | null;
+  updatedAt: string;
+
+  startedAt: string | null;
+
+  closedAt: string | null;
+
+  rejectedAt: string | null;
+
 }
 
 export interface IncidentDetailResponse extends IncidentDetailBaseResponse {

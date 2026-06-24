@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "@clerk/react";
+import { AppVersionProvider } from "../src/hooks/version";
 
 import { ProtectedRoute } from "./lib/protectedRoute";
 import { setupApiInterceptors } from "./lib/interceptor";
@@ -39,6 +40,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
+import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -64,6 +66,7 @@ function App() {
 
   return (
     <>
+    <AppVersionProvider>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path={APP_ROUTES.auth.login} element={<LoginPage />} />
@@ -74,6 +77,14 @@ function App() {
         />
         <Route path={APP_ROUTES.auth.unauthorized} element={<UnauthorizedPage />} />
         <Route path={APP_ROUTES.auth.inactive} element={<InactiveAccountPage />} />
+        <Route
+          path={APP_ROUTES.app.completeProfile}
+          element={
+            <ProtectedRoute allowedRoles={[USER_ROLES.CITIZEN]}>
+              <CompleteProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path={APP_ROUTES.panel.root}
@@ -200,10 +211,11 @@ function App() {
           <Route path={APP_ROUTES.app.myIncidents} element={<ShowIncidentsCitizen />} />
           <Route path={APP_ROUTES.app.myReports} element={<ShowReportsCitizen />} />
           <Route path={APP_ROUTES.app.feed} element={<IncidentFeed />} />
+          <Route path={APP_ROUTES.app.myComments} element={<ShowCommentsCitizen />} />
         </Route>
       </Routes>
 
-      <Toaster theme="dark" position="top-right" />
+      <Toaster theme="dark" position="top-right"/>
     </>
   );
 }

@@ -84,7 +84,7 @@ export function ShowProfile() {
       description: "Comentarios que dejaste",
       roles: ["user", "moderator"],
       onClick: () => {
-        // TODO: navegar o abrir sheet de comentarios
+        navigate(APP_ROUTES.app.myComments);
       },
     },
     {

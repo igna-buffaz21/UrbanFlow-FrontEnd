@@ -7,6 +7,7 @@ export const API_ROUTES = {
     getUserById: (id: string) => `/users/${id}`,
     inviteUser: "/users/invite",
     updateUserStatus: (id: string) => `/users/${id}/status`,
+    updateMyProfile: "/users/me/profile",
   },
 
   municipalities: {
@@ -48,6 +49,8 @@ export const API_ROUTES = {
   incident_comments: {
     getCommentsByIncidentId: (id: string) => `/incident-comments/${id}/comments`,
     createComment: (id: string) => `/incident-comments/${id}/comments`,
+    deleteComment: (id: string) => `/incident-comments/${id}/status`,
+    getMyComments: `/incident-comments/me`
   },
 
   sub_districts: {

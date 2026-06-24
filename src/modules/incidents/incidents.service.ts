@@ -17,6 +17,7 @@ import type {
   PaginatedIncidentsResponse,
   GeographicStatsResult
 } from "./incidents.type";
+import type { MyIncidentCommentResponse } from "./pages/showMyComments";
 
 interface GetIncidentsFilters {
   status?: string;
@@ -123,6 +124,16 @@ export const incidentsService = {
     return response.data;
   },
 
+  async deleteCommentReport(id: string): Promise<IncidentCommentResponse> {
+    const response = await api.patch(API_ROUTES.incident_comments.deleteComment(id));
+    return response.data;
+  },
+
+  async getMyComments(): Promise<MyIncidentCommentResponse[]> {
+    const response = await api.get<MyIncidentCommentResponse[]>(API_ROUTES.incident_comments.getMyComments);
+    return response.data;
+  },
+
   async getMyReports(): Promise<ReportedIncidentResponse[]> {
     const response = await api.get<ReportedIncidentResponse[]>(API_ROUTES.incident_reports.getMyReports());
     return response.data;
@@ -172,4 +183,3 @@ export const incidentsService = {
 
 
 };
-
