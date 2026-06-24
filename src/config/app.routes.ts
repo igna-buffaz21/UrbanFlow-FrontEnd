@@ -22,6 +22,7 @@ export const APP_ROUTES = {
     incidentResolvedDetail: "/panel/incidents/resolved/:id",
     incidentResolvedDetailPath: (id: string) => `/panel/incidents/resolved/${id}`,
     incidentStats: "/panel/incidents/stats",
+    incidentMap: "/panel/incidents/map",
   },
 
   operator: {

@@ -42,6 +42,7 @@ import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCiti
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
+import { AdminIncidentMapPage } from "./modules/incidents/pages/AdminIncidentMap";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -158,6 +159,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
                   <ShowIncidentsHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.incidentMap}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <AdminIncidentMapPage />
                 </ProtectedRoute>
               }
             />

@@ -15,10 +15,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  TerminalSquareIcon,
+  HardHat,
   LifeBuoyIcon,
   PieChartIcon,
   MapIcon,
+  ChartColumnIncreasing,
+  User,
+  OctagonAlert,
 } from "lucide-react";
 
 import logo from "@/assets/logo2.png";
@@ -68,13 +71,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: user?.role === USER_ROLES.SUPERADMIN ? "Administradores" : "Operadores",
       url: APP_ROUTES.panel.users,
-      icon: <TerminalSquareIcon />,
+      icon: <HardHat />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
     },
     {
       title: "Incidentes",
       url: APP_ROUTES.panel.incidents,
-      icon: <MapIcon />,
+      icon: <OctagonAlert />,
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
@@ -86,8 +89,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.incidentHistory,
         },
         {
-          title: "Estadísticas",
+          title: "Mapa",
+          url: APP_ROUTES.panel.incidentMap,
+        },
+      ],
+    },
+    {
+      title: "Estadísticas",
+      url: APP_ROUTES.panel.incidentStats,
+      icon: <ChartColumnIncreasing />,
+      allowedRoles: [USER_ROLES.ADMIN],
+      items: [
+        {
+          title: "Principal",
           url: APP_ROUTES.panel.incidentStats
+        },
+        {
+          title: "Urgentes",
+          url: APP_ROUTES.panel.incidentHistory,
+        },
+      ],
+    },
+    {
+      title: "Usuarios",
+      url: APP_ROUTES.panel.incidents,
+      icon: <User />,
+      allowedRoles: [USER_ROLES.ADMIN],
+      items: [
+        {
+          title: "Visualizar",
+          url: APP_ROUTES.panel.incidentResolved,
+        },
+        {
+          title: "Estadísticas",
+          url: APP_ROUTES.panel.incidentHistory,
         },
       ],
     },

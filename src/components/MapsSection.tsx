@@ -15,6 +15,13 @@ import {
 import { MapHeatmapLayer } from "@/components/mapHeatplayer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { TriangleAlert, ArrowLeft } from "lucide-react";
 import type {
     SubDistrictResponse,
@@ -47,6 +54,8 @@ const STATUS_LABELS: Record<string, string> = {
     closed: "Cerrado",
     rejected: "Rechazado",
 };
+
+const PRIORITY_RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
 function getSubDistrictFillColor(stats: GeographicStatItem | undefined): string {
     if (!stats || stats.total === 0) return "#22c55e";
@@ -109,9 +118,45 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
     const [hoveredHeatmapPoint, setHoveredHeatmapPoint] = useState<{
         id: string; title: string; priority: string; status: string;
     } | null>(null);
+    const [heatmapPriority, setHeatmapPriority] = useState<string>("high");
+    const [heatmapStatus, setHeatmapStatus] = useState<string>("all");
     const [heatmapTooltipPos, setHeatmapTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
     const choroplethMapRef = useRef<MapRef>(null);
+
+    function getMostCommonCategory(zoneIncidents: Incident[]): string | null {
+        const counts = new globalThis.Map<string, { count: number; name: string; maxPriority: number }>();
+
+        for (const incident of zoneIncidents) {
+            if (!incident.category) continue;
+            const key = incident.category.id;
+            const priorityRank = PRIORITY_RANK[incident.priority] ?? 0;
+            const existing = counts.get(key);
+
+            if (existing) {
+                existing.count += 1;
+                if (priorityRank > existing.maxPriority) existing.maxPriority = priorityRank;
+            } else {
+                counts.set(key, { count: 1, name: incident.category.label, maxPriority: priorityRank });
+            }
+        }
+
+        if (counts.size === 0) return null;
+
+        const entries = Array.from(counts.values());
+        const maxCount = Math.max(...entries.map(e => e.count));
+        const topByCount = entries.filter(e => e.count === maxCount);
+
+        if (topByCount.length === 1) return topByCount[0].name;
+
+        const maxPriority = Math.max(...topByCount.map(e => e.maxPriority));
+        const topByPriority = topByCount.filter(e => e.maxPriority === maxPriority);
+
+        if (topByPriority.length === 1) return topByPriority[0].name;
+
+        // Empate total (misma cantidad, misma prioridad máxima) -> al azar
+        return topByPriority[Math.floor(Math.random() * topByPriority.length)].name;
+    }
 
     useEffect(() => {
         if (!user?.municipalityId) return;
@@ -156,12 +201,6 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
 
         load();
     }, [user?.municipalityId]);
-    const activeMapIncidents = useMemo(() =>
-        incidents.filter(i =>
-            i.location?.type === "Point" &&
-            Array.isArray(i.location.coordinates) &&
-            i.location.coordinates.length === 2
-        ), [incidents]);
 
     const heatmapPoints = useMemo(() =>
         incidents
@@ -169,7 +208,9 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                 i.location?.type === "Point" &&
                 Array.isArray(i.location.coordinates) &&
                 i.location.coordinates.length === 2 &&
-                i.status !== "in_progress"
+                i.status !== "in_progress" &&
+                (heatmapPriority === "all" || i.priority === heatmapPriority) &&
+                (heatmapStatus === "all" || i.status === heatmapStatus)
             )
             .map(i => ({
                 coordinates: i.location!.coordinates as [number, number],
@@ -178,7 +219,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                 title: i.title,
                 status: i.status,
             })),
-        [incidents]);
+        [incidents, heatmapPriority, heatmapStatus]);
 
     const selectedSubDistrictIncidents = useMemo(() => {
         if (!selectedSubDistrict) return [];
@@ -194,6 +235,26 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
             return booleanPointInPolygon(pt, selectedSubDistrict.polygon as GeoJSON.Polygon | GeoJSON.MultiPolygon);
         });
     }, [selectedSubDistrict, incidents]);
+
+    const topCategoryBySubDistrict = useMemo(() => {
+        const map = new globalThis.Map<string, string | null>();
+        for (const sd of subDistricts) {
+            const zoneIncidents = incidents.filter(i => {
+                if (
+                    i.location?.type !== "Point" ||
+                    !Array.isArray(i.location.coordinates) ||
+                    i.location.coordinates.length !== 2
+                ) return false;
+
+                const pt = point(i.location.coordinates);
+                return booleanPointInPolygon(pt, sd.polygon as GeoJSON.Polygon | GeoJSON.MultiPolygon);
+            });
+
+            map.set(sd.id, getMostCommonCategory(zoneIncidents));
+        }
+
+        return map;
+    }, [subDistricts, incidents]);
 
     const choroplethGeoJSON = useMemo((): GeoJSON.FeatureCollection => ({
         type: "FeatureCollection",
@@ -261,97 +322,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                 <p className="text-sm text-muted-foreground">Visualización geográfica de incidentes</p>
             </div>
 
-            {/* Mapa 1: marcadores */}
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle>Incidentes activos</CardTitle>
-                    <CardDescription>Todos los incidentes con ubicación registrada.</CardDescription>                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="h-[460px] rounded-b-lg overflow-hidden">
-                        {!mapCenter ? (
-                            <div className="flex h-full items-center justify-center bg-muted/30">
-                                <p className="text-sm text-muted-foreground">No se pudo obtener la ubicación del municipio.</p>
-                            </div>
-                        ) : activeMapIncidents.length === 0 ? (
-                            <div className="flex h-full items-center justify-center bg-muted/30">
-                                <p className="text-sm text-muted-foreground">Sin incidentes para mostrar.</p>
-                            </div>
-                        ) : (
-                            <Map center={mapCenter} zoom={13}>
-                                <MapControls showRecenter recenterCenter={mapCenter ?? undefined} recenterZoom={13} />
-                                {activeMapIncidents.map(incident => {
-                                    const [lng, lat] = incident.location!.coordinates;
-                                    return (
-                                        <MapMarker key={incident.id} longitude={lng} latitude={lat}>
-                                            <MarkerContent>
-                                                <IncidentMarkerIcon priority={incident.priority} />
-                                            </MarkerContent>
-                                            <MarkerTooltip>{incident.title}</MarkerTooltip>
-                                            <MarkerPopup>
-                                                <div className="max-w-[220px] space-y-3">
-                                                    <p className="text-sm font-semibold break-words">{incident.title}</p>
-                                                    <div className="space-y-1 text-xs text-muted-foreground">
-                                                        <p>Prioridad: <span className="font-medium text-foreground">{PRIORITY_LABELS[incident.priority] ?? incident.priority}</span></p>
-                                                        <p>Estado: <span className="font-medium text-foreground">{STATUS_LABELS[incident.status] ?? incident.status}</span></p>
-                                                    </div>
-                                                    <Button type="button" size="sm" className="w-full" onClick={() => onViewIncidentDetail(incident.id)}>
-                                                        Ver detalle
-                                                    </Button>
-                                                </div>
-                                            </MarkerPopup>
-                                        </MapMarker>
-                                    );
-                                })}
-                            </Map>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Mapa 2: heatmap */}
-            <Card>
-                <CardHeader className="pb-2">
-                    <CardTitle>Mapa de calor</CardTitle>
-                    <CardDescription>Concentración de incidentes por zona (excluye en progreso).</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="h-[460px] rounded-b-lg relative">
-                        {!mapCenter ? (
-                            <div className="flex h-full items-center justify-center bg-muted/30">
-                                <p className="text-sm text-muted-foreground">No se pudo obtener la ubicación del municipio.</p>
-                            </div>
-                        ) : heatmapPoints.length === 0 ? (
-                            <div className="flex h-full items-center justify-center bg-muted/30">
-                                <p className="text-sm text-muted-foreground">Sin datos para mostrar.</p>
-                            </div>
-                        ) : (
-                            <div className="absolute inset-0 rounded-b-lg overflow-hidden">
-                                <Map center={mapCenter} zoom={12}>
-                                    <MapControls showRecenter recenterCenter={mapCenter ?? undefined} recenterZoom={12} />
-                                    <MapHeatmapLayer
-                                        points={heatmapPoints}
-                                        onPointHover={handleHeatmapHover}
-                                    />
-                                </Map>
-                            </div>
-                        )}
-                        {hoveredHeatmapPoint && heatmapTooltipPos && (
-                            <div
-                                className="absolute z-10 bg-background/90 backdrop-blur-sm border rounded-lg p-3 shadow-md text-sm min-w-[160px] pointer-events-none"
-                                style={{ left: heatmapTooltipPos.x + 12, top: heatmapTooltipPos.y - 10 }}
-                            >
-                                <p className="font-semibold truncate">{hoveredHeatmapPoint.title}</p>
-                                <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
-                                    <p>Prioridad: <span className="font-medium text-foreground">{PRIORITY_LABELS[hoveredHeatmapPoint.priority] ?? hoveredHeatmapPoint.priority}</span></p>
-                                    <p>Estado: <span className="font-medium text-foreground">{STATUS_LABELS[hoveredHeatmapPoint.status] ?? hoveredHeatmapPoint.status}</span></p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Mapa 3: barrios con zoom e incidentes */}
+            {/* Mapa: barrios con zoom e incidentes */}
             {(isLoadingSubDistricts || subDistricts.length > 0) && (
                 <Card>
                     <CardHeader className="pb-2">
@@ -457,6 +428,9 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                                         <p>Total: <span className="font-medium text-foreground">{hoveredStats?.total ?? 0}</span></p>
                                         <p>Abiertos: <span className="font-medium text-foreground">{hoveredStats?.open ?? 0}</span></p>
                                         <p>Alta prioridad: <span className="font-medium text-red-500">{hoveredStats?.high ?? 0}</span></p>
+                                        {topCategoryBySubDistrict.get(hoveredSubDistrictId ?? "") && (
+                                            <p>Más repetida: <span className="font-medium text-foreground">{topCategoryBySubDistrict.get(hoveredSubDistrictId ?? "")}</span></p>
+                                        )}
                                     </div>
                                     <p className="mt-2 text-xs text-muted-foreground italic">Click para ver incidentes</p>
                                 </div>
@@ -465,6 +439,81 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                     </CardContent>
                 </Card>
             )}
+
+            {/* Mapa: heatmap */}
+            <Card>
+                <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <CardTitle>Mapa de calor</CardTitle>
+                            <CardDescription>Concentración de incidentes por zona con filtros por estado y categoría.</CardDescription>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                            <Select value={heatmapPriority} onValueChange={setHeatmapPriority}>
+                                <SelectTrigger className="w-36 h-8 text-xs">
+                                    <SelectValue placeholder="Prioridad" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todas</SelectItem>
+                                    <SelectItem value="low">Baja</SelectItem>
+                                    <SelectItem value="medium">Media</SelectItem>
+                                    <SelectItem value="high">Alta</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={heatmapStatus} onValueChange={setHeatmapStatus}>
+                                <SelectTrigger className="w-36 h-8 text-xs">
+                                    <SelectValue placeholder="Estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos</SelectItem>
+                                    <SelectItem value="open">Abierto</SelectItem>
+                                    <SelectItem value="in_review">En revisión</SelectItem>
+                                    <SelectItem value="assigned">Asignado</SelectItem>
+                                    <SelectItem value="resolved">Resuelto</SelectItem>
+                                    <SelectItem value="closed">Cerrado</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="h-[460px] rounded-b-lg relative">
+                        {!mapCenter ? (
+                            <div className="flex h-full items-center justify-center bg-muted/30">
+                                <p className="text-sm text-muted-foreground">No se pudo obtener la ubicación del municipio.</p>
+                            </div>
+                        ) : heatmapPoints.length === 0 ? (
+                            <div className="flex h-full items-center justify-center bg-muted/30">
+                                <p className="text-sm text-muted-foreground">Sin datos para mostrar.</p>
+                            </div>
+                        ) : (
+                            <div className="absolute inset-0 rounded-b-lg overflow-hidden">
+                                <Map center={mapCenter} zoom={12}>
+                                    <MapControls showRecenter recenterCenter={mapCenter ?? undefined} recenterZoom={12} />
+                                    <MapHeatmapLayer
+                                        points={heatmapPoints}
+                                        onPointHover={handleHeatmapHover}
+                                    />
+                                </Map>
+                            </div>
+                        )}
+                        {hoveredHeatmapPoint && heatmapTooltipPos && (
+                            <div
+                                className="absolute z-10 bg-background/90 backdrop-blur-sm border rounded-lg p-3 shadow-md text-sm min-w-[160px] pointer-events-none"
+                                style={{ left: heatmapTooltipPos.x + 12, top: heatmapTooltipPos.y - 10 }}
+                            >
+                                <p className="font-semibold truncate">{hoveredHeatmapPoint.title}</p>
+                                <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground">
+                                    <p>Prioridad: <span className="font-medium text-foreground">{PRIORITY_LABELS[hoveredHeatmapPoint.priority] ?? hoveredHeatmapPoint.priority}</span></p>
+                                    <p>Estado: <span className="font-medium text-foreground">{STATUS_LABELS[hoveredHeatmapPoint.status] ?? hoveredHeatmapPoint.status}</span></p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
+
 
         </div>
     );
