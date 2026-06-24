@@ -34,7 +34,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import type { Municipality } from "../municipalities.type";
+import { CreateMunicipality } from "./createMunicipalities";
 
 const MUNICIPIOS = [
   { id: 1, nombre: "Córdoba", provincia: "Córdoba" },
@@ -46,39 +55,50 @@ export function ShowMunicipalitiesPage() {
   const [search, setSearch] = useState("");
   const [provincia, setProvincia] = useState("todas");
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [isCreateMunicipalityOpen, setIsCreateMunicipalityOpen] = useState(false);
 
   const provincias = [...new Set(MUNICIPIOS.map((m) => m.provincia))];
 
-  const filtered = municipalities.filter((m) => {
-    const matchSearch = m.name.toLowerCase().includes(search.toLowerCase());
-    const matchProvincia = provincia === "todas" || m.status === provincia;
+  const filtered = municipalities.filter((municipality) => {
+    const matchSearch = municipality.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    const matchProvincia =
+      provincia === "todas" || municipality.status === provincia;
+
     return matchSearch && matchProvincia;
   });
 
-  useEffect(() => {
+  async function loadMunicipalities() {
+    const response = await municipalitiesService.getMunicipalities();
+    setMunicipalities(response);
+  }
 
-    async function loadMunicipalities() {
-      const response = await municipalitiesService.getMunicipalities();
-      setMunicipalities(response);
-      console.log("Municipalities loaded:", response);
-    }
+  useEffect(() => {
     loadMunicipalities();
   }, []);
 
   return (
     <div className="flex justify-center p-6">
       <div className="w-full max-w-3xl space-y-4">
-        {/* Card con la tabla de municipios */}
         <Card>
           <CardHeader>
-            <CardTitle>Municipios</CardTitle>
-            <CardDescription>
-              Administrá los municipios registrados en el sistema.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <CardTitle>Municipios</CardTitle>
+                <CardDescription>
+                  Administrá los municipios registrados en el sistema.
+                </CardDescription>
+              </div>
 
-            {/* Filtros */}
+              <Button onClick={() => setIsCreateMunicipalityOpen(true)}>
+                + Crear municipio
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -86,25 +106,26 @@ export function ShowMunicipalitiesPage() {
                   placeholder="Buscar municipio..."
                   className="pl-8"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(event) => setSearch(event.target.value)}
                 />
               </div>
+
               <Select value={provincia} onValueChange={setProvincia}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Provincia" />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="todas">Todas las provincias</SelectItem>
-                  {provincias.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
+                  {provincias.map((provincia) => (
+                    <SelectItem key={provincia} value={provincia}>
+                      {provincia}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Tabla */}
             <div className="rounded-lg border">
               <Table>
                 <TableHeader>
@@ -114,31 +135,41 @@ export function ShowMunicipalitiesPage() {
                     <TableHead />
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={3}
-                        className="text-center text-sm text-muted-foreground py-8"
+                        className="py-8 text-center text-sm text-muted-foreground"
                       >
                         Sin resultados.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((m) => (
-                      <TableRow key={m.id}>
-                        <TableCell className="font-medium">{m.name}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {m.status}
+                    filtered.map((municipality) => (
+                      <TableRow key={municipality.id}>
+                        <TableCell className="font-medium">
+                          {municipality.name}
                         </TableCell>
+
+                        <TableCell className="text-muted-foreground">
+                          {municipality.status}
+                        </TableCell>
+
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-8">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                              >
                                 <MoreHorizontalIcon />
                                 <span className="sr-only">Abrir menú</span>
                               </Button>
                             </DropdownMenuTrigger>
+
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem>Editar</DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -158,10 +189,30 @@ export function ShowMunicipalitiesPage() {
             <p className="text-xs text-muted-foreground">
               {filtered.length} municipio{filtered.length !== 1 ? "s" : ""}
             </p>
-
           </CardContent>
         </Card>
 
+        <Dialog
+          open={isCreateMunicipalityOpen}
+          onOpenChange={setIsCreateMunicipalityOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Crear municipio</DialogTitle>
+              <DialogDescription>
+                Completá los datos para registrar una nueva municipalidad.
+              </DialogDescription>
+            </DialogHeader>
+
+            <CreateMunicipality
+              onCreated={() => {
+                setIsCreateMunicipalityOpen(false);
+                loadMunicipalities();
+              }}
+              onCancel={() => setIsCreateMunicipalityOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

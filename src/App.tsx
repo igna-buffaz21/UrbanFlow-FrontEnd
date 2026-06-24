@@ -39,6 +39,7 @@ import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorInc
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
+import { AdminHomePage } from "@/modules/home/pages/adminHome.page";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 
 function App() {
@@ -93,7 +94,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboardPage />} />
+          <Route index element={<AdminHomePage />} />
 
           <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
 
