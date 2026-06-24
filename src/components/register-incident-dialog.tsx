@@ -368,15 +368,8 @@ export function CreateIncidentDialog({
       clearAiMessages();
       await submitCreate();
     } catch (error: any) {
-      console.error(error);
-      alert(`
-  CODE: ${error?.code}
-  MESSAGE: ${error?.message}
-  STATUS: ${error?.response?.status}
-  TIMEOUT CONFIG: ${error?.config?.timeout}
-  ONLINE: ${navigator.onLine}
-      `);
-      setErrorMessage("No se pudo reportar el incidente.");
+      //console.error(error);
+      //setErrorMessage("No se pudo reportar el incidente.");
       notify.error("No se pudo reportar el incidente.");
     } finally {
       setIsSubmitting(false);
