@@ -28,14 +28,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -171,61 +163,75 @@ export function ShowOperatorIncidents() {
                         </Select>
                     </div>
 
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Título</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead>Prioridad</TableHead>
-                                    <TableHead>Asignado</TableHead>
-                                </TableRow>
-                            </TableHeader>
+                    <div className="space-y-3">
+                        {isLoading ? (
+                            <Card>
+                                <CardContent className="py-8 text-center">
+                                    Cargando...
+                                </CardContent>
+                            </Card>
+                        ) : incidents.length === 0 ? (
+                            <Card>
+                                <CardContent className="py-8 text-center">
+                                    No tenés incidentes asignados.
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            incidents.map((incident) => (
+                                <Card
+                                    key={incident.id}
+                                    onClick={() => handleOpenDetail(incident.id)}
+                                    className="cursor-pointer transition-all hover:bg-muted/50 hover:border-primary"
+                                >
 
-                            <TableBody>
-                                {isLoading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="py-8 text-center">
-                                            Cargando...
-                                        </TableCell>
-                                    </TableRow>
-                                ) : incidents.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="py-8 text-center">
-                                            No tenés incidentes asignados.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    incidents.map((incident) => (
-                                        <TableRow
-                                            key={incident.id}
-                                            onClick={() => handleOpenDetail(incident.id)}
-                                            className="cursor-pointer"
-                                        >
-                                            <TableCell className="font-medium">
-                                                {incident.title}
-                                            </TableCell>
+                                    {incident.photoUrl && (
+                                        <div className="aspect-video overflow-hidden border-b">
+                                            <img
+                                                src={incident.photoUrl}
+                                                alt={incident.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <CardTitle className="truncate text-base">
+                                                    {incident.title}
+                                                </CardTitle>
 
-                                            <TableCell>
-                                                {STATUS_LABELS[incident.status] ?? incident.status}
-                                            </TableCell>
+                                                <CardDescription>
+                                                    {incident.assignedAt
+                                                        ? `Asignado el ${new Date(
+                                                            incident.assignedAt
+                                                        ).toLocaleDateString("es-AR")}`
+                                                        : "Sin fecha"}
+                                                </CardDescription>
+                                            </div>
 
-                                            <TableCell>
-                                                <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
-                                                    {PRIORITY_LABELS[incident.priority]}
-                                                </Badge>
-                                            </TableCell>
+                                            <Badge
+                                                variant={PRIORITY_VARIANTS[incident.priority]}
+                                            >
+                                                {PRIORITY_LABELS[incident.priority]}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
 
-                                            <TableCell>
-                                                {incident.assignedAt
-                                                    ? new Date(incident.assignedAt).toLocaleDateString("es-AR")
-                                                    : "-"}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
+                                    <CardContent>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-muted-foreground">
+                                                Estado
+                                            </span>
+
+                                            <Badge variant="outline">
+                                                {STATUS_LABELS[incident.status] ??
+                                                    incident.status}
+                                            </Badge>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
                     </div>
 
                     <p className="text-sm text-muted-foreground">

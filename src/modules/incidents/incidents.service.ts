@@ -86,6 +86,14 @@ export const incidentsService = {
     return response.data;
   },
 
+  async cancelIncident(id: string) {
+    const response = await api.patch(API_ROUTES.incidents.updateStatus(id), {
+      status: "canceled",
+    });
+
+    return response.data;
+  },
+
   async updateStatus(incidentId: string, status: string): Promise<void> {
     await api.patch(API_ROUTES.incidents.updateStatus(incidentId), { status });
   },

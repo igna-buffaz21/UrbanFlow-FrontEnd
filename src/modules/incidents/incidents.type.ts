@@ -1,4 +1,12 @@
-export type IncidentStatus = | "in_review" | "open" | "assigned" | "in_progress" | "resolved" | "closed" | "rejected";
+export type IncidentStatus =
+  | "in_review"
+  | "open"
+  | "assigned"
+  | "in_progress"
+  | "resolved"
+  | "closed"
+  | "rejected"
+  | "canceled";
 
 export type IncidentPriority = "low" | "medium" | "high";
 
@@ -94,6 +102,7 @@ export interface OperatorIncident {
   status: IncidentStatus;
   priority: IncidentPriority;
   assignedAt: string;
+  photoUrl?: string | null;
 }
 
 
@@ -176,7 +185,7 @@ export interface IncidentDetailBaseResponse {
     photoUrl: string | null;
   } | null;
 
-  status: string;
+  status: IncidentStatus;
   assignedAt?: string;
   assignedTo?: {
     id: string;
