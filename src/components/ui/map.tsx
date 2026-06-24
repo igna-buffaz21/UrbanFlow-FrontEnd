@@ -16,7 +16,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { X, Minus, Plus, Locate, Maximize, Loader2 } from "lucide-react";
+import { X, Minus, Plus, Locate, Maximize, Loader2, Crosshair } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -717,6 +717,12 @@ function MarkerLabel({
 type MapControlsProps = {
   /** Position of the controls on the map (default: "bottom-right") */
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  /** Show button to fly back to an initial center/zoom (default: false) */
+  showRecenter?: boolean;
+  /** Center coordinates to fly back to when the recenter button is clicked */
+  recenterCenter?: [number, number];
+  /** Zoom level to use when recentering (defaults to current zoom) */
+  recenterZoom?: number;
   /** Show zoom in/out buttons (default: true) */
   showZoom?: boolean;
   /** Show compass button to reset bearing (default: false) */
@@ -778,6 +784,9 @@ function ControlButton({
 
 function MapControls({
   position = "bottom-right",
+  showRecenter = false,
+  recenterCenter,
+  recenterZoom,
   showZoom = true,
   showCompass = false,
   showLocate = false,
@@ -799,6 +808,15 @@ function MapControls({
   const handleResetBearing = useCallback(() => {
     map?.resetNorthPitch({ duration: 300 });
   }, [map]);
+
+  const handleRecenter = useCallback(() => {
+    if (!map || !recenterCenter) return;
+    map.flyTo({
+      center: recenterCenter,
+      zoom: recenterZoom ?? map.getZoom(),
+      duration: 800,
+    });
+  }, [map, recenterCenter, recenterZoom]);
 
   const handleLocate = useCallback(() => {
     setWaitingForLocation(true);
@@ -843,14 +861,27 @@ function MapControls({
         className,
       )}
     >
-      {showZoom && (
+      {(showZoom || showRecenter) && (
         <ControlGroup>
-          <ControlButton onClick={handleZoomIn} label="Zoom in">
-            <Plus className="size-4" />
-          </ControlButton>
-          <ControlButton onClick={handleZoomOut} label="Zoom out">
-            <Minus className="size-4" />
-          </ControlButton>
+          {showZoom && (
+            <>
+              <ControlButton onClick={handleZoomIn} label="Zoom in">
+                <Plus className="size-4" />
+              </ControlButton>
+              <ControlButton onClick={handleZoomOut} label="Zoom out">
+                <Minus className="size-4" />
+              </ControlButton>
+            </>
+          )}
+          {showRecenter && (
+            <ControlButton
+              onClick={handleRecenter}
+              label="Center map"
+              disabled={!recenterCenter}
+            >
+              <Crosshair className="size-4" />
+            </ControlButton>
+          )}
         </ControlGroup>
       )}
       {showCompass && (
@@ -1266,11 +1297,11 @@ function mergeArcPaint(
       baseValue === undefined
         ? hoverValue
         : [
-            "case",
-            ["boolean", ["feature-state", "hover"], false],
-            hoverValue,
-            baseValue,
-          ];
+          "case",
+          ["boolean", ["feature-state", "hover"], false],
+          hoverValue,
+          baseValue,
+        ];
   }
   return merged as MapArcLinePaint;
 }
@@ -1469,8 +1500,8 @@ function MapArc<T extends MapArcDatum = MapArcDatum>({
       featureId == null
         ? undefined
         : latestRef.current.data.find(
-            (arc) => String(arc.id) === String(featureId),
-          );
+          (arc) => String(arc.id) === String(featureId),
+        );
 
     const handleMouseMove = (e: MapLibreGL.MapLayerMouseEvent) => {
       const featureId = e.features?.[0]?.id as string | number | undefined;
@@ -1826,6 +1857,91 @@ function MapClusterLayer<
   return null;
 }
 
+type MapGeoJSONProps = {
+  data: GeoJSON.FeatureCollection;
+  fillPaint?: MapLibreGL.FillLayerSpecification["paint"];
+  linePaint?: MapLibreGL.LineLayerSpecification["paint"];
+  onFeatureClick?: (properties: GeoJSON.GeoJsonProperties) => void;
+  onFeatureHover?: (properties: GeoJSON.GeoJsonProperties | null) => void;
+};
+
+function MapGeoJSON({
+  data,
+  fillPaint = { "fill-color": "#3b82f6", "fill-opacity": 0.2 },
+  linePaint = { "line-color": "#3b82f6", "line-width": 1.5 },
+  onFeatureClick,
+  onFeatureHover,
+}: MapGeoJSONProps) {
+  const { map, isLoaded } = useMap();
+  const id = useId();
+  const sourceId = `geojson-source-${id}`;
+  const fillLayerId = `geojson-fill-${id}`;
+  const lineLayerId = `geojson-line-${id}`;
+
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+
+    map.addSource(sourceId, { type: "geojson", data });
+
+    map.addLayer({
+      id: fillLayerId,
+      type: "fill",
+      source: sourceId,
+      paint: fillPaint,
+    });
+
+    map.addLayer({
+      id: lineLayerId,
+      type: "line",
+      source: sourceId,
+      paint: linePaint,
+    });
+
+    return () => {
+      try {
+        if (map.getLayer(lineLayerId)) map.removeLayer(lineLayerId);
+        if (map.getLayer(fillLayerId)) map.removeLayer(fillLayerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      } catch { /* ignore */ }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, map]);
+
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource | undefined;
+    source?.setData(data);
+  }, [isLoaded, map, data, sourceId]);
+
+  useEffect(() => {
+    if (!isLoaded || !map || (!onFeatureClick && !onFeatureHover)) return;
+
+    const handleClick = (e: MapLibreGL.MapLayerMouseEvent) => {
+      onFeatureClick?.(e.features?.[0]?.properties ?? null);
+    };
+    const handleMouseMove = (e: MapLibreGL.MapLayerMouseEvent) => {
+      map.getCanvas().style.cursor = "pointer";
+      onFeatureHover?.(e.features?.[0]?.properties ?? null);
+    };
+    const handleMouseLeave = () => {
+      map.getCanvas().style.cursor = "";
+      onFeatureHover?.(null);
+    };
+
+    map.on("click", fillLayerId, handleClick);
+    map.on("mousemove", fillLayerId, handleMouseMove);
+    map.on("mouseleave", fillLayerId, handleMouseLeave);
+
+    return () => {
+      map.off("click", fillLayerId, handleClick);
+      map.off("mousemove", fillLayerId, handleMouseMove);
+      map.off("mouseleave", fillLayerId, handleMouseLeave);
+    };
+  }, [isLoaded, map, fillLayerId, onFeatureClick, onFeatureHover]);
+
+  return null;
+}
+
 export {
   Map,
   useMap,
@@ -1839,6 +1955,7 @@ export {
   MapRoute,
   MapArc,
   MapClusterLayer,
+  MapGeoJSON,
 };
 
 export type { MapRef, MapViewport, MapArcDatum, MapArcEvent };

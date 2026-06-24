@@ -24,6 +24,8 @@ import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
+import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
+import { IncidentStatsPage } from "./modules/incidents/pages/incidentStatsAdmin";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
@@ -134,7 +136,7 @@ function App() {
             path={APP_ROUTES.panel.incidentResolvedDetail}
             element={
               <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-                <AssignIncidentPage />
+                <ResolvedIncidentDetailPage />
               </ProtectedRoute>
             }
           />
@@ -144,6 +146,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
                 <ShowIncidentsHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={APP_ROUTES.panel.incidentStats}
+            element={
+              <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                <IncidentStatsPage />
               </ProtectedRoute>
             }
           />
@@ -192,7 +203,7 @@ function App() {
         </Route>
       </Routes>
 
-      <Toaster theme="dark" position="top-right"/>
+      <Toaster theme="dark" position="top-right" />
     </>
   );
 }

@@ -78,16 +78,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
-          title: "Visualizar",
-          url: APP_ROUTES.panel.incidents,
-        },
-        {
           title: "Resueltos",
           url: APP_ROUTES.panel.incidentResolved,
         },
         {
           title: "Historial",
           url: APP_ROUTES.panel.incidentHistory,
+        },
+        {
+          title: "Estadísticas",
+          url: APP_ROUTES.panel.incidentStats
         },
       ],
     },

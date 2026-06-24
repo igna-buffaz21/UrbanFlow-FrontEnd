@@ -17,7 +17,7 @@ export default function PanelLayout() {
           <AppSidebar />
 
           <SidebarInset>
-            <main className="flex flex-1 flex-col gap-4 p-4">
+            <main className="flex flex-1 flex-col gap-4 px-6 py-4 max-w-none">
               <Outlet />
             </main>
           </SidebarInset>

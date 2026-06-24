@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -15,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2, UserCheck } from "lucide-react";
+import { Trash2, UserCheck, UserX } from "lucide-react";
 import { notify } from "@/lib/notify";
 
 export function AssignIncidentPage() {
@@ -28,18 +26,16 @@ export function AssignIncidentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
 
-    const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
-    const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
-    const [isClosing, setIsClosing] = useState(false);
-    const [isReassigning, setIsReassigning] = useState(false);
-    const [reassignNote, setReassignNote] = useState("");
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [isRejecting, setIsRejecting] = useState(false);
     const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+    const [isUnassignDialogOpen, setIsUnassignDialogOpen] = useState(false);
+    const [isUnassigning, setIsUnassigning] = useState(false);
 
 
     const canAssign = (incident?.status === "in_review" || incident?.status === "open") && !incident?.assignedTo;
+    const canUnassign = incident?.status === "assigned"
     const selectedOperator = operators.find((op) => op.id === selectedOperatorId);
 
 
@@ -80,55 +76,9 @@ export function AssignIncidentPage() {
 
             setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
 
+
         } finally {
             setIsAssigning(false);
-        }
-    }
-
-    async function handleClose() {
-        if (!id) return;
-
-        try {
-            setIsClosing(true);
-            await incidentsService.updateStatus(id, "closed");
-            notify.success("Incidente cerrado correctamente.");
-            setIsCloseDialogOpen(false);
-            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
-        } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                setErrorMessage(
-                    error.response?.data?.message ?? "Error al cerrar el incidente."
-                );
-                return;
-            }
-
-            setErrorMessage("Error al cerrar el incidente.");
-
-        } finally {
-            setIsClosing(false);
-        }
-    }
-
-    async function handleReassign() {
-        if (!id) return;
-        try {
-            setIsReassigning(true);
-            await incidentsService.updateStatus(id, "assigned");
-            notify.success(
-                "Incidente devuelto al operador correctamente."
-            );
-            setIsReassignDialogOpen(false);
-            setTimeout(
-                () => navigate(APP_ROUTES.panel.incidents),
-                1500
-            );
-        } catch (error: any) {
-            notify.error(
-                error?.response?.data?.message ??
-                "Error al devolver el incidente."
-            );
-        } finally {
-            setIsReassigning(false);
         }
     }
 
@@ -145,6 +95,25 @@ export function AssignIncidentPage() {
             notify.error("Error al rechazar el incidente.");
         } finally {
             setIsRejecting(false);
+        }
+    }
+
+    async function handleUnassign() {
+        if (!id) return;
+        try {
+            setIsUnassigning(true);
+            await notify.promise(
+                incidentsService.unassignOperator(id),
+                {
+                    loading: "Desasignando operador...",
+                    success: "Operador desasignado correctamente.",
+                    error: "Error al desasignar el operador.",
+                }
+            );
+            setIncident((prev) => prev ? { ...prev, status: "open", assignedTo: null } : prev);
+            setIsUnassignDialogOpen(false);
+        } finally {
+            setIsUnassigning(false);
         }
     }
 
@@ -176,28 +145,32 @@ export function AssignIncidentPage() {
                     incident={incident}
                     showMap={true}
                     actions={
-                        incident.status === "resolved" ? (
+                        !canAssign ? (
                             <div className="flex flex-col gap-2 w-full">
                                 <div className="flex gap-2">
-                                    <Button onClick={() => setIsCloseDialogOpen(true)} disabled={isClosing || isReassigning}>
-                                        Cerrar incidente
+                                    <Button variant="outline" onClick={handleCancel}>
+                                        Volver
                                     </Button>
-                                    <Button variant="outline" onClick={() => setIsReassignDialogOpen(true)} disabled={isClosing || isReassigning}>
-                                        Devolver al operador
-                                    </Button>
-                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
-                                </div>
-                            </div>
-                        ) : !canAssign ? (
-                            <div className="flex flex-col gap-2 w-full">
-                                <div className="flex gap-2">
-                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
+
+                                    {canUnassign && (
+                                        <Button
+                                            variant="outline"
+                                            className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                                            onClick={() => setIsUnassignDialogOpen(true)}
+                                        >
+                                            <UserX className="size-4" />
+                                            Cancelar asignación
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2 w-full">
                                 <div className="flex gap-2">
-                                    <Button variant="outline" onClick={handleCancel}>Volver</Button>
+                                    <Button variant="outline" onClick={handleCancel}>
+                                        Volver
+                                    </Button>
+
                                     <Button
                                         variant="outline"
                                         className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
@@ -268,62 +241,6 @@ export function AssignIncidentPage() {
                     </Card>
                 )}
 
-                {/* Dialog — Cerrar incidente */}
-                <Dialog open={isCloseDialogOpen} onOpenChange={setIsCloseDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>¿Cerrar incidente?</DialogTitle>
-                            <DialogDescription>
-                                Confirmá que el incidente fue resuelto correctamente. Esta acción no se puede deshacer.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsCloseDialogOpen(false)}>
-                                Cancelar
-                            </Button>
-                            <Button onClick={handleClose} disabled={isClosing}>
-                                {isClosing ? "Cerrando..." : "Confirmar cierre"}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Dialog — Devolver al operador */}
-                <Dialog open={isReassignDialogOpen} onOpenChange={setIsReassignDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>¿Devolver al operador?</DialogTitle>
-                            <DialogDescription>
-                                El incidente volverá a estar asignado. Podés dejar un mensaje para el operador.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-2 pt-2">
-                            <label className="text-sm font-medium text-muted-foreground">
-                                Mensaje para el operador (opcional)
-                            </label>
-                            <textarea
-                                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
-                                placeholder="Ej: Falta revisar la conexión eléctrica..."
-                                value={reassignNote}
-                                onChange={(e) => setReassignNote(e.target.value)}
-                            />
-                        </div>
-
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => { setIsReassignDialogOpen(false); setReassignNote(""); }}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button onClick={handleReassign} disabled={isReassigning}>
-                                {isReassigning ? "Devolviendo..." : "Confirmar"}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
                 {/* Dialog — Rechazar incidente */}
                 <Dialog open={isRejectDialogOpen} onOpenChange={(open) => { setIsRejectDialogOpen(open); if (!open) setRejectionReason(""); }}>
                     <DialogContent>
@@ -384,11 +301,31 @@ export function AssignIncidentPage() {
                     </DialogContent>
                 </Dialog>
 
+                <Dialog open={isUnassignDialogOpen} onOpenChange={setIsUnassignDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>¿Cancelar asignación?</DialogTitle>
+                            <DialogDescription>
+                                El incidente volverá a estado abierto y quedará sin operador asignado.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsUnassignDialogOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                                onClick={handleUnassign}
+                                disabled={isUnassigning}
+                            >
+                                {isUnassigning ? "Desasignando..." : "Confirmar"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
             </div>
         </div>
     );
-}
-
-function setErrorMessage(arg0: string) {
-    throw new Error(arg0);
 }
