@@ -134,17 +134,10 @@ function MapClickHandler({
       onLocationSelect([lng, lat]);
     };
 
-    // "Locate me" button — move marker to current GPS position
-    const handleLocate = (e: { coords: GeolocationCoordinates }) => {
-      onLocationSelect([e.coords.longitude, e.coords.latitude]);
-    };
-
     map.on("click", handleClick);
-    map.on("geolocate", handleLocate);
 
     return () => {
       map.off("click", handleClick);
-      map.off("geolocate", handleLocate);
     };
   }, [map, isLoaded, onLocationSelect]);
 
@@ -488,11 +481,6 @@ export function CreateIncidentDialog({
                     zoom={15}
                     className="h-full w-full"
                   >
-                    {/*
-                      MapClickHandler now also listens to the "geolocate" event
-                      emitted by MapLibre's GeolocateControl, so clicking the
-                      locate button moves the pin to the user's GPS position.
-                    */}
                     <MapClickHandler onLocationSelect={stableOnLocationSelect} />
 
                     {selectedLocation && (
@@ -513,6 +501,9 @@ export function CreateIncidentDialog({
                       position="top-right"
                       showZoom
                       showLocate
+                      onLocate={(coords) => {
+                        stableOnLocationSelect([coords.longitude, coords.latitude]);
+                      }}
                     />
                   </Map>
                 </div>

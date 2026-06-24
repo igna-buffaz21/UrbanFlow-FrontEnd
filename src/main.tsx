@@ -9,6 +9,7 @@ import { AuthProvider } from "./modules/auth/auth.context";
 
 import "./index.css";
 import { ThemeProvider } from "./components/theme-provider";
+import { esES } from "@clerk/localizations";
 
 import { shadcn } from "@clerk/ui/themes";
 
@@ -23,8 +24,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ClerkProvider 
     publishableKey={clerkPublishableKey}
       appearance={{
-    theme: shadcn,
-  }}
+        theme: shadcn,
+      }}
+    localization={esES}
     >
       <BrowserRouter>
         <AuthProvider>
