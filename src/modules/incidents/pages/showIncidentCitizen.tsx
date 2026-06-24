@@ -23,7 +23,8 @@ type IncidentStatus =
   | "in_progress"
   | "resolved"
   | "rejected"
-  | "closed";
+  | "closed"
+  | "canceled";
 
 type IncidentPriority = "low" | "medium" | "high" | "critical";
 
@@ -61,6 +62,10 @@ const STATUS_CONFIG = {
     icon: <AlertTriangle className="h-3 w-3" />,
   },
   closed: {
+    label: "Rechazado",
+    icon: <AlertTriangle className="h-3 w-3" />,
+  },
+  canceled: {
     label: "Rechazado",
     icon: <AlertTriangle className="h-3 w-3" />,
   }
@@ -221,7 +226,6 @@ export function ShowIncidentsCitizen() {
     return incidents.filter((incident) => incident.status === statusFilter);
   }, [incidents, statusFilter]);
 
-  useEffect(() => {
     async function fetchIncidents() {
       try {
         setLoading(true);
@@ -241,6 +245,8 @@ export function ShowIncidentsCitizen() {
         setLoading(false);
       }
     }
+
+  useEffect(() => {
 
     fetchIncidents();
   }, []);
@@ -362,6 +368,7 @@ export function ShowIncidentsCitizen() {
         incidentId={selectedIncidentId}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
+        onIncidentCanceled={fetchIncidents}
       />
     </div>
   );

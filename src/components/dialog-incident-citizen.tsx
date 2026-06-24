@@ -41,6 +41,8 @@ import type {
   IncidentDetailResponse,
   IncidentReportResponse,
 } from "@/modules/incidents/incidents.type";
+import { notify } from "@/lib/notify";
+import { TOAST_MESSAGES } from "@/config/toast.messages";
 
 type IncidentPriority = "low" | "medium" | "high";
 
@@ -48,6 +50,7 @@ type IncidentDetailDialogProps = {
   incidentId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onIncidentCanceled?: () => void;
 };
 
 // ─── Helpers de prioridad ────────────────────────────────────────────────────
@@ -289,6 +292,7 @@ export function IncidentDetailCitizenDialog({
   incidentId,
   open,
   onOpenChange,
+  onIncidentCanceled
 }: IncidentDetailDialogProps) {
   const [incident, setIncident] = useState<IncidentDetailResponse | null>(null);
   const [report, setReport] = useState<IncidentReportResponse | null>(null);
@@ -352,12 +356,21 @@ export function IncidentDetailCitizenDialog({
 
     try {
       setIsDeleting(true);
-      // await incidentsService.changeStatusIncident(incidentId);
+
+      await incidentsService.cancelIncident(incidentId);
+
       setIsConfirmOpen(false);
       onOpenChange(false);
+
+      onIncidentCanceled?.();
+
+      notify.success(TOAST_MESSAGES.incidents.cancelIncidentSuccess);
     } catch (error) {
       console.error(error);
+
       setErrorMessage("No se pudo cancelar el incidente.");
+
+      notify.error(TOAST_MESSAGES.incidents.cancelIncidentError);
     } finally {
       setIsDeleting(false);
     }

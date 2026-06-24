@@ -95,7 +95,7 @@ function App() {
               <PanelLayout />
             </ProtectedRoute>
           }
-        >
+        />
           <Route index element={<AdminHomePage />} />
 
           <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
