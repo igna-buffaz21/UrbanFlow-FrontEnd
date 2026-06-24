@@ -65,7 +65,12 @@ export function ShowIncidents() {
         </Button>
       </header>
       <div className="flex-1 overflow-hidden">
-        <MapIncidentLayout refreshKey={refreshKey} />
+        <MapIncidentLayout
+          refreshKey={refreshKey}
+          onIncidentCanceled={() => {
+            setRefreshKey((prev) => prev + 1);
+          }}
+        />
       </div>
 
     <div className="absolute bottom-10 right-2 z-20">

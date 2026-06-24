@@ -1,12 +1,8 @@
-import { useUser, useAuth, UserProfile } from "@clerk/react";
+import { useUser, useAuth } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "@/config/app.routes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
 import {
   AlertTriangle,
   MessageSquare,
@@ -18,6 +14,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { EditProfileDialog } from "@/components/dialog-edit-user";
+import { AppVersionLabel } from "@/components/app-version-label";
 
 type UserRole = "user" | "moderator" | "superadmin";
 
@@ -50,6 +48,7 @@ export function ShowProfile() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const role = useUserRole();
+  //const [phone, setPhone] = useState(dbUser?.phone ?? "");
 
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
@@ -187,16 +186,18 @@ export function ShowProfile() {
           </span>
         </button>
 
+        <div className="mt-auto px-5 py-4">
+          <AppVersionLabel />
+        </div>
+
         {/* Spacer para el navbar */}
         <div className="h-4" />
       </div>
 
-      {/* Dialog de edición de perfil con Clerk */}
-      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
-          <UserProfile routing="hash" />
-        </DialogContent>
-      </Dialog>
+      <EditProfileDialog
+        open={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+      />
     </>
   );
 }

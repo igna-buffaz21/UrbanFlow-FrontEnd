@@ -18,6 +18,7 @@ type MapCenter = [number, number];
 
 type MapIncidentLayoutProps = {
   refreshKey: number;
+  onIncidentCanceled?: () => void;
 };
 
 type IncidentPriority = "low" | "medium" | "high";
@@ -106,7 +107,10 @@ function IncidentMarkerIcon({ priority }: { priority: IncidentPriority }) {
   );
 }
 
-export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
+export function MapIncidentLayout({
+  refreshKey,
+  onIncidentCanceled,
+}: MapIncidentLayoutProps) {
   const [center, setCenter] = useState<MapCenter | null>(null);
   const [zoom, setZoom] = useState(14);
 
@@ -403,6 +407,7 @@ export function MapIncidentLayout({ refreshKey }: MapIncidentLayoutProps) {
         incidentId={selectedIncidentId}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
+        onIncidentCanceled={onIncidentCanceled}
       />
     </div>
   );
