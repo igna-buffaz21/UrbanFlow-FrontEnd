@@ -94,6 +94,7 @@ export interface OperatorIncident {
   status: IncidentStatus;
   priority: IncidentPriority;
   assignedAt: string;
+  photoUrl?: string | null;
 }
 
 
@@ -176,6 +177,7 @@ export interface IncidentDetailBaseResponse {
     photoUrl: string | null;
   } | null;
 
+  status: IncidentStatus;
   status: string;
   assignedAt?: string;
   assignedTo?: {

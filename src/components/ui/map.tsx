@@ -321,6 +321,36 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     [mapInstance, isLoaded, isStyleLoaded],
   );
 
+  useEffect(() => {
+    if (!mapInstance || !containerRef.current) return;
+
+    let frameId: number | null = null;
+    const resizeMap = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        mapInstance.resize();
+      });
+    };
+
+    resizeMap();
+
+    const observer = new ResizeObserver((entries) => {
+      const { width, height } = entries[0]?.contentRect ?? {};
+      if (width && height) resizeMap();
+    });
+
+    observer.observe(containerRef.current);
+    window.addEventListener("orientationchange", resizeMap);
+    window.visualViewport?.addEventListener("resize", resizeMap);
+
+    return () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      observer.disconnect();
+      window.removeEventListener("orientationchange", resizeMap);
+      window.visualViewport?.removeEventListener("resize", resizeMap);
+    };
+  }, [mapInstance]);
+
   return (
     <MapContext.Provider value={contextValue}>
       <div

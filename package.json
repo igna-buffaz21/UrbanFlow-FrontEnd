@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.9.3",
     "@clerk/react": "^6.4.2",
     "@clerk/ui": "^1.14.0",
     "@fontsource-variable/geist": "^5.2.8",
