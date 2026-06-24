@@ -54,16 +54,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: <PieChartIcon />,
       isActive: true,
       allowedRoles: [USER_ROLES.SUPERADMIN],
-      items: [
-        {
-          title: "Visualizar",
-          url: APP_ROUTES.panel.municipalities,
-        },
-        {
-          title: "Crear",
-          url: APP_ROUTES.panel.createMunicipality,
-        },
-      ],
     },
     {
       title: user?.role === USER_ROLES.SUPERADMIN ? "Administradores" : "Operadores",
@@ -78,16 +68,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
-          title: "Visualizar",
-          url: APP_ROUTES.panel.incidents,
-        },
-        {
           title: "Resueltos",
           url: APP_ROUTES.panel.incidentResolved,
         },
         {
           title: "Historial",
           url: APP_ROUTES.panel.incidentHistory,
+        },
+        {
+          title: "Estadísticas",
+          url: APP_ROUTES.panel.incidentStats
         },
       ],
     },

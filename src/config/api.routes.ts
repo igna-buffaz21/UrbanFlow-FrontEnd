@@ -18,6 +18,8 @@ export const API_ROUTES = {
 
   districts: {
     getDistricts: "/districts",
+    getMyDistrict: () => `/districts/me`,
+
   },
 
   incidents: {
@@ -30,6 +32,7 @@ export const API_ROUTES = {
     getById: (id: string) => `/incidents/${id}`,
     updateStatus: (id: string) => `/incidents/${id}/status`,
     assignOperator: (id: string) => `/incidents/${id}/assign-operator`,
+    unassignOperator: (id: string) => `/incidents/${id}/unassign-operator`,
     getIncidentsCitizen: () => `/incidents/me`,
     resolveDuplicateIncident: (idIncidentDuplicate: string) => `/incidents/pending/${idIncidentDuplicate}/resolve-duplicate`,
     feed: (lat: number, lng: number, page?: number, limit?: number) => `/incidents/feed?lat=${lat}&lng=${lng}&page=${page}&limit=${limit}`,
@@ -50,8 +53,14 @@ export const API_ROUTES = {
     getMyComments: `/incident-comments/me`
   },
 
+  sub_districts: {
+    getByMunicipalityId: (municipalityId: string) => `/sub-districts/municipality/${municipalityId}`,
+  },
+
   incident_stats: {
     frequency: "/incidents/stats/frequency",
     resolution: "/incidents/stats/resolution",
+    geographic: "/incidents/stats/geographic",
+    extended: "/incidents/stats/extended",
   }
 } as const;

@@ -1,4 +1,12 @@
-export type IncidentStatus = | "in_review" | "open" | "assigned" | "in_progress" | "resolved" | "closed" | "rejected";
+export type IncidentStatus =
+  | "in_review"
+  | "open"
+  | "assigned"
+  | "in_progress"
+  | "resolved"
+  | "closed"
+  | "rejected"
+  | "canceled";
 
 export type IncidentPriority = "low" | "medium" | "high";
 
@@ -94,6 +102,7 @@ export interface OperatorIncident {
   status: IncidentStatus;
   priority: IncidentPriority;
   assignedAt: string;
+  photoUrl?: string | null;
 }
 
 
@@ -176,7 +185,7 @@ export interface IncidentDetailBaseResponse {
     photoUrl: string | null;
   } | null;
 
-  status: string;
+  status: IncidentStatus;
   assignedAt?: string;
   assignedTo?: {
     id: string;
@@ -337,4 +346,68 @@ export interface ResolutionOverallResult {
 export interface ResolutionMetricsResult {
   overall: ResolutionOverallResult;
   byCategory: ResolutionByCategoryResult[];
+}
+
+export interface SubDistrictResponse {
+  id: string;
+  name: string;
+  polygon: {
+    type: "Polygon" | "MultiPolygon";
+    coordinates: number[][][] | number[][][][];
+  };
+  municipalityId: string;
+  status: "active" | "inactive";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SubDistrictsApiResponse {
+  message: string;
+  data: SubDistrictResponse[];
+}
+
+export interface GeographicStatItem {
+  subDistrictId: string;
+  subDistrictName: string;
+  total: number;
+  open: number;
+  assigned: number;
+  resolved: number;
+  closed: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
+export interface GeographicStatsResult {
+  withSubDistrict: GeographicStatItem[];
+  withoutSubDistrict: number;
+}
+
+export interface TemporalStatItem {
+  period: string;
+  total: number;
+  open: number;
+  resolved: number;
+  closed: number;
+}
+
+export interface OperatorStatItem {
+  operatorId: string;
+  operatorName: string;
+  total: number;
+  resolved: number;
+  closed: number;
+  avgResolutionHours: number | null;
+}
+
+export interface PriorityStatItem {
+  priority: string;
+  total: number;
+}
+
+export interface ExtendedStatsResult {
+  temporal: TemporalStatItem[];
+  byOperator: OperatorStatItem[];
+  byPriority: PriorityStatItem[];
 }
