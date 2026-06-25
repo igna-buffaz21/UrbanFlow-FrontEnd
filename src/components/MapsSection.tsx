@@ -118,11 +118,21 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
     const [hoveredHeatmapPoint, setHoveredHeatmapPoint] = useState<{
         id: string; title: string; priority: string; status: string;
     } | null>(null);
-    const [heatmapPriority, setHeatmapPriority] = useState<string>("high");
+    const [heatmapCategory, setHeatmapCategory] = useState<string>("all");
     const [heatmapStatus, setHeatmapStatus] = useState<string>("all");
     const [heatmapTooltipPos, setHeatmapTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
     const choroplethMapRef = useRef<MapRef>(null);
+
+    const availableCategories = useMemo(() => {
+        const seen = new globalThis.Map<string, string>();
+        for (const i of incidents) {
+            if (i.category && !seen.has(i.category.name)) {
+                seen.set(i.category.name, i.category.label);
+            }
+        }
+        return Array.from(seen.entries()).map(([name, label]) => ({ name, label }));
+    }, [incidents]);
 
     function getMostCommonCategory(zoneIncidents: Incident[]): string | null {
         const counts = new globalThis.Map<string, { count: number; name: string; maxPriority: number }>();
@@ -157,6 +167,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
         // Empate total (misma cantidad, misma prioridad máxima) -> al azar
         return topByPriority[Math.floor(Math.random() * topByPriority.length)].name;
     }
+
 
     useEffect(() => {
         if (!user?.municipalityId) return;
@@ -209,7 +220,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                 Array.isArray(i.location.coordinates) &&
                 i.location.coordinates.length === 2 &&
                 i.status !== "in_progress" &&
-                (heatmapPriority === "all" || i.priority === heatmapPriority) &&
+                (heatmapCategory === "all" || i.category?.name === heatmapCategory) &&
                 (heatmapStatus === "all" || i.status === heatmapStatus)
             )
             .map(i => ({
@@ -219,7 +230,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                 title: i.title,
                 status: i.status,
             })),
-        [incidents, heatmapPriority, heatmapStatus]);
+        [incidents, heatmapCategory, heatmapStatus]);
 
     const selectedSubDistrictIncidents = useMemo(() => {
         if (!selectedSubDistrict) return [];
@@ -450,16 +461,17 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                         </div>
                         <div className="flex gap-3 shrink-0">
                             <div className="flex flex-col gap-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Prioridad</span>
-                                <Select value={heatmapPriority} onValueChange={setHeatmapPriority}>
-                                    <SelectTrigger className="w-36 h-8 text-xs">
-                                        <SelectValue placeholder="Prioridad" />
+                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Categoría</span>
+                                <Select value={heatmapCategory} onValueChange={setHeatmapCategory}>
+                                    <SelectTrigger className="w-56 h-8 text-xs">                                        <SelectValue placeholder="Categoría" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent position="popper" side="bottom" sideOffset={4}>
                                         <SelectItem value="all">Todas</SelectItem>
-                                        <SelectItem value="low">Baja</SelectItem>
-                                        <SelectItem value="medium">Media</SelectItem>
-                                        <SelectItem value="high">Alta</SelectItem>
+                                        {availableCategories.map(cat => (
+                                            <SelectItem key={cat.name} value={cat.name}>
+                                                {cat.label}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -469,7 +481,7 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                                     <SelectTrigger className="w-36 h-8 text-xs">
                                         <SelectValue placeholder="Estado" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent position="popper" side="bottom" sideOffset={4}>
                                         <SelectItem value="all">Todos</SelectItem>
                                         <SelectItem value="open">Abierto</SelectItem>
                                         <SelectItem value="in_review">En revisión</SelectItem>
