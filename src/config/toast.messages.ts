@@ -18,6 +18,16 @@ export const TOAST_MESSAGES = {
     profileError: "No pudimos guardar tus datos. Revisá la información e intentá nuevamente.",
   },
 
+  users: {
+    adminInviteSuccess: "Administrador invitado correctamente.",
+    operatorInviteSuccess: "Operador invitado correctamente.",
+  },
+
+  municipalities: {
+    createSuccess: "Municipio creado correctamente.",
+    createError: "No se pudo crear el municipio.",
+  },
+
   location: {
     permissionError: "No pudimos obtener tu ubicación. Revisá los permisos del navegador.",
   },

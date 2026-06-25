@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MoreHorizontalIcon, PlusIcon, SearchIcon, UserCheck, UserX, UserPlus } from "lucide-react";
 
 import { APP_ROUTES } from "@/config/app.routes";
+import { TOAST_MESSAGES } from "@/config/toast.messages";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -77,6 +79,9 @@ export function ShowUsersPage() {
 
   const createButtonText = isSuperAdmin ? "Crear administrador" : "Crear operador";
   const userLabel = isSuperAdmin ? "administrador" : "operador";
+  const isCreateFormComplete =
+    createEmail.trim().length > 0 &&
+    (!isSuperAdmin || createMunicipalityId.length > 0);
 
   const filtered = users.filter((user) => {
     const normalizedSearch = search.toLowerCase();
@@ -190,7 +195,9 @@ export function ShowUsersPage() {
         municipalityId,
       });
       notify.success(
-        `${isSuperAdmin ? "Administrador" : "Operador"} invitado correctamente.`
+        isSuperAdmin
+          ? TOAST_MESSAGES.users.adminInviteSuccess
+          : TOAST_MESSAGES.users.operatorInviteSuccess
       );
       setCreateEmail("");
       setCreateMunicipalityId("");
@@ -209,8 +216,8 @@ export function ShowUsersPage() {
   }
 
   return (
-    <div className="flex justify-center p-6">
-      <div className="w-full max-w-3xl space-y-4">
+    <div className="w-full p-6">
+      <div className="w-full space-y-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -284,7 +291,16 @@ export function ShowUsersPage() {
                         </TableCell>
 
                         <TableCell className="text-muted-foreground">
-                          {user.status === "active" ? "Activo" : "Inactivo"}
+                          <Badge
+                            variant="outline"
+                            className={
+                              user.status === "active"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                : "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300"
+                            }
+                          >
+                            {user.status === "active" ? "Activo" : "Inactivo"}
+                          </Badge>
                         </TableCell>
 
                         <TableCell className="text-right">
@@ -473,7 +489,7 @@ export function ShowUsersPage() {
                   Cancelar
                 </Button>
 
-                <Button type="submit" disabled={isCreating}>
+                <Button type="submit" disabled={isCreating || !isCreateFormComplete}>
                   <UserPlus className="size-4" />
                   {isCreating ? "Creando..." : createButtonText}
                 </Button>

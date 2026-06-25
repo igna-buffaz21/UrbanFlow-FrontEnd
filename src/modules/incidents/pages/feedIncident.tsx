@@ -33,8 +33,18 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  fallen_trees: "Árboles caídos",
-  road_damage: "Daños en la vía",
+  road_damage: "Baches y calzada",
+  fallen_trees: "Árboles y ramas caídas",
+  street_lighting: "Alumbrado público",
+  traffic_signals: "Semáforos y señalización",
+  waste_management: "Residuos y limpieza urbana",
+  sidewalks: "Veredas y espacios peatonales",
+  water_and_sewer: "Agua y cloacas",
+  animals: "Animales en la vía pública",
+  vandalism: "Vandalismo y daños",
+  green_spaces: "Espacios verdes",
+  noise_complaints: "Ruido o molestias",
+  other: "Otros",
 };
 
 function timeAgo(dateString: string): string {
