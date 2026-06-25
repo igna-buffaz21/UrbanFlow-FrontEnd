@@ -8,6 +8,7 @@ export const API_ROUTES = {
     inviteUser: "/users/invite",
     updateUserStatus: (id: string) => `/users/${id}/status`,
     updateMyProfile: "/users/me/profile",
+    citizenStats: "/users/stats/citizens",
   },
 
   municipalities: {

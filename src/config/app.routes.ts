@@ -10,6 +10,7 @@ export const APP_ROUTES = {
     root: "/panel",
     users: "/panel/users",
     createUser: "/panel/users/create",
+    citizens: "/panel/citizens",
     incidents: "/panel/incidents",
     incidentDetail: "incidents/:id",
     incidentDetailPath: (id: string) => `/panel/incidents/${id}`,
@@ -22,6 +23,9 @@ export const APP_ROUTES = {
     incidentResolvedDetail: "/panel/incidents/resolved/:id",
     incidentResolvedDetailPath: (id: string) => `/panel/incidents/resolved/${id}`,
     incidentStats: "/panel/incidents/stats",
+    incidentUrgentStats: "/panel/incidents/stats/urgent",
+    incidentMap: "/panel/incidents/map",
+    citizenStats: "/panel/users/stats",
   },
 
   operator: {

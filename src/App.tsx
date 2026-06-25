@@ -22,12 +22,14 @@ import { USER_ROLES } from "./config/const.globs";
 
 import AdminDashboardPage from "./modules/home/pages/dashboard.page";
 import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
+import { ShowCitizensPage } from "./modules/users/pages/showCitizens.page";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import { CompleteProfilePage } from "./modules/users/pages/completeProfile.page";
 import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
 import { IncidentStatsPage } from "./modules/incidents/pages/incidentStatsAdmin";
+import { UrgentStatsPage } from "./modules/incidents/pages/urgentStatsAdmin";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
@@ -40,8 +42,10 @@ import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolve
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
+import { CitizenStatsPage } from "./modules/users/pages/userCitizenStats.page";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
+import { AdminIncidentMapPage } from "./modules/incidents/pages/incidentMapAdmin";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -98,6 +102,25 @@ function App() {
             <Route index element={<AdminDashboardPage />} />
 
             <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
+
+
+            <Route
+              path={APP_ROUTES.panel.citizens}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <ShowCitizensPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.citizenStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <CitizenStatsPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path={APP_ROUTES.panel.municipalities}
@@ -163,10 +186,28 @@ function App() {
             />
 
             <Route
+              path={APP_ROUTES.panel.incidentMap}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <AdminIncidentMapPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path={APP_ROUTES.panel.incidentStats}
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
                   <IncidentStatsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.incidentUrgentStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <UrgentStatsPage />
                 </ProtectedRoute>
               }
             />

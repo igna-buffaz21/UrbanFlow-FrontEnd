@@ -410,4 +410,8 @@ export interface ExtendedStatsResult {
   temporal: TemporalStatItem[];
   byOperator: OperatorStatItem[];
   byPriority: PriorityStatItem[];
+  groupBy: TemporalGroupBy;
 }
+
+export type TemporalGroupBy = "day" | "week" | "month";
+
