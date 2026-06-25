@@ -68,5 +68,6 @@ export const API_ROUTES = {
   system: {
     current: "/superadmin/system/current",
     history: "/superadmin/system/history",
+    overview: "/superadmin/system/overview",
   }
 } as const;

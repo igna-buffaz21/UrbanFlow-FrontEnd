@@ -48,3 +48,49 @@ export interface GetSystemHistoryParams {
   from?: string;
   to?: string;
 }
+
+export interface SystemOverview {
+  generatedAt: string;
+  users: {
+    total: number;
+    active: number;
+    pending: number;
+    inactive: number;
+    blocked: number;
+    newToday: number;
+    newLast7Days: number;
+    byRole: Record<string, number>;
+    byStatus: Record<string, number>;
+  };
+  incidents: {
+    total: number;
+    active: number;
+    resolved: number;
+    closed: number;
+    rejected: number;
+    canceled: number;
+    createdToday: number;
+    createdLast7Days: number;
+    byStatus: Record<string, number>;
+    byPriority: Record<string, number>;
+  };
+  municipalities: {
+    total: number;
+    active: number;
+    inactive: number;
+    byStatus: Record<string, number>;
+  };
+  coverage: {
+    districts: number;
+    subDistricts: number;
+    activeSubDistricts: number;
+    categories: number;
+  };
+  engagement: {
+    reports: number;
+    comments: number;
+    visibleComments: number;
+    pendingIncidents: number;
+    pendingDuplicateConfirmations: number;
+  };
+}

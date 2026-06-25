@@ -64,6 +64,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: APP_ROUTES.panel.systemStats,
       icon: <Activity />,
       allowedRoles: [USER_ROLES.SUPERADMIN],
+      items: [
+        {
+          title: "Uso de VPS",
+          url: APP_ROUTES.panel.systemStats,
+        },
+        {
+          title: "Uso global",
+          url: APP_ROUTES.panel.systemOverview,
+        },
+      ],
     },
     {
       title: user?.role === USER_ROLES.SUPERADMIN ? "Administradores" : "Operadores",

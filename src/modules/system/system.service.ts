@@ -4,6 +4,7 @@ import type {
   GetSystemHistoryParams,
   SystemCurrentMetrics,
   SystemHistorySnapshot,
+  SystemOverview,
 } from "./system.types";
 
 export const systemService = {
@@ -17,6 +18,12 @@ export const systemService = {
     const response = await api.get<SystemHistorySnapshot[]>(API_ROUTES.system.history, {
       params,
     });
+
+    return response.data;
+  },
+
+  async getOverview(): Promise<SystemOverview> {
+    const response = await api.get<SystemOverview>(API_ROUTES.system.overview);
 
     return response.data;
   },
