@@ -71,6 +71,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
+          title: "Visualizar",
+          url: APP_ROUTES.panel.incidents,
+        },
+        {
           title: "Resueltos",
           url: APP_ROUTES.panel.incidentResolved,
         },
@@ -96,23 +100,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
         {
           title: "Urgentes",
-          url: APP_ROUTES.panel.incidentHistory,
+          url: APP_ROUTES.panel.incidentUrgentStats,
         },
       ],
     },
     {
       title: "Usuarios",
-      url: APP_ROUTES.panel.incidents,
+      url: APP_ROUTES.panel.citizens,
       icon: <User />,
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
         {
           title: "Visualizar",
-          url: APP_ROUTES.panel.incidentResolved,
+          url: APP_ROUTES.panel.citizens,
         },
         {
           title: "Estadísticas",
-          url: APP_ROUTES.panel.incidentHistory,
+          url: APP_ROUTES.panel.citizenStats,
         },
       ],
     },

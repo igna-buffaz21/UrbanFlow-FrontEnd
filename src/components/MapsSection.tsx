@@ -448,31 +448,37 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                             <CardTitle>Mapa de calor</CardTitle>
                             <CardDescription>Concentración de incidentes por zona con filtros por estado y categoría.</CardDescription>
                         </div>
-                        <div className="flex gap-2 shrink-0">
-                            <Select value={heatmapPriority} onValueChange={setHeatmapPriority}>
-                                <SelectTrigger className="w-36 h-8 text-xs">
-                                    <SelectValue placeholder="Prioridad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Todas</SelectItem>
-                                    <SelectItem value="low">Baja</SelectItem>
-                                    <SelectItem value="medium">Media</SelectItem>
-                                    <SelectItem value="high">Alta</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Select value={heatmapStatus} onValueChange={setHeatmapStatus}>
-                                <SelectTrigger className="w-36 h-8 text-xs">
-                                    <SelectValue placeholder="Estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Todos</SelectItem>
-                                    <SelectItem value="open">Abierto</SelectItem>
-                                    <SelectItem value="in_review">En revisión</SelectItem>
-                                    <SelectItem value="assigned">Asignado</SelectItem>
-                                    <SelectItem value="resolved">Resuelto</SelectItem>
-                                    <SelectItem value="closed">Cerrado</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="flex gap-3 shrink-0">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Prioridad</span>
+                                <Select value={heatmapPriority} onValueChange={setHeatmapPriority}>
+                                    <SelectTrigger className="w-36 h-8 text-xs">
+                                        <SelectValue placeholder="Prioridad" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas</SelectItem>
+                                        <SelectItem value="low">Baja</SelectItem>
+                                        <SelectItem value="medium">Media</SelectItem>
+                                        <SelectItem value="high">Alta</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Estado</span>
+                                <Select value={heatmapStatus} onValueChange={setHeatmapStatus}>
+                                    <SelectTrigger className="w-36 h-8 text-xs">
+                                        <SelectValue placeholder="Estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos</SelectItem>
+                                        <SelectItem value="open">Abierto</SelectItem>
+                                        <SelectItem value="in_review">En revisión</SelectItem>
+                                        <SelectItem value="assigned">Asignado</SelectItem>
+                                        <SelectItem value="resolved">Resuelto</SelectItem>
+                                        <SelectItem value="closed">Cerrado</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
@@ -512,8 +518,6 @@ export function MapsSection({ incidents, onViewIncidentDetail }: MapsSectionProp
                     </div>
                 </CardContent>
             </Card>
-
-
 
         </div>
     );

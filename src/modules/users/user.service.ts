@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { CreateUserDto, GetUser, User, OperatorDetail, UpdateMyProfileData } from "./user.types";
+import type { CreateUserDto, GetUser, User, OperatorDetail, UpdateMyProfileData, CitizenDetail, PaginatedCitizensResponse  } from "./user.types";
 import { API_ROUTES } from "@/config/api.routes";
 
 export const userService = {
@@ -9,9 +9,9 @@ export const userService = {
   },
 
   async updateMyProfile(data: UpdateMyProfileData) {
-  const response = await api.patch(API_ROUTES.users.updateMyProfile, data);
-  return response.data;
-},
+    const response = await api.patch(API_ROUTES.users.updateMyProfile, data);
+    return response.data;
+  },
 
   async getUserById(id: string) {
     const response = await api.get<User>(API_ROUTES.users.getUserById(id));
@@ -43,10 +43,12 @@ export const userService = {
     return response.data;
   },
 
-  async getCitizens(): Promise<User[]> {
+  async getCitizens(page: number, limit: number): Promise<PaginatedCitizensResponse> {
     const response = await api.get(API_ROUTES.users.getUsers, {
       params: {
         role: "citizen",
+        page,
+        limit,
       },
     });
 
@@ -60,6 +62,11 @@ export const userService = {
 
   async getOperatorById(id: string): Promise<OperatorDetail> {
     const response = await api.get<OperatorDetail>(API_ROUTES.users.getUserById(id));
+    return response.data;
+  },
+
+  async getCitizenById(id: string): Promise<CitizenDetail> {
+    const response = await api.get<CitizenDetail>(API_ROUTES.users.getUserById(id));
     return response.data;
   },
 };

@@ -20,7 +20,7 @@ import { TriangleAlert, UserCheck, UserX, Trash2 } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { districtsService } from "@/modules/districts/district.service";
 import centerOfMass from "@turf/center-of-mass";
-import { PRIORITY_LABELS, PRIORITY_STYLES, STATUS_LABELS } from "../incidents.constants";
+import { PRIORITY_LABELS, STATUS_LABELS } from "../incidents.constants";
 import {
     Dialog as ConfirmDialog,
     DialogContent as ConfirmDialogContent,

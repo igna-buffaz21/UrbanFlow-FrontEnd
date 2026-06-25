@@ -188,6 +188,11 @@ export const incidentsService = {
     return response.data;
   },
 
-
+  async getDetailByPublicCode(publicCode: string): Promise<IncidentDetailResponse> {
+    const response = await api.get<IncidentDetailResponse>(
+      `/incidents/code/${publicCode.toUpperCase()}`
+    );
+    return response.data;
+  },
 
 };
