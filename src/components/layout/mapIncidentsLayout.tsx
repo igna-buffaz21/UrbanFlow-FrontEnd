@@ -24,7 +24,7 @@ type MapIncidentLayoutProps = {
 type IncidentPriority = "low" | "medium" | "high";
 //type IncidentStatus = "pending" | "in_review" | "resolved" | "rejected";
 
-const DEFAULT_RADIUS = 1000;
+const DEFAULT_RADIUS = 2000;
 const MAX_ACCEPTED_ACCURACY = 4000;
 function getPriorityLabel(priority: IncidentPriority) {
   const labels: Record<IncidentPriority, string> = {
