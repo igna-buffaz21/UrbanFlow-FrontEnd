@@ -15,10 +15,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  TerminalSquareIcon,
+  HardHat,
   LifeBuoyIcon,
   PieChartIcon,
   MapIcon,
+  ChartColumnIncreasing,
+  User,
+  OctagonAlert,
+  Activity,
 } from "lucide-react";
 
 import logo from "@/assets/logo2.png";
@@ -56,17 +60,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       allowedRoles: [USER_ROLES.SUPERADMIN],
     },
     {
+      title: "Estadísticas de uso",
+      url: APP_ROUTES.panel.systemStats,
+      icon: <Activity />,
+      allowedRoles: [USER_ROLES.SUPERADMIN],
+      items: [
+        {
+          title: "Uso de VPS",
+          url: APP_ROUTES.panel.systemStats,
+        },
+        {
+          title: "Uso global",
+          url: APP_ROUTES.panel.systemOverview,
+        },
+      ],
+    },
+    {
       title: user?.role === USER_ROLES.SUPERADMIN ? "Administradores" : "Operadores",
       url: APP_ROUTES.panel.users,
-      icon: <TerminalSquareIcon />,
+      icon: <HardHat />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
     },
     {
       title: "Incidentes",
       url: APP_ROUTES.panel.incidents,
-      icon: <MapIcon />,
+      icon: <OctagonAlert />,
       allowedRoles: [USER_ROLES.ADMIN],
       items: [
+        {
+          title: "Visualizar",
+          url: APP_ROUTES.panel.incidents,
+        },
         {
           title: "Resueltos",
           url: APP_ROUTES.panel.incidentResolved,
@@ -76,8 +100,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.incidentHistory,
         },
         {
-          title: "Estadísticas",
+          title: "Mapa",
+          url: APP_ROUTES.panel.incidentMap,
+        },
+      ],
+    },
+    {
+      title: "Estadísticas",
+      url: APP_ROUTES.panel.incidentStats,
+      icon: <ChartColumnIncreasing />,
+      allowedRoles: [USER_ROLES.ADMIN],
+      items: [
+        {
+          title: "Principal",
           url: APP_ROUTES.panel.incidentStats
+        },
+        {
+          title: "Urgentes",
+          url: APP_ROUTES.panel.incidentUrgentStats,
+        },
+      ],
+    },
+    {
+      title: "Usuarios",
+      url: APP_ROUTES.panel.citizens,
+      icon: <User />,
+      allowedRoles: [USER_ROLES.ADMIN],
+      items: [
+        {
+          title: "Visualizar",
+          url: APP_ROUTES.panel.citizens,
+        },
+        {
+          title: "Estadísticas",
+          url: APP_ROUTES.panel.citizenStats,
         },
       ],
     },
@@ -102,7 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navSecondary = [
     {
       title: "Soporte",
-      url: "/panel/support",
+      url: APP_ROUTES.panel.support,
       icon: <LifeBuoyIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
     }

@@ -29,7 +29,7 @@ const PRIORITY_WEIGHT: Record<string, number> = {
 export function MapHeatmapLayer({
     points,
     opacity = 0.8,
-    radius = 30,
+    radius = 18,
     intensity = 1,
     onPointHover,
 }: MapHeatmapLayerProps) {
@@ -107,7 +107,7 @@ export function MapHeatmapLayer({
             type: "circle",
             source: pointsSourceId,
             paint: {
-                "circle-radius": 14,
+                "circle-radius": 8,
                 "circle-color": "rgba(0,0,0,0)",  // invisible
                 "circle-stroke-width": 0,
             },

@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "@/config/app.routes";
 
 import {
     Card,
@@ -21,36 +19,37 @@ import { Badge } from "@/components/ui/badge";
 import { incidentsService } from "../incidents.service";
 import type { Incident } from "../incidents.type";
 import { PRIORITY_LABELS, PRIORITY_STYLES } from "../incidents.constants";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ResolvedIncidentDetail } from "../pages/resolvedIncidentDetail";
 export function ShowResolvedIncidentsPage() {
-    const navigate = useNavigate();
 
     const [incidents, setIncidents] = useState<Incident[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+    async function fetchIncidents() {
+        try {
+            setIsLoading(true);
+            const response = await incidentsService.getIncidents({
+                status: "resolved",
+            });
+            setIncidents(response);
+        } catch (error) {
+            console.error("Error al cargar incidentes resueltos:", error);
+            setIncidents([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function getIncidents() {
-            try {
-                setIsLoading(true);
-
-                const response = await incidentsService.getIncidents({
-                    status: "resolved",
-                });
-
-                setIncidents(response);
-            } catch (error) {
-                console.error("Error al cargar incidentes resueltos:", error);
-                setIncidents([]);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        getIncidents();
+        fetchIncidents();
     }, []);
 
     return (
-        <div className="flex justify-center p-6">
-            <div className="w-full max-w-4xl space-y-4">
+        <div className="w-full p-6">
+            <div className="w-full space-y-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Incidentes resueltos</CardTitle>
@@ -95,8 +94,9 @@ export function ShowResolvedIncidentsPage() {
                                             <TableRow
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() =>
-                                                    navigate(APP_ROUTES.panel.incidentResolvedDetailPath(incident.id))
+                                                onClick={() => {
+                                                    setSelectedId(incident.id); setIsDetailOpen(true);
+                                                }
                                                 }
                                             >
                                                 <TableCell className="font-medium">
@@ -129,6 +129,15 @@ export function ShowResolvedIncidentsPage() {
                     </CardContent>
                 </Card>
             </div>
+            <Dialog open={isDetailOpen} onOpenChange={(open) => { setIsDetailOpen(open); if (!open) setSelectedId(null); }}>
+                <DialogContent className="!max-w-[800px] w-full max-h-[90vh] overflow-y-auto">
+                    {selectedId && (
+                        <ResolvedIncidentDetail
+                            id={selectedId}
+                            onClose={() => { setIsDetailOpen(false); setSelectedId(null); setTimeout(() => fetchIncidents(), 500); }} />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

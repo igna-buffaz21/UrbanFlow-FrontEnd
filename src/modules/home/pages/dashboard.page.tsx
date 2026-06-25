@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuthUser } from "@/modules/auth/auth.context";
 import { incidentsService } from "@/modules/incidents/incidents.service";
 import { IncidentDetailCard } from "@/components/IncidentDetailCard";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MapsSection } from "@/components/MapsSection";
 import { api } from "@/lib/axios";
 import { API_ROUTES } from "@/config/api.routes";
+import { useAuthUser } from "@/modules/auth/auth.context";
 
 import type { Incident, AdminIncidentDetail } from "@/modules/incidents/incidents.type";
 import type {
@@ -64,12 +64,11 @@ function MetricCard({ title, value, subtitle, icon, iconColor }: MetricCardProps
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function AdminDashboardPage() {
-    const { user } = useAuthUser();
-
     // Datos
     const [incidents, setIncidents] = useState<Incident[]>(dashboardCache?.incidents ?? []);
     const [resolution, setResolution] = useState<ResolutionMetricsResult | null>(dashboardCache?.resolution ?? null);
     const [isLoading, setIsLoading] = useState(!dashboardCache);
+    const { user } = useAuthUser();
 
     // UI
     const [selectedIncident, setSelectedIncident] = useState<AdminIncidentDetail | null>(null);
@@ -117,9 +116,20 @@ export default function AdminDashboardPage() {
         }
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="size-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
+                    <p className="text-sm font-medium text-foreground">Cargando dashboard...</p>
+                    <p className="text-xs text-muted-foreground">Estamos preparando el resumen de tu municipio</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-6 space-y-6 max-w-7xl mx-auto">
-            {/* Header */}
+        <div className="w-full p-6 space-y-6">
             <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
                     Bienvenido, {user?.name?.split(" ")[0] ?? "admin"}
@@ -130,52 +140,36 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* ── Metric cards ── */}
-            {isLoading ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <Card key={i}>
-                            <CardContent className="p-5">
-                                <div className="h-20 animate-pulse bg-muted rounded-md" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <MetricCard
-                        title="Total incidentes"
-                        value={overall?.totalIncidents ?? 0}
-                        subtitle="Registrados en tu municipio"
-                        icon={<TrendingUp className="size-5" />}
-                        iconColor="text-blue-500"
-                    />
-                    <MetricCard
-                        title="Tasa de cierre"
-                        value={`${overall?.closureRate ?? 0}%`}
-                        subtitle={`${overall?.closedIncidents ?? 0} cerrados de ${overall?.totalIncidents ?? 0}`}
-                        icon={<CheckCircle2 className="size-5" />}
-                        iconColor="text-green-500"
-                    />
-                    <MetricCard
-                        title="Alta prioridad"
-                        value={overall?.criticalIncidents ?? 0}
-                        subtitle="Incidentes críticos activos"
-                        icon={<Flame className="size-5" />}
-                        iconColor="text-red-500"
-                    />
-                    <MetricCard
-                        title="Tiempo promedio"
-                        value={
-                            overall?.avgResolutionHours != null
-                                ? `${overall.avgResolutionHours}h`
-                                : "—"
-                        }
-                        subtitle="Promedio de resolución"
-                        icon={<Clock4 className="size-5" />}
-                        iconColor="text-orange-500"
-                    />
-                </div>
-            )}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <MetricCard
+                    title="Total incidentes"
+                    value={overall?.totalIncidents ?? 0}
+                    subtitle="Registrados en tu municipio"
+                    icon={<TrendingUp className="size-5" />}
+                    iconColor="text-blue-500"
+                />
+                <MetricCard
+                    title="Tasa de cierre"
+                    value={`${overall?.closureRate ?? 0}%`}
+                    subtitle={`${overall?.closedIncidents ?? 0} cerrados de ${overall?.totalIncidents ?? 0}`}
+                    icon={<CheckCircle2 className="size-5" />}
+                    iconColor="text-green-500"
+                />
+                <MetricCard
+                    title="Alta prioridad"
+                    value={overall?.criticalIncidents ?? 0}
+                    subtitle="Incidentes críticos activos"
+                    icon={<Flame className="size-5" />}
+                    iconColor="text-red-500"
+                />
+                <MetricCard
+                    title="Tiempo promedio"
+                    value={overall?.avgResolutionHours != null ? `${overall.avgResolutionHours}h` : "—"}
+                    subtitle="Promedio de resolución"
+                    icon={<Clock4 className="size-5" />}
+                    iconColor="text-orange-500"
+                />
+            </div>
 
             {/* ── Mapas uno debajo del otro ── */}
             <div className="space-y-4">

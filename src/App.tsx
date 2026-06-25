@@ -20,17 +20,18 @@ import { Toaster } from "sonner";
 import { APP_ROUTES } from "./config/app.routes";
 import { USER_ROLES } from "./config/const.globs";
 
-import AdminDashboardPage from "./modules/home/pages/dashboard.page";
 import { ShowUsersPage } from "./modules/users/pages/showUsers.page";
+import { ShowCitizensPage } from "./modules/users/pages/showCitizens.page";
 import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import { CompleteProfilePage } from "./modules/users/pages/completeProfile.page";
-import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
 import { IncidentStatsPage } from "./modules/incidents/pages/incidentStatsAdmin";
+import { UrgentStatsPage } from "./modules/incidents/pages/urgentStatsAdmin";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
+import { MunicipalityUsagePage } from "./modules/municipalities/pages/municipalityUsage.page";
 
 import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidentsAdmin";
@@ -40,8 +41,14 @@ import { ShowResolvedIncidentsPage } from "./modules/incidents/pages/showResolve
 import { ShowOperatorIncidents } from "./modules/incidents/pages/showOperatorIncidents";
 import { ShowIncidentsCitizen } from "./modules/incidents/pages/showIncidentCitizen";
 import { ShowReportsCitizen } from "./modules/incidents/pages/showMyReports";
+import { CitizenStatsPage } from "./modules/users/pages/userCitizenStats.page";
 import IncidentFeed from "./modules/incidents/pages/feedIncident";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
+import { AdminIncidentMapPage } from "./modules/incidents/pages/incidentMapAdmin";
+import { PanelHomePage } from "./components/panelAdmins";
+import { SystemMetricsPage } from "./modules/system/pages/systemMetrics.page";
+import { SystemOverviewPage } from "./modules/system/pages/systemOverview.page";
+import { SupportPage } from "./modules/support/pages/support.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -95,9 +102,28 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<AdminDashboardPage />} />
+            <Route index element={<PanelHomePage />} />
 
             <Route path={APP_ROUTES.panel.users} element={<ShowUsersPage />} />
+
+
+            <Route
+              path={APP_ROUTES.panel.citizens}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <ShowCitizensPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.citizenStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <CitizenStatsPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path={APP_ROUTES.panel.municipalities}
@@ -113,6 +139,33 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
                   <CreateMunicipality />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.municipalityUsage}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                  <MunicipalityUsagePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.systemStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                  <SystemMetricsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.systemOverview}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                  <SystemOverviewPage />
                 </ProtectedRoute>
               }
             />
@@ -145,15 +198,6 @@ function App() {
             />
 
             <Route
-              path={APP_ROUTES.panel.incidentResolvedDetail}
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-                  <ResolvedIncidentDetailPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
               path={APP_ROUTES.panel.incidentHistory}
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
@@ -163,10 +207,28 @@ function App() {
             />
 
             <Route
+              path={APP_ROUTES.panel.incidentMap}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <AdminIncidentMapPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path={APP_ROUTES.panel.incidentStats}
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
                   <IncidentStatsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.incidentUrgentStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+                  <UrgentStatsPage />
                 </ProtectedRoute>
               }
             />
@@ -185,6 +247,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
                   <OperatorDetailPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.support}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                  <SupportPage />
                 </ProtectedRoute>
               }
             />

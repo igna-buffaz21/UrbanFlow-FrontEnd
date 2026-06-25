@@ -27,6 +27,7 @@ import {
     Clock,
     CheckCircle2,
     XCircle,
+    ExternalLink,
     type LucideIcon,
 } from "lucide-react";
 import type { IncidentDetailResponse, AdminIncidentDetail } from "../modules/incidents/incidents.type"
@@ -113,9 +114,20 @@ export function IncidentDetailCard({
 
                 {showMap && incident.location && (
                     <div className="space-y-2">
-                        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                            Ubicación del incidente
-                        </span>
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Ubicación del incidente
+                            </span>
+                            <a
+                                href={`https://www.google.com/maps?q=${incident.location.coordinates[1]},${incident.location.coordinates[0]}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                            >
+                                Ver en Google Maps
+                                <ExternalLink className="size-3" />
+                            </a>
+                        </div>
                         <div className="h-80 overflow-hidden rounded-lg border">
                             <Map center={incident.location.coordinates} zoom={16}>
                                 <MapMarker
@@ -223,6 +235,6 @@ export function IncidentDetailCard({
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     );
 }

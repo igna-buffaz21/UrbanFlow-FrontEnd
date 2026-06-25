@@ -100,8 +100,8 @@ export function ShowIncidentsHistoryPage() {
     const hasMore = incidents.length < total;
 
     return (
-        <div className="flex justify-center p-6">
-            <div className="w-full max-w-4xl space-y-4">
+        <div className="w-full p-6">
+            <div className="w-full space-y-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Historial de incidentes</CardTitle>

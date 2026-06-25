@@ -8,11 +8,13 @@ export const API_ROUTES = {
     inviteUser: "/users/invite",
     updateUserStatus: (id: string) => `/users/${id}/status`,
     updateMyProfile: "/users/me/profile",
+    citizenStats: "/users/stats/citizens",
   },
 
   municipalities: {
     getMunicipalities: "/municipalities",
     createMunicipality: "/municipalities",
+    updateMunicipalityStatus: (id: string) => `/municipalities/${id}`,
   },
 
 
@@ -62,5 +64,12 @@ export const API_ROUTES = {
     resolution: "/incidents/stats/resolution",
     geographic: "/incidents/stats/geographic",
     extended: "/incidents/stats/extended",
+  },
+
+  system: {
+    current: "/superadmin/system/current",
+    history: "/superadmin/system/history",
+    overview: "/superadmin/system/overview",
+    municipalityUsage: (id: string) => `/superadmin/system/municipalities/${id}/usage`,
   }
 } as const;
