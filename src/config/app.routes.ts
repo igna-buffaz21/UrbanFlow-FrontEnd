@@ -30,6 +30,7 @@ export const APP_ROUTES = {
     citizenStats: "/panel/users/stats",
     systemStats: "/panel/system/stats",
     systemOverview: "/panel/system/overview",
+    support: "/panel/support",
   },
 
   operator: {

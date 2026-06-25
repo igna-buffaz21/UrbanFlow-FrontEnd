@@ -158,7 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navSecondary = [
     {
       title: "Soporte",
-      url: "/panel/support",
+      url: APP_ROUTES.panel.support,
       icon: <LifeBuoyIcon />,
       allowedRoles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN],
     }

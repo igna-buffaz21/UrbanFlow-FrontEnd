@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter } from "@/components/ui/card";
+import { TOAST_MESSAGES } from "@/config/toast.messages";
 import {
   Field,
   FieldGroup,
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { notify } from "@/lib/notify";
 import { districtsService } from "@/modules/districts/district.service";
 import type { Disctrict } from "@/modules/districts/district.type";
 import { useEffect, useState } from "react";
@@ -42,6 +44,7 @@ export function CreateMunicipality({
   const [districts, setDistricts] = useState<Disctrict[]>([]);
   const [form, setForm] = useState<CreateMunicipalityForm>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isFormComplete = form.name.trim().length > 0 && form.districtId.length > 0;
 
   useEffect(() => {
     async function getDistricts() {
@@ -56,12 +59,12 @@ export function CreateMunicipality({
     event.preventDefault();
 
     if (!form.name.trim()) {
-      alert("El nombre de la municipalidad es obligatorio");
+      notify.error("El nombre de la municipalidad es obligatorio.");
       return;
     }
 
     if (!form.districtId) {
-      alert("El distrito es obligatorio");
+      notify.error("El distrito es obligatorio.");
       return;
     }
 
@@ -74,14 +77,15 @@ export function CreateMunicipality({
       });
 
       setForm(initialForm);
+      notify.success(TOAST_MESSAGES.municipalities.createSuccess);
       onCreated?.();
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
         error?.message ||
-        "No se pudo crear el municipio";
+        TOAST_MESSAGES.municipalities.createError;
 
-      alert(message);
+      notify.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +158,7 @@ export function CreateMunicipality({
           Cancelar
         </Button>
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || !isFormComplete}>
           {isSubmitting ? "Creando..." : "Crear municipio"}
         </Button>
       </CardFooter>

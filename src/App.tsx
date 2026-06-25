@@ -48,6 +48,7 @@ import { AdminIncidentMapPage } from "./modules/incidents/pages/incidentMapAdmin
 import { PanelHomePage } from "./components/panelAdmins";
 import { SystemMetricsPage } from "./modules/system/pages/systemMetrics.page";
 import { SystemOverviewPage } from "./modules/system/pages/systemOverview.page";
+import { SupportPage } from "./modules/support/pages/support.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -246,6 +247,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
                   <OperatorDetailPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.support}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN]}>
+                  <SupportPage />
                 </ProtectedRoute>
               }
             />
