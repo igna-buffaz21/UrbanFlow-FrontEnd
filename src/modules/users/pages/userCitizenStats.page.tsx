@@ -129,7 +129,7 @@ export function CitizenStatsPage() {
     }
 
     return (
-        <div className="p-6 space-y-8 max-w-7xl mx-auto">
+        <div className="w-full p-6 space-y-8">
             <div>
                 <h1 className="text-2xl font-semibold tracking-tight">Estadísticas de ciudadanos</h1>
                 <p className="text-sm text-muted-foreground mt-0.5">

@@ -160,8 +160,8 @@ export function ShowCitizensPage() {
     }
 
     return (
-        <div className="flex justify-center p-6">
-            <div className="w-full max-w-3xl space-y-4">
+        <div className="w-full p-6">
+            <div className="w-full space-y-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Usuarios</CardTitle>

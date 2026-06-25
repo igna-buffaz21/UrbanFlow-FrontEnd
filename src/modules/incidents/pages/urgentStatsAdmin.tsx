@@ -227,7 +227,7 @@ export function UrgentStatsPage() {
     }
 
     return (
-        <div className="p-6 space-y-8 max-w-7xl mx-auto">
+        <div className="w-full p-6 space-y-8">
             <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950">
                     <Flame className="size-6 text-red-500" />
