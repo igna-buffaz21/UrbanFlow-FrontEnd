@@ -26,6 +26,7 @@ export const APP_ROUTES = {
     incidentUrgentStats: "/panel/incidents/stats/urgent",
     incidentMap: "/panel/incidents/map",
     citizenStats: "/panel/users/stats",
+    systemStats: "/panel/system/stats",
   },
 
   operator: {

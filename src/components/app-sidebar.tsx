@@ -22,6 +22,7 @@ import {
   ChartColumnIncreasing,
   User,
   OctagonAlert,
+  Activity,
 } from "lucide-react";
 
 import logo from "@/assets/logo2.png";
@@ -56,6 +57,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: APP_ROUTES.panel.municipalities,
       icon: <PieChartIcon />,
       isActive: true,
+      allowedRoles: [USER_ROLES.SUPERADMIN],
+    },
+    {
+      title: "Estadísticas de uso",
+      url: APP_ROUTES.panel.systemStats,
+      icon: <Activity />,
       allowedRoles: [USER_ROLES.SUPERADMIN],
     },
     {

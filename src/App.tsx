@@ -46,6 +46,7 @@ import IncidentFeed from "./modules/incidents/pages/feedIncident";
 import { ShowCommentsCitizen } from "./modules/incidents/pages/showMyComments";
 import { AdminIncidentMapPage } from "./modules/incidents/pages/incidentMapAdmin";
 import { PanelHomePage } from "./components/panelAdmins";
+import { SystemMetricsPage } from "./modules/system/pages/systemMetrics.page";
 
 function App() {
   const { getToken, isLoaded } = useAuth();
@@ -136,6 +137,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
                   <CreateMunicipality />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.systemStats}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                  <SystemMetricsPage />
                 </ProtectedRoute>
               }
             />

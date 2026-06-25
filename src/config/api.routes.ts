@@ -63,5 +63,10 @@ export const API_ROUTES = {
     resolution: "/incidents/stats/resolution",
     geographic: "/incidents/stats/geographic",
     extended: "/incidents/stats/extended",
+  },
+
+  system: {
+    current: "/superadmin/system/current",
+    history: "/superadmin/system/history",
   }
 } as const;
