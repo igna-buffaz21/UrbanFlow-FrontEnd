@@ -26,7 +26,6 @@ import { CreateUsersPage } from "./modules/users/pages/createUsers.page";
 import { OperatorDetailPage } from "./modules/users/pages/operatorDetail";
 import { ShowProfile } from "./modules/users/pages/showProfile.page";
 import { CompleteProfilePage } from "./modules/users/pages/completeProfile.page";
-import { ResolvedIncidentDetailPage } from "./modules/incidents/pages/resolvedIncidentDetail";
 import { IncidentStatsPage } from "./modules/incidents/pages/incidentStatsAdmin";
 import { UrgentStatsPage } from "./modules/incidents/pages/urgentStatsAdmin";
 
@@ -193,15 +192,6 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
                   <ShowResolvedIncidentsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path={APP_ROUTES.panel.incidentResolvedDetail}
-              element={
-                <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
-                  <ResolvedIncidentDetailPage />
                 </ProtectedRoute>
               }
             />

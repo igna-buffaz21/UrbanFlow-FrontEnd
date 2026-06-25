@@ -5,8 +5,8 @@ import { APP_ROUTES } from "@/config/app.routes";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { IncidentDetailResponse } from "../incidents.type";
-
+import type { IncidentDetailResponse, Incident } from "../incidents.type";
+import { AssignIncidentPage } from "./assignIncident";
 import {
     Card,
     CardContent,
@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { incidentsService } from "../incidents.service";
-import type { Incident } from "../incidents.type";
 import { PRIORITY_LABELS, PRIORITY_STYLES, STATUS_LABELS } from "../incidents.constants";
 
 export function ShowAdminIncidentsPage() {
@@ -45,6 +44,8 @@ export function ShowAdminIncidentsPage() {
     const [searchResult, setSearchResult] = useState<IncidentDetailResponse | null>(null);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     async function handleCodeSearch() {
         if (!codeSearch.trim()) return;
@@ -61,31 +62,30 @@ export function ShowAdminIncidentsPage() {
         }
     }
 
-    useEffect(() => {
-        async function getIncidents() {
-            try {
-                setIsLoading(true);
-
-                const filters = priority !== "all" ? { priority } : undefined;
-                const response = await incidentsService.getIncidents(filters);
-
-                const activeIncidents = response.filter(
-                    (incident) =>
-                        incident.status !== "resolved" &&
-                        incident.status !== "closed" &&
-                        incident.status !== "rejected");
-
-                setIncidents(activeIncidents);
-            } catch (error) {
-                console.error("Error al cargar incidentes:", error);
-                setIncidents([]);
-            } finally {
-                setIsLoading(false);
-            }
+    async function fetchIncidents() {
+        try {
+            setIsLoading(true);
+            const filters = priority !== "all" ? { priority } : undefined;
+            const response = await incidentsService.getIncidents(filters);
+            const activeIncidents = response.filter(
+                (incident) =>
+                    incident.status !== "resolved" &&
+                    incident.status !== "closed" &&
+                    incident.status !== "rejected");
+            setIncidents(activeIncidents);
+        } catch (error) {
+            console.error("Error al cargar incidentes:", error);
+            setIncidents([]);
+        } finally {
+            setIsLoading(false);
         }
+    }
 
-        getIncidents();
+    useEffect(() => {
+        fetchIncidents();
     }, [priority]);
+
+
 
     return (
         <div className="flex justify-center p-6">
@@ -135,7 +135,7 @@ export function ShowAdminIncidentsPage() {
                                     <SelectValue placeholder="Prioridad" />
                                 </SelectTrigger>
 
-                                <SelectContent>
+                                <SelectContent position="popper" side="bottom" sideOffset={4}>
                                     <SelectItem value="all">Todas las prioridades</SelectItem>
                                     <SelectItem value="low">Baja</SelectItem>
                                     <SelectItem value="medium">Media</SelectItem>
@@ -179,9 +179,7 @@ export function ShowAdminIncidentsPage() {
                                             <TableRow
                                                 key={incident.id}
                                                 className="cursor-pointer hover:bg-muted/50"
-                                                onClick={() =>
-                                                    navigate(APP_ROUTES.panel.incidentDetailPath(incident.id))
-                                                }
+                                                onClick={() => { setSelectedId(incident.id); setIsDetailOpen(true); }}
                                             >
                                                 <TableCell className="font-medium">
                                                     {incident.title}
@@ -266,6 +264,16 @@ export function ShowAdminIncidentsPage() {
                             Ver detalle completo
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={isDetailOpen} onOpenChange={(open) => { setIsDetailOpen(open); if (!open) { setSelectedId(null); setTimeout(() => fetchIncidents(), 500); } }}>
+                <DialogContent className="!max-w-[800px] w-full max-h-[90vh] overflow-y-auto">
+                    {selectedId && (
+                        <AssignIncidentPage
+                            id={selectedId}
+                            onClose={() => { setIsDetailOpen(false); setSelectedId(null); setTimeout(() => fetchIncidents(), 500); }}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
         </div>
