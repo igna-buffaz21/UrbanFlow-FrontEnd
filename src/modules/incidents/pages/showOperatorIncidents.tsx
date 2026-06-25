@@ -82,7 +82,7 @@ export function ShowOperatorIncidents() {
             const data = await incidentsService.getAssignedIncidents(filters);
 
             const visibleIncidents = data.filter(
-                (incident) => incident.status !== "resolved"
+                (incident) => incident.status !== "resolved" && incident.status !== "closed"
             );
 
             setIncidents(visibleIncidents);
