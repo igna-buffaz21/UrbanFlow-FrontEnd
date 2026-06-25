@@ -163,15 +163,15 @@ export function ShowOperatorIncidents() {
                         </Select>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {isLoading ? (
-                            <Card>
+                            <Card className="md:col-span-2 xl:col-span-3">
                                 <CardContent className="py-8 text-center">
                                     Cargando...
                                 </CardContent>
                             </Card>
                         ) : incidents.length === 0 ? (
-                            <Card>
+                            <Card className="md:col-span-2 xl:col-span-3">
                                 <CardContent className="py-8 text-center">
                                     No tenés incidentes asignados.
                                 </CardContent>
@@ -181,11 +181,10 @@ export function ShowOperatorIncidents() {
                                 <Card
                                     key={incident.id}
                                     onClick={() => handleOpenDetail(incident.id)}
-                                    className="cursor-pointer transition-all hover:bg-muted/50 hover:border-primary"
+                                    className="cursor-pointer overflow-hidden transition-all hover:bg-muted/50 hover:border-primary"
                                 >
-
                                     {incident.photoUrl && (
-                                        <div className="aspect-video overflow-hidden border-b">
+                                        <div className="h-48 overflow-hidden border-b">
                                             <img
                                                 src={incident.photoUrl}
                                                 alt={incident.title}
@@ -193,6 +192,7 @@ export function ShowOperatorIncidents() {
                                             />
                                         </div>
                                     )}
+
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
@@ -209,9 +209,7 @@ export function ShowOperatorIncidents() {
                                                 </CardDescription>
                                             </div>
 
-                                            <Badge
-                                                variant={PRIORITY_VARIANTS[incident.priority]}
-                                            >
+                                            <Badge variant={PRIORITY_VARIANTS[incident.priority]}>
                                                 {PRIORITY_LABELS[incident.priority]}
                                             </Badge>
                                         </div>
@@ -224,8 +222,7 @@ export function ShowOperatorIncidents() {
                                             </span>
 
                                             <Badge variant="outline">
-                                                {STATUS_LABELS[incident.status] ??
-                                                    incident.status}
+                                                {STATUS_LABELS[incident.status] ?? incident.status}
                                             </Badge>
                                         </div>
                                     </CardContent>

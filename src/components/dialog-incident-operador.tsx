@@ -25,6 +25,7 @@ import {
   Trash2,
   User,
   XIcon,
+  ExternalLink,
 } from "lucide-react";
 import {
   Dialog,
@@ -41,6 +42,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
+import { Map } from "@/components/ui/map";
+import {
+  MapMarker,
+  MarkerContent,
+  MarkerPopup,
+  MarkerTooltip,
+} from "@/components/ui/map";
+import { toast } from "sonner";
 
 type IncidentPriority = "low" | "medium" | "high";
 type IncidentStatus = "assigned" | "in_progress" | "resolved";
@@ -48,9 +57,9 @@ type IncidentStatus = "assigned" | "in_progress" | "resolved";
 type IncidentCategory =
   | string
   | {
-      id: string;
-      name: string;
-    }
+    id: string;
+    name: string;
+  }
   | null;
 
 type IncidentDetailOperador = {
@@ -61,6 +70,10 @@ type IncidentDetailOperador = {
   category: IncidentCategory;
   status: IncidentStatus;
   priority: IncidentPriority;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  } | null;
   createdAt: string;
   is_owner: boolean;
   createdBy: {
@@ -211,7 +224,7 @@ export function IncidentDetailDialogOperador({
     if (!incidentId) return;
 
     if (selectedStatus === "resolved" && !resolvedImage) {
-      alert("Para marcarlo como resuelto tenés que subir una foto.");
+      toast.error("Para marcarlo como resuelto tenés que subir una foto.");
       return;
     }
 
@@ -227,10 +240,11 @@ export function IncidentDetailDialogOperador({
 
       await incidentsService.updateIncidentStatus(incidentId, formData);
 
+      toast.success("Estado actualizado correctamente.");
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      alert(getErrorMessage(error));
+      toast.error(getErrorMessage(error));
     } finally {
       setIsSavingStatus(false);
     }
@@ -403,6 +417,46 @@ export function IncidentDetailDialogOperador({
                 </div>
               </div>
 
+              {incident.location && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Ubicación del incidente
+                    </span>
+
+                    <a
+                      href={`https://www.google.com/maps?q=${incident.location.coordinates[1]},${incident.location.coordinates[0]}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      Ver en Google Maps
+                      <ExternalLink className="size-3" />
+                    </a>
+                  </div>
+
+                  <div className="h-72 overflow-hidden rounded-lg border sm:h-80">
+                    <Map center={incident.location.coordinates} zoom={16}>
+                      <MapMarker
+                        longitude={incident.location.coordinates[0]}
+                        latitude={incident.location.coordinates[1]}
+                      >
+                        <MarkerContent>
+                          <div className="size-4 rounded-full border-2 border-white bg-red-600 shadow-lg" />
+                        </MarkerContent>
+
+                        <MarkerTooltip>{incident.title}</MarkerTooltip>
+
+                        <MarkerPopup>
+                          <div>
+                            <p className="font-medium">{incident.title}</p>
+                          </div>
+                        </MarkerPopup>
+                      </MapMarker>
+                    </Map>
+                  </div>
+                </div>
+              )}
               {isOperator && (
                 <div className="space-y-3 rounded-xl border bg-background p-4">
                   <p className="text-sm font-medium">Actualizar estado</p>
