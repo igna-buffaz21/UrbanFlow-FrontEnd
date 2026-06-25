@@ -16,9 +16,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Trash2, UserCheck, UserX } from "lucide-react";
 import { notify } from "@/lib/notify";
 
-export function AssignIncidentPage() {
-    const { id } = useParams<{ id: string }>();
+interface AssignIncidentPageProps {
+    id?: string;
+    onClose?: () => void;
+}
+
+export function AssignIncidentPage({ id: propId, onClose }: AssignIncidentPageProps = {}) {
+    const params = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const id = propId ?? params.id;
 
     const [incident, setIncident] = useState<AdminIncidentDetail | null>(null);
     const [operators, setOperators] = useState<GetUser[]>([]);
@@ -74,8 +80,7 @@ export function AssignIncidentPage() {
                 }
             );
 
-            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
-
+            setTimeout(() => { if (onClose) onClose(); else navigate(APP_ROUTES.panel.incidents); }, 1500);
 
         } finally {
             setIsAssigning(false);
@@ -90,7 +95,7 @@ export function AssignIncidentPage() {
             notify.success("Incidente rechazado.");
             setIsRejectDialogOpen(false);
             setRejectionReason("");
-            setTimeout(() => navigate(APP_ROUTES.panel.incidents), 1500);
+            setTimeout(() => { if (onClose) onClose(); else navigate(APP_ROUTES.panel.incidents); }, 1500);
         } catch {
             notify.error("Error al rechazar el incidente.");
         } finally {
@@ -118,7 +123,8 @@ export function AssignIncidentPage() {
     }
 
     function handleCancel() {
-        navigate(APP_ROUTES.panel.incidents);
+        if (onClose) onClose();
+        else navigate(APP_ROUTES.panel.incidents);
     }
 
     if (isLoading) {
