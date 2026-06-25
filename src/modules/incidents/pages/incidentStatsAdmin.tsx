@@ -179,7 +179,7 @@ export function IncidentStatsPage() {
     const overall = resolution?.overall;
 
     const frequencyBarData = useMemo(() =>
-        frequency.map(f => ({
+        frequency.filter(f => f.categoryName !== "Sin categoría").map(f => ({
             name: f.categoryLabel ?? f.categoryName ?? "Sin categoría",
             Abierto: f.open ?? 0,
             Asignado: f.assigned ?? 0,
@@ -191,7 +191,7 @@ export function IncidentStatsPage() {
     );
 
     const resolutionBarData = useMemo(() =>
-        (resolution?.byCategory ?? []).map(c => ({
+        (resolution?.byCategory ?? []).filter(c => c.categoryName !== "Sin categoría").map(c => ({
             name: c.categoryLabel ?? c.categoryName ?? "Sin categoría",
             TasaCierre: parseFloat(c.closureRate.toFixed(1)),
             TiempoPromedio: c.avgResolutionHours !== null ? parseFloat(c.avgResolutionHours.toFixed(1)) : null,
