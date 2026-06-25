@@ -14,6 +14,7 @@ export const API_ROUTES = {
   municipalities: {
     getMunicipalities: "/municipalities",
     createMunicipality: "/municipalities",
+    updateMunicipalityStatus: (id: string) => `/municipalities/${id}`,
   },
 
 
@@ -69,5 +70,6 @@ export const API_ROUTES = {
     current: "/superadmin/system/current",
     history: "/superadmin/system/history",
     overview: "/superadmin/system/overview",
+    municipalityUsage: (id: string) => `/superadmin/system/municipalities/${id}/usage`,
   }
 } as const;

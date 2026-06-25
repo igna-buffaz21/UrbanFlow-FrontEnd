@@ -17,6 +17,8 @@ export const APP_ROUTES = {
     incidentHistory: "/panel/incidents/history",
     municipalities: "/panel/municipalities",
     createMunicipality: "/panel/municipalities/create",
+    municipalityUsage: "municipalities/:id/usage",
+    municipalityUsagePath: (id: string) => `/panel/municipalities/${id}/usage`,
     operatorDetail: "operators/:id",
     operatorDetailPath: (id: string) => `/panel/operators/${id}`,
     incidentResolved: "/panel/incidents/resolved",

@@ -32,6 +32,7 @@ import { UrgentStatsPage } from "./modules/incidents/pages/urgentStatsAdmin";
 
 import { ShowMunicipalitiesPage } from "./modules/municipalities/pages/showMunicipalities";
 import { CreateMunicipality } from "./modules/municipalities/pages/createMunicipalities";
+import { MunicipalityUsagePage } from "./modules/municipalities/pages/municipalityUsage.page";
 
 import { ShowIncidents } from "./modules/incidents/pages/showIncidents";
 import { ShowAdminIncidentsPage } from "./modules/incidents/pages/showPanelIncidentsAdmin";
@@ -138,6 +139,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
                   <CreateMunicipality />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path={APP_ROUTES.panel.municipalityUsage}
+              element={
+                <ProtectedRoute allowedRoles={[USER_ROLES.SUPERADMIN]}>
+                  <MunicipalityUsagePage />
                 </ProtectedRoute>
               }
             />
