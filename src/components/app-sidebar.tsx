@@ -20,7 +20,6 @@ import {
   PieChartIcon,
   MapIcon,
   ChartColumnIncreasing,
-  User,
   OctagonAlert,
   Activity,
 } from "lucide-react";
@@ -121,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
       ],
     },
-    {
+    /*{
       title: "Usuarios",
       url: APP_ROUTES.panel.citizens,
       icon: <User />,
@@ -136,7 +135,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: APP_ROUTES.panel.citizenStats,
         },
       ],
-    },
+    },*/
     {
       title: "Incidentes",
       url: APP_ROUTES.operator.root,
