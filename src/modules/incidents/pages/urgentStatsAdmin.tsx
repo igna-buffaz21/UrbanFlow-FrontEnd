@@ -103,7 +103,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     );
 }
 
-const PRIORITY_FILTER = { params: { priority: "medium" } };
+const PRIORITY_FILTER = { params: { priority: "high" } };
 
 export function UrgentStatsPage() {
     const [frequency, setFrequency] = useState<FrequencyByCategoryResult[]>([]);
@@ -141,7 +141,7 @@ export function UrgentStatsPage() {
             try {
                 const extData = await api.get<ExtendedStatsResult>(
                     API_ROUTES.incident_stats.extended,
-                    { params: { groupBy, priority: "medium" } }
+                    { params: { groupBy, priority: "high" } }
                 ).then(r => r.data);
                 setExtended(extData);
             } catch (err) {
